@@ -297,15 +297,27 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}-*/;
 
 	// call into ripple.js
-	static native void updateRippleGL(double bright, boolean threed) /*-{
+	static native void updateRippleGL(int src, double bright, boolean threed) /*-{
 		if (threed)
-			this.updateRipple3D(bright);
+			this.updateRipple3D(src, bright);
 		else
-			this.updateRipple(bright);
+			this.updateRipple(src, bright);
 	}-*/;
 
-	static native void simulate() /*-{
-		this.simulate();
+	static native void setDestination(int d) /*-{
+		this.setDestination(d);
+	}-*/;
+
+	static native void clearDestination() /*-{
+		this.clearDestination();
+	}-*/;
+
+	static native void runRelax(int s) /*-{
+		this.runRelax(s);
+	}-*/;
+
+	static native int getRenderTextureCount() /*-{
+		return this.getRenderTextureCount();
 	}-*/;
 
 	static native void setAcoustic(boolean ac) /*-{
@@ -939,26 +951,60 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setTransform(1, 0, 0, 0, 1, 0);
 	}
 
+	String lastLog = "";
+	
 	public void updateRipple() {
 			if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
 			}
-			int iterCount = speedBar.getValue();
+			int iterCount = speedBar.getValue() *100;
 			if (stoppedCheck.getState())
-				iterCount = 0;
+				return;
+//				iterCount = 0;
 			int i;
 			setAcoustic(waveChooser.getSelectedIndex() == WAVE_SOUND);
-			for (i = 0; i != iterCount; i++) {
-				simulate();
-				t += .25;
-				int j;
-				for (j = 0; j != dragObjects.size(); j++)
-					dragObjects.get(j).run();
-				iters++;
+			int rtnum = getRenderTextureCount();
+			setDestination(0);
+			clearDestination();
+			setDestination(1);
+			clearDestination();
+			int si = 0;
+			int lastrd = 0;
+			int fn = freqBar.getValue();
+			if ((fn & 1) != 0)
+				fn--;
+			if (fn < rtnum)
+				rtnum = fn;
+			String log = "calc " + rtnum + " " + iterCount;
+			if (!log.equals(lastLog))
+				console(log);
+			lastLog = log;
+			for (si = 0; si != rtnum; si += 2) {
+				int rd = si;
+				int rs = si+1;
+				int ic = iterCount;
+/*				if (si < 8)
+					ic = 140;*/
+				for (i = 0; i != ic; i++) {
+					t += .25;
+					setDestination(lastrd);
+					int j;
+					if (lastrd != si && lastrd != si+1)
+						clearDestination();
+					for (j = 0; j != dragObjects.size(); j++)
+						dragObjects.get(j).run();
+					setDestination(rd);
+					runRelax(lastrd);
+					iters++;
+					lastrd = rd;
+					int q = rs;
+					rs = rd;
+					rd = q;
+				}
 			}
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(brightMult, view3dCheck.getState());
+			updateRippleGL(lastrd, brightMult, view3dCheck.getState());
 			if (!view3dCheck.getState())
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
@@ -1038,6 +1084,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 
 	void setResolution(int newWidth, int border) {
+		newWidth = 512;
+		border = 0;
 		int oldWidth = windowWidth;
 		if (newWidth == oldWidth && border == 0)
 			return;
@@ -1046,6 +1094,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (border < 20)
 				border = 20;
 		}
+		border = 0;
 		if (resBar.getValue() != newWidth)
 			resBar.setValue(newWidth);
 		windowWidth = windowHeight = newWidth;
@@ -1644,6 +1693,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				break;
 			}
 		}
+		/*
 		if (src1 == null)
 			freqBar.disable();
 		else {
@@ -1652,6 +1702,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			freqBar.setValue((int)(src1.frequency/freqMult));
 			ignoreFreqBarSetting = false;
 		}
+		*/
 	}
 	
 	@Override
