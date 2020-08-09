@@ -117,6 +117,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Button exportButton;
 	Checkbox stoppedCheck;
 	Checkbox view3dCheck;
+	Checkbox debug1Check, debug2Check;
 	Choice setupChooser;
 	Choice colorChooser;
 	Choice waveChooser;
@@ -312,8 +313,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.clearDestination();
 	}-*/;
 
-	static native void runRelax(int s) /*-{
-		this.runRelax(s);
+	static native void runRelax(int src, int b, boolean residual) /*-{
+		this.runRelax(src, b, residual);
+	}-*/;
+
+	static native void copy(int src) /*-{
+		this.copy(src);
 	}-*/;
 
 	static native int getRenderTextureCount() /*-{
@@ -482,6 +487,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
 		verticalPanel.add(view3dCheck = new Checkbox("3-D View"));
 
+		verticalPanel.add(debug1Check = new Checkbox("Calc Residual"));
+		verticalPanel.add(debug2Check = new Checkbox("Debug 2"));
+
         if (LoadFile.isSupported())
             verticalPanel.add(loadFileInput = new LoadFile(this));
 
@@ -489,7 +497,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		Label l;
 		verticalPanel.add(l = new Label("Simulation Speed"));
         l.addStyleName("topSpace");
-		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 40));
+		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 120));
 		verticalPanel.add(l = new Label("Resolution"));
         l.addStyleName("topSpace");
 		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
@@ -509,7 +517,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //		freqBar.addClickHandler(this);
 		verticalPanel.add(l = new Label("Brightness"));
         l.addStyleName("topSpace");
-		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 1200));
+		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200));
 		
         verticalPanel.add(iFrame = new Frame("iframe.html"));
         iFrame.setWidth(verticalPanelWidth+"px");
@@ -958,53 +966,47 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				prepareObjects();
 				changedWalls = false;
 			}
-			int iterCount = speedBar.getValue() *10;
+			int iterCount = speedBar.getValue();
 			if (stoppedCheck.getState())
 				return;
 //				iterCount = 0;
-			int i;
-			setAcoustic(waveChooser.getSelectedIndex() == WAVE_SOUND);
-			int rtnum = getRenderTextureCount();
+			int i, j;
+
+//			int rtnum = getRenderTextureCount();
 			setDestination(0);
 			clearDestination();
 			setDestination(1);
 			clearDestination();
-			int si = 0;
-			int lastrd = 0;
-			int fn = freqBar.getValue();
-			if ((fn & 1) != 0)
-				fn--;
-			if (fn < rtnum)
-				rtnum = fn;
-			String log = "calc " + rtnum + " " + iterCount;
-			if (!log.equals(lastLog))
-				console(log);
-			lastLog = log;
-			for (si = 0; si != rtnum; si += 2) {
-				int rd = si;
-				int rs = si+1;
-				int ic = iterCount;
-/*				if (si < 8)
-					ic = 140;*/
-				for (i = 0; i != ic; i++) {
-					t += .25;
-					setDestination(lastrd);
-					int j;
-					if (lastrd != si && lastrd != si+1)
-						clearDestination();
-					for (j = 0; j != dragObjects.size(); j++)
-						dragObjects.get(j).run();
-					setDestination(rd);
-					runRelax(lastrd);
-					iters++;
-					lastrd = rd;
-					int q = rs;
-					rs = rd;
-					rd = q;
-				}
+			int src = 0;
+			int dest = 2;
+			for (j = 0; j != dragObjects.size(); j++)
+				dragObjects.get(j).run();
+			
+			// iterate a few times on coarse grid
+			for (i = 0; i != iterCount; i++) {
+				setDestination(dest);
+				runRelax(src, 1, false);
+				int q = dest;
+				dest = src;
+				src = q;
 			}
+			
+			// interpolate to finer grid
+//			dest = 3;
+//			setDestination(dest);
+//			copy(src);
+//			dest = 4; src = 3;
+			
+			if (debug1Check.getState()) {
+				// calculate residual
+				setDestination(dest);
+				runRelax(src, 1, true);
+			} else {
+				dest = src;
+			}
+			
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(lastrd, brightMult, view3dCheck.getState());
+			updateRippleGL(dest, brightMult, view3dCheck.getState());
 			if (!view3dCheck.getState())
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
