@@ -958,7 +958,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				prepareObjects();
 				changedWalls = false;
 			}
-			int iterCount = speedBar.getValue() *100;
+			int iterCount = speedBar.getValue() *10;
 			if (stoppedCheck.getState())
 				return;
 //				iterCount = 0;
