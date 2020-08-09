@@ -975,8 +975,9 @@ var renderTextures = [];
     		for (var i = 0; i != renderTextures.length; i++)
     			deleteRenderTexture(renderTextures[i]);
     		renderTextures = [];
-    		var sz = 8;
+    		var sz = 16;
     		while (1) {
+    			console.log("creating buffers size " + sz + " at " + renderTextures.length);
     			renderTextures.push(initTextureFramebuffer(sz));
     			renderTextures.push(initTextureFramebuffer(sz));
     			if (sz >= gridSizeX)
