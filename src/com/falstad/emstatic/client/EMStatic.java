@@ -501,7 +501,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		Label l;
 		verticalPanel.add(l = new Label("Simulation Speed"));
         l.addStyleName("topSpace");
-		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 120));
+		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 220));
 		verticalPanel.add(l = new Label("Resolution"));
         l.addStyleName("topSpace");
 		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
@@ -993,8 +993,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			for (j = 0; j != dragObjects.size(); j++)
 				dragObjects.get(j).run();
 			
+			int iterCount1 = 6;
+			
 			// iterate a few times on coarse grid
-			for (i = 0; i != iterCount; i++) {
+			if (!debug1Check.getState())
+				iterCount1 = iterCount;
+			for (i = 0; i != iterCount1; i++) {
 				setDestination(dest);
 				runRelax(src, 1, false);
 				int q = dest;
@@ -1016,13 +1020,15 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					dragObjects.get(j).run();
 
 				// iterate a few times on fine grid
-				for (i = 0; i != 2; i++) {
+				int fineIterCount = (debug2Check.getState()) ? 2 : iterCount;
+				for (i = 0; i != fineIterCount; i++) {
 					setDestination(dest);
 					runRelax(src, 5, false);
 					int q = dest; dest = src; src = q;
 				}
 
 				int goodSolution = src;
+				int spareGrid = dest;
 				
 				if (debug2Check.getState()) {
 				
@@ -1043,7 +1049,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 					// treat residual as the charges and run a simulation
 					src = 1; dest = 2;
-					for (i = 0; i != iterCount; i++) {
+					for (i = 0; i != iterCount1; i++) {
 						setDestination(dest);
 						runRelax(src, 0, false);
 						int q = dest; dest = src; src = q;
@@ -1051,9 +1057,19 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					
 					// set destination to a fine grid and add result of last step
 					// to the fine grid solution we got earlier.
-					setDestination(5);
+					dest = spareGrid;
+					setDestination(dest);
 					add(src, goodSolution);
-					src = 5;
+					src = dest;
+					dest = goodSolution;
+					
+					// iterate some more on fine grid
+					for (i = 0; i != iterCount; i++) {
+						setDestination(dest);
+						runRelax(src, 5, false);
+						int q = dest; dest = src; src = q;
+					}
+					
 				}
 			}
 			dest = src;
