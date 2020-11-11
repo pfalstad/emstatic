@@ -321,6 +321,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.copy(src);
 	}-*/;
 
+	static native void add(int src, int src2) /*-{
+		this.add(src, src2);
+	}-*/;
+	
 	static native int getRenderTextureCount() /*-{
 		return this.getRenderTextureCount();
 	}-*/;
@@ -973,12 +977,19 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			int i, j;
 
 //			int rtnum = getRenderTextureCount();
+			
+			// render textures 0-2 are size 16
+			// render textures 3-5 are size 32
+			// etc.
+			
 			setDestination(0);
-			clearDestination();
-			setDestination(1);
 			clearDestination();
 			int src = 0;
 			int dest = 2;
+			
+			// need to write charges to render texture 1
+			setDestination(1);
+			clearDestination();
 			for (j = 0; j != dragObjects.size(); j++)
 				dragObjects.get(j).run();
 			
@@ -991,19 +1002,61 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				src = q;
 			}
 			
-			// interpolate to finer grid
-//			dest = 3;
-//			setDestination(dest);
-//			copy(src);
-//			dest = 4; src = 3;
-			
 			if (debug1Check.getState()) {
+				// interpolate to finer grid
+				dest = 3;
+				setDestination(dest);
+				copy(src);
+				dest = 4; src = 3;
+
+				// need to write charges to render texture 5
+				setDestination(5);
+				clearDestination();
+				for (j = 0; j != dragObjects.size(); j++)
+					dragObjects.get(j).run();
+
+				// iterate a few times on fine grid
+				for (i = 0; i != 2; i++) {
+					setDestination(dest);
+					runRelax(src, 5, false);
+					int q = dest; dest = src; src = q;
+				}
+
+				int goodSolution = src;
+				
+				if (debug2Check.getState()) {
+				
 				// calculate residual
 				setDestination(dest);
-				runRelax(src, 1, true);
-			} else {
-				dest = src;
+				runRelax(src, 5, true);
+				src = dest;
+
+				// copy residual to 0 (coarser grid)
+				setDestination(0);
+				copy(src);
+				dest = 0;
+
+
+					// clear rt 1
+					setDestination(1);
+					clearDestination();
+
+					// treat residual as the charges and run a simulation
+					src = 1; dest = 2;
+					for (i = 0; i != iterCount; i++) {
+						setDestination(dest);
+						runRelax(src, 0, false);
+						int q = dest; dest = src; src = q;
+					}
+					
+					// set destination to a fine grid and add result of last step
+					// to the fine grid solution we got earlier.
+					setDestination(5);
+					add(src, goodSolution);
+					src = 5;
+				}
 			}
+			dest = src;
 			
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			updateRippleGL(dest, brightMult, view3dCheck.getState());
