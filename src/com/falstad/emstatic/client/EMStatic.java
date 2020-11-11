@@ -597,7 +597,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// String os = Navigator.getPlatform();
 		// isMac = (os.toLowerCase().contains("mac"));
 		// ctrlMetaKey = (isMac) ? "Cmd" : "Ctrl";
-		timer.scheduleRepeating(FASTTIMER);
+		timer.scheduleRepeating(100); // FASTTIMER);
 
 	}
 	
@@ -965,23 +965,108 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 	String lastLog = "";
 	
+	int solveExactly(int src, int dest, int rs) {
+		console("solve exactly " + src + " " + dest + " " + rs);
+		// iterate a bunch of times to solve
+		int i;
+		for (i = 0; i != 50; i++) {
+			setDestination(dest);
+			runRelax(src, rs, false);
+			int q = dest;
+			dest = src;
+			src = q;
+		}
+		
+		return src;
+	}
+	
+	// calculate improved solution given an initial guess, and the right side.
+	int multigridVCycle(int src, int dest, int rsGrid) {
+		console("vcycle " + src + " " + dest + " " + rsGrid);
+		if (src < 3)
+			return solveExactly(src, dest, rsGrid);
+		
+		// iterate a few times on fine grid
+		int iterCount = 3;
+		int i;
+		for (i = 0; i != iterCount; i++) {
+			setDestination(dest);
+			runRelax(src, rsGrid, false);
+			int q = dest; dest = src; src = q;
+		}
+		
+		// calculate residual
+		setDestination(dest);
+		runRelax(src, rsGrid, true);
+
+		// restrict residual to coarser grid
+		int coarseResidual = rsGrid-3;
+		setDestination(coarseResidual);
+		copy(dest);
+
+		// start with zeroes as initial guess
+		setDestination(src-3);
+		clearDestination();
+		
+		// solve coarser problem recursively
+		int correction = multigridVCycle(src-3, dest-3, coarseResidual);
+		
+		// set destination to a fine grid and add result of last step
+		// to the fine grid solution we got earlier.
+		setDestination(dest);
+		add(correction, src);
+		{ int q = dest; dest = src; src = q; }
+
+		// iterate some more on fine grid
+		for (i = 0; i != iterCount; i++) {
+			setDestination(dest);
+			runRelax(src, rsGrid, false);
+			int q = dest; dest = src; src = q;
+		}
+		
+		return src;
+	}
+	
+	void createRightSide(int dest) {
+		int j;
+		setDestination(dest);
+		clearDestination();
+		for (j = 0; j != dragObjects.size(); j++)
+			dragObjects.get(j).run();
+	}
+	
 	public void updateRipple() {
 			if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
 			}
-			int iterCount = speedBar.getValue();
+			int level = speedBar.getValue();
 			if (stoppedCheck.getState())
 				return;
 //				iterCount = 0;
 			int i, j;
 
-//			int rtnum = getRenderTextureCount();
+			createRightSide(2);
+			solveExactly(0, 1, 2);
+			
+			int rtnum = getRenderTextureCount();
+			int src = 1;
+			for (i = 3; i < rtnum; i += 3) {
+				// interpolate to finer grid
+				setDestination(i);
+				copy(src);
+				
+				createRightSide(i+2);
+				src = multigridVCycle(i, i+1, i+2);
+				if (i > level) break;
+			}
+			console("result = " + src);
 			
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
 			
+			/*
 			setDestination(0);
 			clearDestination();
 			int src = 0;
@@ -1072,10 +1157,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					
 				}
 			}
-			dest = src;
+			*/
 			
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(dest, brightMult, view3dCheck.getState());
+			updateRippleGL(src, brightMult, view3dCheck.getState());
 			if (!view3dCheck.getState())
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
