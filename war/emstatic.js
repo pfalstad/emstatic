@@ -97,6 +97,7 @@ var renderTextures = [];
     	shaderProgramResidual.stepSizeXUniform = gl.getUniformLocation(shaderProgramResidual, "stepSizeX");
     	shaderProgramResidual.stepSizeYUniform = gl.getUniformLocation(shaderProgramResidual, "stepSizeY");
 
+    	shaderProgramAdd = initShader("shader-add-fs", "shader-vs", null);
     	shaderProgramCopy = initShader("shader-copy-fs", "shader-vs", null);
 
     	shaderProgramAcoustic = initShader("shader-simulate-fs", "shader-vs", "#define ACOUSTIC 1\n");
@@ -415,6 +416,54 @@ var renderTextures = [];
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.uniform1i(prog.sourceTextureUniform, 0);
+ 
+        setMatrixUniforms(prog);
+        gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
+        gl.disableVertexAttribArray(prog.dampingAttribute);
+        gl.disableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.disableVertexAttribArray(prog.textureCoordAttribute);
+    }
+
+    function add(srcnum, rsnum) {
+    	var sourceRT = renderTextures[srcnum];
+    	var rightSideRT = renderTextures[rsnum];
+        var prog = shaderProgramAdd;
+        gl.useProgram(prog);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+
+    	simPosition = [];
+    	simTextureCoord = [];
+
+    	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexPositionBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simPosition), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.vertexPositionAttribute, simVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexTextureCoordBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(prog.dampingAttribute);
+        gl.enableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.enableVertexAttribArray(prog.textureCoordAttribute);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
+        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.uniform1i(prog.sourceTextureUniform, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, rightSideRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.uniform1i(prog.rightSideTextureUniform, 1);
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
@@ -1023,6 +1072,7 @@ var renderTextures = [];
     	sim.updateRipple = function updateRipple (s, bright) { drawScene(s, bright); }
     	sim.updateRipple3D = function updateRipple3D (s, bright) { drawScene3D(s, bright); }
     	sim.runRelax = function (s, b, resid) { simulate(s, b, resid); }
+    	sim.add = function (s, b) { add(s, b); }
     	sim.copy = function (s) { copy(s); }
     	sim.setResolution = function (x, y, wx, wy) {
     		gridSizeX = x;

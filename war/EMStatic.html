@@ -245,10 +245,30 @@ void main()
                 highp float mid4 = getSquare(vec2(0., -stepSizeY));
                 highp float mid = (mid1+mid2+mid3+mid4); // equilibrium position is average of neighbors
                 newpos = (mid-4.*pos)/(stepSizeX*stepSizeY) + rv.g;
+newvel = newpos;
 //				newpos = .25*stepSizeX*stepSizeY*(mid - 4.*pos) + rv.g*stepSizeX*stepSizeY;
         }
 		// update position and velocity
         gl_FragColor = vec4(newpos, newvel, pv.b, 1.);
+}
+
+</script>
+
+<script id="shader-add-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+    varying vec4 vPosition;
+    varying float vDamping;
+
+    uniform sampler2D uSourceTexture;
+    uniform sampler2D uRightSideTexture;
+
+void main()
+{
+        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+        highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
+        gl_FragColor = pv+rv;
 }
 
 </script>
