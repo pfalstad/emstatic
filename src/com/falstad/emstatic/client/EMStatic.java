@@ -117,7 +117,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Button exportButton;
 	Checkbox stoppedCheck;
 	Checkbox view3dCheck;
-	Checkbox debug1Check, debug2Check;
+	Checkbox debugCheck1, debugCheck2;
 	Choice setupChooser;
 	Choice colorChooser;
 	Choice waveChooser;
@@ -131,6 +131,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Scrollbar freqBar;
 	Scrollbar resBar;
 	Scrollbar brightnessBar;
+	Scrollbar debugBar1, debugBar2;
 	double dampcoef;
 	double freqTimeZero;
 	double movingSourcePos = 0;
@@ -491,8 +492,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
 		verticalPanel.add(view3dCheck = new Checkbox("3-D View"));
 
-		verticalPanel.add(debug1Check = new Checkbox("Calc Residual"));
-		verticalPanel.add(debug2Check = new Checkbox("Debug 2"));
+		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
+		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
 
         if (LoadFile.isSupported())
             verticalPanel.add(loadFileInput = new LoadFile(this));
@@ -507,6 +508,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
 		resBar.addClickHandler(this);
 		setResolution();
+		
+		verticalPanel.add(l = new Label("Debug Bar 1"));
+		verticalPanel.add(debugBar1 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
+		resBar.addClickHandler(this);
+		verticalPanel.add(l = new Label("Debug Bar 2"));
+		verticalPanel.add(debugBar2 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
+		resBar.addClickHandler(this);
+		
 //		verticalPanel.add(new Label("Damping"));
 //		verticalPanel.add(
 				dampingBar = new Scrollbar(Scrollbar.HORIZONTAL, 10, 1, 2, 100);
@@ -535,6 +544,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		speedBar.setWidth(verticalPanelWidth);
 		freqBar.setWidth(verticalPanelWidth);
 		brightnessBar.setWidth(verticalPanelWidth);
+		debugBar1.setWidth(verticalPanelWidth);
+		debugBar2.setWidth(verticalPanelWidth);
 
 		absolutePanel = new AbsolutePanel();
 		coordsLabel = new Label("(0,0)");
@@ -964,17 +975,26 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 
 	String lastLog = "";
+	int stepCount, maxSteps;
 	
 	int solveExactly(int src, int dest, int rs) {
-		console("solve exactly " + src + " " + dest + " " + rs);
+//		console("solve exactly " + src + " " + dest + " " + rs);
 		// iterate a bunch of times to solve
 		int i;
 		for (i = 0; i != 50; i++) {
+//			console("solving " + dest + " " + src + " " + rs);
 			setDestination(dest);
 			runRelax(src, rs, false);
 			int q = dest;
 			dest = src;
 			src = q;
+		}
+		lastDest = dest; lastSrc = src; lastRsGrid = rs;
+//		console("iterated " + i + " times, rsgrid = " + rs);
+		
+		if (++stepCount == maxSteps) {
+			console("exact solution " + stepCount);
+			return src;
 		}
 		
 		return src;
@@ -995,21 +1015,39 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			int q = dest; dest = src; src = q;
 		}
 		
+		if (++stepCount == maxSteps) {
+			console("vcycle after iterating a few times " + stepCount);
+			return src;
+		}
+		
 		// calculate residual
 		setDestination(dest);
 		runRelax(src, rsGrid, true);
+
+		if (++stepCount == maxSteps) {
+			console("vcycle residual " + stepCount);
+			return dest;
+		}
 
 		// restrict residual to coarser grid
 		int coarseResidual = rsGrid-3;
 		setDestination(coarseResidual);
 		copy(dest);
 
+		if (++stepCount == maxSteps) {
+			console("vcycle residual coarse " + stepCount);
+			return coarseResidual;
+		}
+		
 		// start with zeroes as initial guess
 		setDestination(src-3);
 		clearDestination();
 		
 		// solve coarser problem recursively
 		int correction = multigridVCycle(src-3, dest-3, coarseResidual);
+
+		if (stepCount >= maxSteps)
+			return correction;
 		
 		// set destination to a fine grid and add result of last step
 		// to the fine grid solution we got earlier.
@@ -1017,16 +1055,29 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		add(correction, src);
 		{ int q = dest; dest = src; src = q; }
 
+		if (++stepCount == maxSteps) {
+			console("vcycle added correction " + stepCount + " grid " + src);
+			return src;
+		}
+
 		// iterate some more on fine grid
 		for (i = 0; i != iterCount; i++) {
 			setDestination(dest);
 			runRelax(src, rsGrid, false);
 			int q = dest; dest = src; src = q;
+			lastRsGrid = rsGrid; lastSrc = src; lastDest = dest;
+		}
+
+		if (++stepCount == maxSteps) {
+			console("vcycle final iterations " + stepCount + " grid " + src);
+			return src;
 		}
 		
 		return src;
 	}
 	
+	int lastRsGrid, lastSrc, lastDest;
+
 	void createRightSide(int dest) {
 		int j;
 		setDestination(dest);
@@ -1040,124 +1091,56 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				prepareObjects();
 				changedWalls = false;
 			}
-			int level = speedBar.getValue();
+			int level = debugBar1.getValue();
 			if (stoppedCheck.getState())
 				return;
 //				iterCount = 0;
-			int i, j;
+			int i;
 
 			createRightSide(2);
+			// start with 0
+			setDestination(0);
+			clearDestination();
 			solveExactly(0, 1, 2);
+			
+			maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
+			stepCount = 0;
 			
 			int rtnum = getRenderTextureCount();
 			int src = 1;
 			for (i = 3; i < rtnum; i += 3) {
+				
+				if (i >= level && debugCheck1.getState()) {
+					int j;
+					int dest = lastDest;
+					for (j = 0; j < speedBar.getValue(); j++) {
+						setDestination(dest);
+						runRelax(src, lastRsGrid, false);
+						int q = dest; dest = src; src = q;
+					}
+					console("iterated another " + j + " times, rsgrid = " + lastRsGrid);
+					break;
+				}
+				
 				// interpolate to finer grid
 				setDestination(i);
 				copy(src);
+				if (++stepCount == maxSteps) {
+					console(stepCount + " copy");
+					src = i;
+					break;
+				}
 				
 				createRightSide(i+2);
 				src = multigridVCycle(i, i+1, i+2);
-				if (i > level) break;
+				if (stepCount >= maxSteps)
+					break;
 			}
-			console("result = " + src);
+//			console("result = " + src);
 			
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
-			
-			/*
-			setDestination(0);
-			clearDestination();
-			int src = 0;
-			int dest = 2;
-			
-			// need to write charges to render texture 1
-			setDestination(1);
-			clearDestination();
-			for (j = 0; j != dragObjects.size(); j++)
-				dragObjects.get(j).run();
-			
-			int iterCount1 = 6;
-			
-			// iterate a few times on coarse grid
-			if (!debug1Check.getState())
-				iterCount1 = iterCount;
-			for (i = 0; i != iterCount1; i++) {
-				setDestination(dest);
-				runRelax(src, 1, false);
-				int q = dest;
-				dest = src;
-				src = q;
-			}
-			
-			if (debug1Check.getState()) {
-				// interpolate to finer grid
-				dest = 3;
-				setDestination(dest);
-				copy(src);
-				dest = 4; src = 3;
-
-				// need to write charges to render texture 5
-				setDestination(5);
-				clearDestination();
-				for (j = 0; j != dragObjects.size(); j++)
-					dragObjects.get(j).run();
-
-				// iterate a few times on fine grid
-				int fineIterCount = (debug2Check.getState()) ? 2 : iterCount;
-				for (i = 0; i != fineIterCount; i++) {
-					setDestination(dest);
-					runRelax(src, 5, false);
-					int q = dest; dest = src; src = q;
-				}
-
-				int goodSolution = src;
-				int spareGrid = dest;
-				
-				if (debug2Check.getState()) {
-				
-				// calculate residual
-				setDestination(dest);
-				runRelax(src, 5, true);
-				src = dest;
-
-				// copy residual to 0 (coarser grid)
-				setDestination(0);
-				copy(src);
-				dest = 0;
-
-
-					// clear rt 1
-					setDestination(1);
-					clearDestination();
-
-					// treat residual as the charges and run a simulation
-					src = 1; dest = 2;
-					for (i = 0; i != iterCount1; i++) {
-						setDestination(dest);
-						runRelax(src, 0, false);
-						int q = dest; dest = src; src = q;
-					}
-					
-					// set destination to a fine grid and add result of last step
-					// to the fine grid solution we got earlier.
-					dest = spareGrid;
-					setDestination(dest);
-					add(src, goodSolution);
-					src = dest;
-					dest = goodSolution;
-					
-					// iterate some more on fine grid
-					for (i = 0; i != iterCount; i++) {
-						setDestination(dest);
-						runRelax(src, 5, false);
-						int q = dest; dest = src; src = q;
-					}
-					
-				}
-			}
-			*/
 			
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			updateRippleGL(src, brightMult, view3dCheck.getState());
