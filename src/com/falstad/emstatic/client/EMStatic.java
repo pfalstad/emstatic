@@ -1097,16 +1097,21 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //				iterCount = 0;
 			int i;
 
-			createRightSide(2);
+			int rtnum = getRenderTextureCount();
+			createRightSide(rtnum-1);
+			for (i = rtnum-1-3; i > 0; i -= 3) {
+				setDestination(i);
+				copy(i+3);
+			}
+			
 			// start with 0
 			setDestination(0);
 			clearDestination();
 			solveExactly(0, 1, 2);
-			
+
 			maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
 			stepCount = 0;
 			
-			int rtnum = getRenderTextureCount();
 			int src = 1;
 			for (i = 3; i < rtnum; i += 3) {
 				
@@ -1125,13 +1130,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				// interpolate to finer grid
 				setDestination(i);
 				copy(src);
-				if (++stepCount == maxSteps) {
-					console(stepCount + " copy");
-					src = i;
-					break;
-				}
 				
-				createRightSide(i+2);
 				src = multigridVCycle(i, i+1, i+2);
 				if (stepCount >= maxSteps)
 					break;
@@ -1141,7 +1140,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
-			
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			updateRippleGL(src, brightMult, view3dCheck.getState());
 			if (!view3dCheck.getState())
