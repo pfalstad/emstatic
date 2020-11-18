@@ -608,7 +608,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// String os = Navigator.getPlatform();
 		// isMac = (os.toLowerCase().contains("mac"));
 		// ctrlMetaKey = (isMac) ? "Cmd" : "Ctrl";
-		timer.scheduleRepeating(100); // FASTTIMER);
+		timer.scheduleRepeating(FASTTIMER);
 
 	}
 	
@@ -1002,7 +1002,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	// calculate improved solution given an initial guess, and the right side.
 	int multigridVCycle(int src, int dest, int rsGrid) {
-		console("vcycle " + src + " " + dest + " " + rsGrid);
 		if (src < 3)
 			return solveExactly(src, dest, rsGrid);
 		
