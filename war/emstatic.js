@@ -474,7 +474,7 @@ var renderTextures = [];
 
     function drawSource(x, y, f) {
         gl.useProgram(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, f, 1.0, 1.0);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         srcCoords[0] = srcCoords[2] = x;
@@ -489,7 +489,7 @@ var renderTextures = [];
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-		gl.colorMask(false, true, false, false);
+		gl.colorMask(true, false, false, false);
         gl.drawArrays(gl.LINES, 0, 2);
 		gl.colorMask(true, true, true, true);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
@@ -1085,7 +1085,7 @@ var renderTextures = [];
     		for (var i = 0; i != renderTextures.length; i++)
     			deleteRenderTexture(renderTextures[i]);
     		renderTextures = [];
-    		var sz = 16;
+    		var sz = 8;
     		while (1) {
     			console.log("creating buffers size " + sz + " at " + renderTextures.length);
     			renderTextures.push(initTextureFramebuffer(sz));
