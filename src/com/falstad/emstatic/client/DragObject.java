@@ -48,7 +48,8 @@ public abstract class DragObject implements Editable {
 	void prepare() {}
 	void setSelected(boolean s) { selected = s; }
 	boolean isSelected() { return selected; }
-	void run() {}
+	void drawCharge() {}
+	void drawMaterials() {}
 	void delete() {}
 	void setTransform() {
 		if (transform == null) {

@@ -1032,6 +1032,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int coarseResidual = rsGrid-3;
 		setDestination(coarseResidual);
 		copy(dest);
+		
+		// draw materials on coarse grid (should draw all conductors as 0 potentials)
+		drawMaterials();
 
 		if (++stepCount == maxSteps) {
 			console("vcycle residual coarse " + stepCount);
@@ -1082,14 +1085,20 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setDestination(dest);
 		clearDestination();
 		for (j = 0; j != dragObjects.size(); j++)
-			dragObjects.get(j).run();
+			dragObjects.get(j).drawCharge();
+	}
+	
+	void drawMaterials() {
+		int j;
+		for (j = 0; j != dragObjects.size(); j++)
+			dragObjects.get(j).drawMaterials();
 	}
 	
 	public void updateRipple() {
-			if (changedWalls) {
+			/*if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
-			}
+			}*/
 			int level = debugBar1.getValue();
 			if (stoppedCheck.getState())
 				return;
@@ -1098,9 +1107,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 			int rtnum = getRenderTextureCount();
 			createRightSide(rtnum-1);
+			drawMaterials();
+			
 			for (i = rtnum-1-3; i > 0; i -= 3) {
 				setDestination(i);
 				copy(i+3);
+				drawMaterials();
 			}
 			
 			// start with 0
@@ -1113,7 +1125,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			
 			int src = 1;
 			for (i = 3; i < rtnum; i += 3) {
-				
 				if (i >= level && debugCheck1.getState()) {
 					int j;
 					int dest = lastDest;
@@ -1135,7 +1146,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					break;
 			}
 //			console("result = " + src);
-			
+
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.

@@ -648,9 +648,9 @@ var renderTextures = [];
     		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, sim.drawingSelection,
     				sim.drawingSelection, 0, 1.0);
         } else {
-    		var rttFramebuffer = renderTexture1.framebuffer;
-    		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+    		//var rttFramebuffer = renderTexture1.framebuffer;
+    		//gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+    		//gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
             gl.useProgram(shaderProgramDraw);
             
             // blue channel used for walls and media
@@ -693,12 +693,13 @@ var renderTextures = [];
 //        gl.lineWidth(3);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.drawArrays(gl.LINE_STRIP, 0, 3);
+
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.lineWidth(1);
 
 		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     function drawPoke(x, y) {
@@ -853,9 +854,9 @@ var renderTextures = [];
     }
 
     function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, m2) {
-		var rttFramebuffer = renderTexture1.framebuffer;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+		//var rttFramebuffer = renderTexture1.framebuffer;
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+		//gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
 		gl.colorMask(false, false, true, false);
 //		gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(shaderProgramDraw);
@@ -1061,7 +1062,7 @@ var renderTextures = [];
 //    	initBuffers();
     	initTextures();
         mat4.identity(matrix3d);
-		mat4.rotateX(matrix3d, -Math.PI/3);
+	mat4.rotateX(matrix3d, -Math.PI/3);
     	//loadLaptop();
 
 //    	drawWalls(renderTexture1);

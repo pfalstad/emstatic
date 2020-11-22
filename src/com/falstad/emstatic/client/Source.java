@@ -98,7 +98,7 @@ public class Source extends DragObject {
 		return v;
 	}
 	
-	void run() {
+	void drawCharge() {
 		DragHandle dh = handles.get(0);
         double v = getValue();
         if (enabled)

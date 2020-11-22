@@ -24,7 +24,7 @@ public class SolidBox extends RectDragObject {
 	SolidBox() {}
 	SolidBox(StringTokenizer st) { super(st); }
 	
-	void prepare() {
+	void drawMaterials() {
 		EMStatic.drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, 
 				bottomLeft.x, bottomLeft.y,
 				bottomRight.x, bottomRight.y,
