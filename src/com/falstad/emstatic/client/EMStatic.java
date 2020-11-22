@@ -839,8 +839,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new SolidBox();
     	if (item == "MovingWall")
     		newObject = new MovingWall();
-    	if (item == "MovingSource")
-    		newObject = new MovingSource();
     	if (item == "ModeBox")
     		newObject = new ModeBox();
     	if (item == "TrianglePrism")
@@ -851,12 +849,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Lens();
     	if (item == "Source")
     		newObject = new Source();
-    	if (item == "LineSource")
-    		newObject = new LineSource();
-    	if (item == "PhasedArraySource")
-    		newObject = new PhasedArraySource();
-    	if (item == "MultipoleSource")
-    		newObject = new MultipoleSource();
     	if (item == "Slit")
     		newObject = new Slit();
     	if (newObject != null) {
@@ -877,15 +869,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'e') return new Ellipse(st);
     	if (tint == 'g') return new GradientBox(st);
     	if (tint == 'l') return new Lens(st);
-    	if (tint == 'S') return new LineSource(st);
     	if (tint == 'm') return new MediumBox(st);
     	if (tint == 'E') return new MediumEllipse(st);
     	if (tint == 'M') return new ModeBox(st);
-    	if (tint == 'd') return new MovingSource(st);
     	if (tint == 'W') return new MovingWall(st);
-    	if (tint == 200) return new MultipoleSource(st);
     	if (tint == 'p') return new Parabola(st);
-    	if (tint == 201) return new PhasedArraySource(st);
     	if (tint == 203) return new Slit(st);
     	if (tint == 202) return new SolidBox(st);
     	if (tint == 's') return new Source(st, 1);
@@ -1209,20 +1197,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 
 	void setFreq() {
-		// adjust time zero to maintain continuity in the freq func
-		// even though the frequency has changed.
-//		double oldfreq = freqBarValue * freqMult;
-		freqBarValue = freqBar.getValue();
-		double newfreq = freqBarValue * freqMult;
-//		double adj = newfreq - oldfreq;
-//		freqTimeZero = t - oldfreq * (t - freqTimeZero) / newfreq;
-		int i;
-		for (i = 0; i != dragObjects.size(); i++) {
-			DragObject obj = dragObjects.get(i);
-			if (obj instanceof Source) {
-				((Source) obj).setFrequency(newfreq);
-			}
-		}
 	}
 
 	void setResolution() {
@@ -1647,7 +1621,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 	
 	double getRealTime() {
-		return t/(2*Math.PI*waveSpeed/Source.freqScale / lengthScale);
+	    return t;
 	}
 	
 	void doMouseMove(MouseEvent<?> event) {
@@ -1777,7 +1751,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
     // convert pixels/iter to m/s and return as string
     String getSpeedText(double px) {
-    	return getUnitText(px*4 *2*Math.PI*waveSpeed/Source.freqScale, "m/s");
+	return "speed";
     }
     
 	void dragMouse(MouseEvent<?> event) {
@@ -1828,17 +1802,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				continue;
 			Source src = (Source)obj;
 			
-			// don't let freq be adjusted if we have pulse sources
-			if (src.waveform == Source.WF_PULSE) {
-				src1 = null;
-				break;
-			}
-			if (src1 == null)
-				src1 = src;
-			else if (Math.abs(src.frequency-src1.frequency) > 1e-3) {
-				src1 = null;
-				break;
-			}
 		}
 		/*
 		if (src1 == null)
@@ -2255,17 +2218,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     }
 
     boolean useFreqTimeZero() {
-    	// automatically adjust phase to avoid discontinuities in sine wave when we change frequencies.
-    	// But don't do that if the user manually adjusts phase in one of the sources.
-        int i;
-        for (i = 0; i != dragObjects.size(); i++) {
-        	DragObject ce = dragObjects.get(i);
-        	if (ce instanceof Source) {
-        		Source s = (Source) ce;
-        		if (s.phaseShift != 0)
-        			return false;
-        	}
-        }
         return true;
     }
 }

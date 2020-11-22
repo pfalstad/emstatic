@@ -6,6 +6,7 @@ var windowWidth, windowHeight, viewAngle, viewHeight;
 var sim;
 var transform = [1, 0, 0, 1, 0, 0];
 var renderTextures = [];
+var pixelWidth;
 
     function getShader(gl, id, prefix) {
         var shaderScript = document.getElementById(id);
@@ -329,6 +330,8 @@ var renderTextures = [];
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
         destHeight = rttFramebuffer.height;
+        pixelWidth = windowWidth / rttFramebuffer.width;
+        console.log("pw " + pixelWidth);
     }
     
     function simulate(srcnum, rsnum, resid) {
@@ -684,7 +687,7 @@ var renderTextures = [];
     	setupForDrawing(v);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         // draw line back on itself, or else one endpoint won't be drawn
-        srcCoords = thickLinePoints([x, y, x2, y2, x, y], 1.5);
+        srcCoords = thickLinePoints([x, y, x2, y2, x, y], pixelWidth*1.5);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -857,6 +860,10 @@ var renderTextures = [];
 		gl.colorMask(true, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
+        if (x2-x < pixelWidth)
+		x2 = x4 = x+pixelWidth;
+	if (y3-y < pixelWidth)
+		y3 = y4 = y+pixelWidth;
         var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
         //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
