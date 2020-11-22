@@ -102,7 +102,6 @@
                 col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med),
                 		    mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
 		}
-//col = textureColor.rgb;
         gl_FragColor = vec4(col, 1.);
     }
 </script>
@@ -195,7 +194,8 @@ void main()
                 highp float mid3 = getSquare(vec2(0., stepSizeY));
                 highp float mid4 = getSquare(vec2(0., -stepSizeY));
 		newpos = .25*(mid1+mid2+mid3+mid4 + rv.r*stepSizeX*stepSizeY);
-        }
+        } else
+		newpos = rv.r;
         gl_FragColor = vec4(newpos, 0., pv.b, 1.); // = rv;
 }
 

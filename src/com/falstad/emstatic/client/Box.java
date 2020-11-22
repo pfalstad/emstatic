@@ -24,7 +24,7 @@ public class Box extends RectDragObject {
 	Box() {}
 	Box(StringTokenizer st) { super(st); }
 	
-	void drawMaterials() {
+	void drawMaterials(boolean residual) {
 		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y);
 		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y); 
 		EMStatic.drawWall(bottomRight.x, bottomRight.y, topRight.x, topRight.y);

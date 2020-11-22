@@ -40,7 +40,7 @@ public class Wall extends DragObject {
 		setTransform();
 	}
 	
-	void drawMaterials() {
+	void drawMaterials(boolean residual) {
 		EMStatic.drawWall(handles.get(0).x, handles.get(0).y, handles.get(1).x, handles.get(1).y);
 	}
 	

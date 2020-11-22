@@ -654,7 +654,7 @@ var renderTextures = [];
             gl.useProgram(shaderProgramDraw);
             
             // blue channel used for walls and media
-    		gl.colorMask(false, false, true, false);
+    		gl.colorMask(true, false, true, false);
     		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, 0.0, v, 1.0);
     	}
     }
@@ -853,34 +853,30 @@ var renderTextures = [];
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, m2) {
-		//var rttFramebuffer = renderTexture1.framebuffer;
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-		//gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-		gl.colorMask(false, false, true, false);
-//		gl.clear(gl.COLOR_BUFFER_BIT);
+    function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
+		gl.colorMask(true, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
         var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
-        var colors = [ 0,0,m1,1, 0,0,m1,1, 0,0,m2,1, 0,0,m2,1 ];
+        //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(medCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        //gl.vertexAttribPointer(shaderProgramDraw.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
         
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
+        //gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, m1, 1.0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
+        //gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
 
 		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     function drawModes(x, y, x2, y2, a, b, c, d) {

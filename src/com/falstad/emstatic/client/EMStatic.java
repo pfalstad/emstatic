@@ -1034,7 +1034,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		copy(dest);
 		
 		// draw materials on coarse grid (should draw all conductors as 0 potentials)
-		drawMaterials();
+		drawMaterials(true);
 
 		if (++stepCount == maxSteps) {
 			console("vcycle residual coarse " + stepCount);
@@ -1088,10 +1088,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			dragObjects.get(j).drawCharge();
 	}
 	
-	void drawMaterials() {
+	void drawMaterials(boolean res) {
 		int j;
 		for (j = 0; j != dragObjects.size(); j++)
-			dragObjects.get(j).drawMaterials();
+			dragObjects.get(j).drawMaterials(res);
 	}
 	
 	public void updateRipple() {
@@ -1107,12 +1107,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 			int rtnum = getRenderTextureCount();
 			createRightSide(rtnum-1);
-			drawMaterials();
+			drawMaterials(false);
 			
 			for (i = rtnum-1-3; i > 0; i -= 3) {
 				setDestination(i);
 				copy(i+3);
-				drawMaterials();
+				drawMaterials(false);
 			}
 			
 			// start with 0

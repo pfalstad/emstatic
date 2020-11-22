@@ -20,17 +20,35 @@
 package com.falstad.emstatic.client;
 
 public class SolidBox extends RectDragObject {
+
+	double pot;
 	
 	SolidBox() {}
-	SolidBox(StringTokenizer st) { super(st); }
+    SolidBox(StringTokenizer st) {
+    	super(st);
+    	pot = new Double(st.nextToken()).doubleValue();
+    }
 	
-	void drawMaterials() {
+	void drawMaterials(boolean residual) {
 		EMStatic.drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, 
 				bottomLeft.x, bottomLeft.y,
 				bottomRight.x, bottomRight.y,
-				0, 0);
+				0, residual ? 0 : pot);
 	}
 
 	int getDumpType() { return 202; }
+
+    public EditInfo getEditInfo(int n) {
+        if (n == 0)
+            return new EditInfo("potential", pot, 0, 1);
+        
+        return null;
+    }
+    public void setEditValue(int n, EditInfo ei) {
+        if (n == 0)
+        	pot = ei.value;
+    }
+
+	String dump() { return super.dump() + " " + pot; }
 
 }
