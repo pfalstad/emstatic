@@ -107,6 +107,11 @@ var pixelWidth;
 
     	shaderProgramDraw = initShader("shader-draw-fs", "shader-draw-vs");
     	shaderProgramMode = initShader("shader-mode-fs", "shader-draw-vs");
+
+    	shaderProgramEquip = initShader("shader-equipotential-fs", "shader-vs", null);
+    	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
+    	shaderProgramEquip.stepSizeYUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeY");
+    	shaderProgramEquip.brightnessUniform = gl.getUniformLocation(shaderProgramEquip, "brightness");
     }
 
     var moonTexture;
@@ -955,7 +960,7 @@ var pixelWidth;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function drawScene(s, bright) {
+    function drawSceneOld(s, bright) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -989,6 +994,46 @@ var pixelWidth;
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, laptopScreenVertexPositionBuffer.numItems);
         gl.disableVertexAttribArray(shaderProgramMain.vertexPositionAttribute);
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
+
+        mvPopMatrix();
+    }
+
+    function drawScene(s, bright) {
+        gl.useProgram(shaderProgramEquip);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+        mvPushMatrix();
+
+        // draw result
+        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgramEquip.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(shaderProgramEquip.samplerUniform, 0);
+        gl.uniform1f(shaderProgramEquip.brightnessUniform, bright);
+        gl.uniform1f(shaderProgramEquip.stepSizeXUniform, .5/gl.viewportWidth);
+        gl.uniform1f(shaderProgramEquip.stepSizeYUniform, .5/gl.viewportHeight);
+        gl.uniform3fv(shaderProgramEquip.colorsUniform, colors);
+
+        setMatrixUniforms(shaderProgramEquip);
+        gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        gl.enableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, laptopScreenVertexPositionBuffer.numItems);
+        gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         mvPopMatrix();
     }

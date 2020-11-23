@@ -106,6 +106,31 @@
     }
 </script>
 
+<script id="shader-equipotential-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+
+    uniform sampler2D uSampler;
+    uniform float stepSizeX;
+    uniform float stepSizeY;
+    uniform float brightness;
+
+    void main(void) {
+        float alpha = 1.0;
+        vec4 texture0 = texture2D(uSampler, vec2(vTextureCoord.s-stepSizeX, vTextureCoord.t));
+        vec4 textureS = texture2D(uSampler, vec2(vTextureCoord.s+stepSizeX, vTextureCoord.t));
+        vec4 textureA = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t-stepSizeY));
+        vec4 textureT = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t+stepSizeY));
+
+	float pot0 =  texture0.r*brightness;
+	float potS =  textureS.r*brightness;
+	float potT =  textureT.r*brightness;
+	float potA =  textureA.r*brightness;
+        gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) : vec4(0., 0., 0., 1.);
+    }
+</script>
+
 <script id="shader-draw-fs" type="x-shader/x-fragment">
     precision mediump float;
 
