@@ -612,6 +612,7 @@ function isPowerOf2(value) {
 //        gl.lineWidth(sim.drawingSelection < 0 ? 1 : 2);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
@@ -1061,12 +1062,14 @@ function isPowerOf2(value) {
 
     function drawSceneEquip(s, bright) {
         gl.useProgram(shaderProgramEquip);
+/*
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+*/
 
         mat4.identity(pMatrix);
         mat4.identity(mvMatrix);
@@ -1092,7 +1095,10 @@ function isPowerOf2(value) {
         setMatrixUniforms(shaderProgramEquip);
         gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         gl.enableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
+        gl.enable(gl.BLEND);
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, laptopScreenVertexPositionBuffer.numItems);
+        gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
@@ -1155,6 +1161,8 @@ function isPowerOf2(value) {
         //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         //mvPopMatrix();
+
+	drawSceneEquip(s, bright);
     }
 
     function drawScene3D(s, bright) {

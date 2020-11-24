@@ -127,7 +127,7 @@
 	float potS =  textureS.r*brightness;
 	float potT =  textureT.r*brightness;
 	float potA =  textureA.r*brightness;
-        gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) : vec4(0., 0., 0., 1.);
+        gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) : vec4(0., 0., 0., 0.);
     }
 </script>
 
@@ -383,7 +383,7 @@ void main() {
   highp vec4 pd = texture2D(uSampler, aTextureCoord-vec2(0., stepSizeY));
   vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
   float len = length(grad);
-  float col = len*brightness;
+  float col = len*brightness*10.0;
   vColor = col > 1.0 ? vec3(col-1.0, 1.0, col-1.0) : vec3(0.0, col, 0.0);
   vMatrix = mat2(grad.y/len, grad.x/len, -grad.x/len, grad.y/len);
   gl_Position = vec4(-1.0+2.0*aTextureCoord.x, -1.0+2.0*aTextureCoord.y, 0.0, 1.0);
