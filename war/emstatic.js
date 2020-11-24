@@ -112,9 +112,15 @@ var pixelWidth;
     	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
     	shaderProgramEquip.stepSizeYUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeY");
     	shaderProgramEquip.brightnessUniform = gl.getUniformLocation(shaderProgramEquip, "brightness");
+
+    	shaderProgramField = initShader("shader-field-fs", "shader-field-vs", null);
+    	shaderProgramField.stepSizeXUniform = gl.getUniformLocation(shaderProgramField, "stepSizeX");
+    	shaderProgramField.stepSizeYUniform = gl.getUniformLocation(shaderProgramField, "stepSizeY");
+    	shaderProgramField.brightnessUniform = gl.getUniformLocation(shaderProgramField, "brightness");
+    	shaderProgramField.arrowTextureUniform = gl.getUniformLocation(shaderProgramField, "uArrowTexture");
     }
 
-    var moonTexture;
+    var arrowTexture;
 
     function initTextures() {
     }
@@ -152,6 +158,62 @@ var pixelWidth;
     function degToRad(degrees) {
         return degrees * Math.PI / 180;
     }
+
+
+//
+// Initialize a texture and load an image.
+// When the image finished loading copy it into the texture.
+//
+function loadTexture(gl, url) {
+  const texture = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+
+  // Because images have to be download over the internet
+  // they might take a moment until they are ready.
+  // Until then put a single pixel in the texture so we can
+  // use it immediately. When the image has finished downloading
+  // we'll update the texture with the contents of the image.
+  const level = 0;
+  const internalFormat = gl.RGBA;
+  const width = 1;
+  const height = 1;
+  const border = 0;
+  const srcFormat = gl.RGBA;
+  const srcType = gl.UNSIGNED_BYTE;
+  const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+  gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                width, height, border, srcFormat, srcType,
+                pixel);
+
+  const image = new Image();
+  image.onload = function() {
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+                  srcFormat, srcType, image);
+
+    // WebGL1 has different requirements for power of 2 images
+    // vs non power of 2 images so check if the image is a
+    // power of 2 in both dimensions.
+    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+       // Yes, it's a power of 2. Generate mips.
+       gl.generateMipmap(gl.TEXTURE_2D);
+    } else {
+       // No, it's not a power of 2. Turn of mips and set
+       // wrapping to clamp to edge
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    }
+  };
+  image.src = url;
+
+  return texture;
+}
+
+function isPowerOf2(value) {
+  return (value & (value - 1)) == 0;
+}
+
 
 
     var renderTexture1, renderTexture2;
@@ -336,7 +398,6 @@ var pixelWidth;
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
         destHeight = rttFramebuffer.height;
         pixelWidth = windowWidth / rttFramebuffer.width;
-        console.log("pw " + pixelWidth);
     }
     
     function simulate(srcnum, rsnum, resid) {
@@ -998,7 +1059,7 @@ var pixelWidth;
         mvPopMatrix();
     }
 
-    function drawScene(s, bright) {
+    function drawSceneEquip(s, bright) {
         gl.useProgram(shaderProgramEquip);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1036,6 +1097,63 @@ var pixelWidth;
         gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         mvPopMatrix();
+    }
+
+    function drawScene(s, bright) {
+        gl.useProgram(shaderProgramField);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+        mvPushMatrix();
+
+        // draw result
+        //gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
+        //gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        
+        //gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
+        //gl.vertexAttribPointer(shaderProgramField.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, arrowTexture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        var coords = [];
+        var i, j;
+        for (i = 0; i != 80; i++)
+          for (j = 0; j != 80; j++) {
+            coords.push(i/80., j/80.);
+          }
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.DYNAMIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramField.texturePositionAttribute, 2, gl.FLOAT, false, 0, 0);
+
+        gl.uniform1i(shaderProgramField.samplerUniform, 0);
+        gl.uniform1i(shaderProgramField.arrowTextureUniform, 1);
+        gl.uniform1f(shaderProgramField.brightnessUniform, bright);
+        gl.uniform1f(shaderProgramField.stepSizeXUniform, .5/gl.viewportWidth);
+        gl.uniform1f(shaderProgramField.stepSizeYUniform, .5/gl.viewportHeight);
+        //gl.uniform3fv(shaderProgramEquip.colorsUniform, colors);
+
+        //setMatrixUniforms(shaderProgramEquip);
+        //gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        gl.enableVertexAttribArray(shaderProgramField.textureCoordAttribute);
+        gl.drawArrays(gl.POINTS, 0, coords.length/2);
+        //gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
+
+        //mvPopMatrix();
     }
 
     function drawScene3D(s, bright) {
@@ -1086,6 +1204,8 @@ var pixelWidth;
     	canvas = cv;
     	sim = sim_;
     	gl = cv.getContext("experimental-webgl");
+        arrowTexture = loadTexture(gl, 'arrow.png');
+
     	console.log("got gl context " + gl + " " + cv.width + " " + cv.height);
     	var float_texture_ext = gl.getExtension('OES_texture_float');
     	var float_texture_linear_ext = gl.getExtension('OES_texture_float_linear');

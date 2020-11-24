@@ -366,6 +366,47 @@ void main()
     }
 </script>
 
+<script id="shader-field-vs" type="x-shader/x-vertex">
+
+attribute highp vec2 aTextureCoord;
+uniform sampler2D uSampler;
+varying float vFieldStrength;
+uniform float stepSizeX;
+uniform float stepSizeY;
+uniform float brightness;
+varying mat2 vMatrix;
+
+void main() {
+  highp vec4 pa = texture2D(uSampler, aTextureCoord+vec2(stepSizeX, 0.));
+  highp vec4 pb = texture2D(uSampler, aTextureCoord-vec2(stepSizeX, 0.));
+  highp vec4 pc = texture2D(uSampler, aTextureCoord+vec2(0., stepSizeY));
+  highp vec4 pd = texture2D(uSampler, aTextureCoord-vec2(0., stepSizeY));
+  vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
+  float len = length(grad);
+  vFieldStrength = len*brightness;
+  vMatrix = mat2(grad.y/len, grad.x/len, -grad.x/len, grad.y/len);
+  gl_Position = vec4(-1.0+2.0*aTextureCoord.x, -1.0+2.0*aTextureCoord.y, 0.0, 1.0);
+  gl_PointSize = 12.0;
+  
+}
+
+</script>
+
+<script id="shader-field-fs" type="x-shader/x-fragment">
+
+varying highp float vFieldStrength;
+varying highp mat2 vMatrix;
+uniform sampler2D uArrowTexture;
+
+void main() {
+  highp vec2 pc = gl_PointCoord;
+  pc = vMatrix*(pc-vec2(0.5, 0.5)) + vec2(0.5, 0.5);
+  gl_FragColor = vec4(texture2D(uArrowTexture, pc).rgb * vFieldStrength, 1.0);
+}
+
+</script>
+
+
     <!--                                                               -->
     <!-- Consider inlining CSS to reduce the number of requested files -->
     <!--                                                               -->
