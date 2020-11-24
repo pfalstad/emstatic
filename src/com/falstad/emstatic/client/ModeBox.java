@@ -50,12 +50,6 @@ public class ModeBox extends RectDragObject {
 			int m1y = rand() % ymode;
 			int m2x = rand() % xmode;
 			int m2y = rand() % ymode;
-			if (sim.waveChooser.getSelectedIndex() != EMStatic.WAVE_SOUND) {
-				if (m1x == 0) m1x = 1;
-				if (m1y == 0) m1y = 1;
-				if (m2x == 0) m2x = 1;
-				if (m2y == 0) m2y = 1;
-			}
 			EMStatic.drawModes(topLeft.x+1, topLeft.y+1, bottomRight.x-1, bottomRight.y-1,
 					m1x*Math.PI, m1y*Math.PI, m2x*Math.PI, m2y*Math.PI);
 		} else {

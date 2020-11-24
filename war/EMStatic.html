@@ -102,6 +102,7 @@
                 col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med),
                 		    mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
 		}
+//gl_FragColor = vec4(textureColor.rgb * brightness, 1.);
         gl_FragColor = vec4(col, 1.);
     }
 </script>
@@ -198,13 +199,12 @@ void main()
     uniform float stepSizeX;
     uniform float stepSizeY;
 
-highp float getSquare(highp vec2 offset)
+highp vec4 getSquare(highp vec2 offset)
 {
         highp vec2 x = offset+vTextureCoord;
-	highp vec4 pv = texture2D(uSourceTexture, x);
-        //if (pv.b > 0.0)
-           return pv.r;
-        //return 0.0;
+	highp vec4 q = texture2D(uSourceTexture, x);
+	highp vec4 q2 = texture2D(uRightSideTexture, x);
+        return vec4(q.r, q.g, q2.b, q2.a);
 }
 
 void main()
@@ -213,15 +213,15 @@ void main()
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
-                highp float pos = pv.r;
-                highp float mid1 = getSquare(vec2(stepSizeX, 0.));
-                highp float mid2 = getSquare(vec2(-stepSizeX, 0.));
-                highp float mid3 = getSquare(vec2(0., stepSizeY));
-                highp float mid4 = getSquare(vec2(0., -stepSizeY));
-		newpos = .25*(mid1+mid2+mid3+mid4 + rv.r*stepSizeX*stepSizeY);
+                highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
+                highp vec4 mid2 = getSquare(vec2(-stepSizeX, 0.));
+                highp vec4 mid3 = getSquare(vec2(0., stepSizeY));
+                highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
+		newpos = (mid1.r*mid1.b + mid2.r*mid2.b + mid3.r*mid3.b + mid4.r*mid4.b)/(mid1.b+mid2.b+mid3.b+mid4.b) +
+		         .25*(rv.r*stepSizeX*stepSizeY/rv.b);
         } else
 		newpos = rv.r;
-        gl_FragColor = vec4(newpos, 0., pv.b, 1.); // = rv;
+        gl_FragColor = vec4(newpos, 0., pv.b, 1.);
 }
 
 </script>
@@ -238,30 +238,26 @@ void main()
     uniform float stepSizeX;
     uniform float stepSizeY;
 
-	highp float getSquare(highp vec2 offset)
-	{
+highp vec4 getSquare(highp vec2 offset)
+{
         highp vec2 x = offset+vTextureCoord;
-	highp vec4 pv = texture2D(uSourceTexture, x);
-        //if (pv.b > 0.0)
-           return pv.r;
-        //return 0.0;
+	return texture2D(uSourceTexture, x);
 }
 
 void main()
 {
     	highp float newpos = 0.;
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
-        highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord); // +vec2(.3, 0.));
+        highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
                 highp float pos = pv.r;
-                highp float mid1 = getSquare(vec2(stepSizeX, 0.));
-                highp float mid2 = getSquare(vec2(-stepSizeX, 0.));
-                highp float mid3 = getSquare(vec2(0., stepSizeY));
-                highp float mid4 = getSquare(vec2(0., -stepSizeY));
-                highp float mid = (mid1+mid2+mid3+mid4); // equilibrium position is average of neighbors
-                newpos = (mid-4.*pos)/(stepSizeX*stepSizeY) + rv.r;
+                highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
+                highp vec4 mid2 = getSquare(vec2(-stepSizeX, 0.));
+                highp vec4 mid3 = getSquare(vec2(0., stepSizeY));
+                highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
+		newpos = (4./(stepSizeX*stepSizeY)) *
+                        ((mid1.r*mid1.b + mid2.r*mid2.b + mid3.r*mid3.b + mid4.r*mid4.b)/(mid1.b+mid2.b+mid3.b+mid4.b) - pos) + rv.r/rv.b;
         }
-	// update position and velocity
         //gl_FragColor = vec4(newpos, 0.0, pv.b, 1.);
         //gl_FragColor = vec4(newpos, 0.0, rv.b, 1.);
         gl_FragColor = vec4(newpos, 0.0, 1., 1.);

@@ -200,6 +200,7 @@ public class Scrollbar extends  Composite implements
 		if (enabled) {
 			if (dragging) {
 				val=calcValueFromPos(e.getX());	
+				EMStatic.console("value set to " + val);
 				draw();
 				if (command!=null)
 					command.execute();

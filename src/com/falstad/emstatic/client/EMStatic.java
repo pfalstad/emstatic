@@ -117,11 +117,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Button boxButton;
 	Button exportButton;
 	Checkbox stoppedCheck;
-	Checkbox view3dCheck;
 	Checkbox debugCheck1, debugCheck2;
 	Choice setupChooser;
 	Choice colorChooser;
-	Choice waveChooser;
+	Choice displayChooser;
 	Vector<Setup> setupList;
 	Vector<DragObject> dragObjects;
 	DragObject selectedObject, mouseObject, menuObject;
@@ -144,7 +143,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int MODE_WALLS = 1;
 	static final int MODE_MEDIUM = 2;
 	static final int MODE_FUNCHOLD = 3;
-	static final int WAVE_SOUND = 0;
+	static final int DISP_FIELD = 0;
+	static final int DISP_POT = 1;
+	static final int DISP_3D = 2;
 	int dragX, dragY, dragStartX = -1, dragStartY;
 	int selectedSource = -1;
 	int sourceIndex;
@@ -300,11 +301,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}-*/;
 
 	// call into ripple.js
-	static native void updateRippleGL(int src, double bright, boolean threed) /*-{
-		if (threed)
-			this.updateRipple3D(src, bright);
-		else
-			this.updateRipple(src, bright);
+	static native void updateRippleGL(int src, double bright, int disp) /*-{
+		this.display(src, bright, disp);
 	}-*/;
 
 	static native void setDestination(int d) /*-{
@@ -472,27 +470,23 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		colorChooser.addChangeHandler(this);
         colorChooser.addStyleName("topSpace");
 
-		waveChooser = new Choice();
-		waveChooser.add("Waves = Sound");
-		waveChooser.add("Waves = Visible Light/IR/UV");
-		waveChooser.add("Waves = AM Radio");
-		waveChooser.add("Waves = FM Radio");
-		waveChooser.add("Waves = Microwave");
-		waveChooser.addChangeHandler(this);
-        waveChooser.addStyleName("topSpace");
+		displayChooser = new Choice();
+		displayChooser.add("Display Electric Field");
+		displayChooser.add("Display Potential");
+		displayChooser.add("Display Potential in 3-D");
+		displayChooser.addChangeHandler(this);
+		displayChooser.addStyleName("topSpace");
 
 		
 		verticalPanel.add(setupChooser);
 //		verticalPanel.add(sourceChooser);
 //		verticalPanel.add(modeChooser);
-		verticalPanel.add(waveChooser);
+		verticalPanel.add(displayChooser);
 		verticalPanel.add(colorChooser);
 		verticalPanel.add(blankButton = new Button("Clear Waves"));
 		blankButton.addClickHandler(this);
 
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
-		verticalPanel.add(view3dCheck = new Checkbox("3-D View"));
-		view3dCheck.addClickHandler(this);
 
 		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
 		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
@@ -513,10 +507,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		verticalPanel.add(l = new Label("Debug Bar 1"));
 		verticalPanel.add(debugBar1 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
-		resBar.addClickHandler(this);
+		debugBar1.addClickHandler(this);
 		verticalPanel.add(l = new Label("Debug Bar 2"));
 		verticalPanel.add(debugBar2 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
-		resBar.addClickHandler(this);
+		debugBar2.addClickHandler(this);
 		
 //		verticalPanel.add(new Label("Damping"));
 //		verticalPanel.add(
@@ -591,7 +585,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (colorChooser.getItemCount() == 0)
 		    addDefaultColorScheme();
 		doColor();
-		setWaveType();
 		setDamping();
 //		setup = (Setup) setupList.elementAt(setupChooser.getSelectedIndex());
 		
@@ -753,7 +746,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Medium", "MediumBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Mode Box", "ModeBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Gradient", "GradientBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse Medium", "MediumEllipse"));
@@ -831,8 +823,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Box();
     	if (item == "MediumBox")
     		newObject = new MediumBox();
-    	if (item == "GradientBox")
-    		newObject = new GradientBox();
     	if (item == "Cavity")
     		newObject = new Cavity();
     	if (item == "MediumEllipse")
@@ -871,7 +861,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'b') return new Box(st);
     	if (tint == 'c') return new Cavity(st);
     	if (tint == 'e') return new Ellipse(st);
-    	if (tint == 'g') return new GradientBox(st);
     	if (tint == 'l') return new Lens(st);
     	if (tint == 'm') return new MediumBox(st);
     	if (tint == 'E') return new MediumEllipse(st);
@@ -942,7 +931,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	void prepareObjects() {
 		doBlankWalls();
 		int i;
-		setAcoustic(waveChooser.getSelectedIndex() == WAVE_SOUND); // need this for mode boxes
 		for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
 			double xform[] = obj.transform;
@@ -1153,13 +1141,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					break;
 			}
 //			console("result = " + src);
-
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(src, brightMult, view3dCheck.getState());
-			if (!view3dCheck.getState())
+			updateRippleGL(src, brightMult, displayChooser.getSelectedIndex());
+			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
 					if (obj.selected)
@@ -1288,8 +1275,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		dampingBar.setValue(10);
 		setFreqBar(5);
 		setBrightness(10);
-		waveChooser.setSelectedIndex(1);
-		setWaveType();
 		setup = (Setup) setupList.elementAt(setupChooser.getSelectedIndex());
 		setup.select();
 		setDamping();
@@ -1352,36 +1337,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		dragObjects.add(mb);
 	}
 
-	// set length scale and speed for a particular wave type, which determines what units we report
-	// in coordinates box and editing values.  Also, choice of sound/non-sound affects boundary conditions
-	// at walls.
-	void setWaveType() {
-		double windowScale = 25;
-		switch (waveChooser.getSelectedIndex()) {
-		case 0: // sound
-			waveSpeed = 343.2;
-			windowScale = 25;
-			break;
-		case 1: // light
-			waveSpeed = 299792458;
-			windowScale = 8000e-9;
-			break;
-		case 2: // AM
-			waveSpeed = 299792458;
-			windowScale = 50000;
-			break;
-		case 3: // FM
-			waveSpeed = 299792458;
-			windowScale = 60;
-			break;
-		case 4: // uwave
-			waveSpeed = 299792458;
-			windowScale = 2;
-			break;
-		}
-		lengthScale = windowScale/512;
-	}
-	
     void getSetupList() {
 
     	String url;
@@ -1488,7 +1443,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		int i;
 		dump = "$ 1 " + windowWidth + " " + windowOffsetX + " " + dampingBar.getValue() + " " +
-				waveChooser.getSelectedIndex() + " " + brightnessBar.getValue() + " " + lengthScale + "\n";
+				displayChooser.getSelectedIndex() + " " + brightnessBar.getValue() + " " + lengthScale + "\n";
 /*		for (i = 0; i != sourceCount; i++) {
 			OscSource src = sources[i];
 			dump += "s " + src.x + " " + src.y + "\n";
@@ -1546,8 +1501,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						reinit(false);
 
 						dampingBar.setValue(Integer.parseInt(st.nextToken()));
-						waveChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
-						setWaveType();
+//						displayChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
 						brightnessBar.setValue(new Integer(st.nextToken())
 								.intValue());
 						lengthScale = Double.parseDouble(st.nextToken());
@@ -1775,7 +1729,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     }
     
 	void dragMouse(MouseEvent<?> event) {
-		if (view3dCheck.getState()) {
+		if (displayChooser.getSelectedIndex() == DISP_3D) {
 			view3dDrag(event);
 			return;
 		}
@@ -1847,7 +1801,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		dragging = true;
 		
-		if (view3dCheck.getState())
+		if (displayChooser.getSelectedIndex() == DISP_3D)
 			return;
 
 		Point mp = getPointFromEvent(event);
@@ -1890,7 +1844,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         	selectedObject.rotate(dy10*Math.PI/12);
         	preserveSelection = true;
         }
-        if (view3dCheck.getState()) {
+	if (displayChooser.getSelectedIndex() == DISP_3D) {
         	zoom3d *= Math.exp(-event.getDeltaY() * .01);
         	set3dViewZoom(zoom3d);
         }
@@ -2031,8 +1985,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (event.getSource() == colorChooser){
 			    doColor();
 			}
-			if (event.getSource() == waveChooser)
-				setWaveType();
+			repaint();
 	}
 
     void pushUndo() {

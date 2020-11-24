@@ -3,6 +3,7 @@ charge-single.txt Single Charge
 charge-dipole.txt Dipole Charge
 conductor.txt Conductor
 conductor-charge.txt Conductor and Charge
+dielec.txt Dielectric
 1source.txt Single Source
 2sources.txt Two Sources
 4sources.txt Four Sources

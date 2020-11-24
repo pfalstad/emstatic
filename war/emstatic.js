@@ -924,7 +924,7 @@ function isPowerOf2(value) {
     }
 
     function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
-		gl.colorMask(true, false, true, false);
+		gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
         if (x2-x < pixelWidth)
@@ -1165,6 +1165,15 @@ function isPowerOf2(value) {
 	drawSceneEquip(s, bright);
     }
 
+    function display(s, bright, type) {
+      if (type == 2)
+        drawScene3D(s, bright);
+      else if (type == 1)
+        drawSceneOld(s, bright);
+      else
+        drawScene(s, bright);
+    }
+
     function drawScene3D(s, bright) {
         gl.useProgram(shaderProgram3D);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1247,8 +1256,7 @@ function isPowerOf2(value) {
     	gl.clearColor(0.0, 0.0, 1.0, 1.0);
 
     	sim.acoustic = false;
-    	sim.updateRipple = function updateRipple (s, bright) { drawScene(s, bright); }
-    	sim.updateRipple3D = function updateRipple3D (s, bright) { drawScene3D(s, bright); }
+    	sim.display = function (s, bright, disp) { display(s, bright, disp); }
     	sim.runRelax = function (s, b, resid) { simulate(s, b, resid); }
     	sim.add = function (s, b) { add(s, b); }
     	sim.copy = function (s) { copy(s); }
