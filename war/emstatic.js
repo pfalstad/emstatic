@@ -1106,6 +1106,7 @@ function isPowerOf2(value) {
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         mat4.identity(pMatrix);

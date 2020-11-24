@@ -31,6 +31,7 @@ import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.Duration;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.Style.Unit;
 import com.google.gwt.event.dom.client.ChangeEvent;
@@ -491,6 +492,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
 		verticalPanel.add(view3dCheck = new Checkbox("3-D View"));
+		view3dCheck.addClickHandler(this);
 
 		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
 		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
@@ -530,7 +532,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //		freqBar.addClickHandler(this);
 		verticalPanel.add(l = new Label("Brightness"));
         l.addStyleName("topSpace");
-		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200));
+		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
+			new Command() { public void execute() { repaint(); }}));
 		
         verticalPanel.add(iFrame = new Frame("iframe.html"));
         iFrame.setWidth(verticalPanelWidth+"px");
@@ -604,11 +607,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		reinit();
 		set3dViewZoom(zoom3d);
 		setCanvasSize();
+		repaint();
 		
 		// String os = Navigator.getPlatform();
 		// isMac = (os.toLowerCase().contains("mac"));
 		// ctrlMetaKey = (isMac) ? "Cmd" : "Ctrl";
-		timer.scheduleRepeating(FASTTIMER);
+//		timer.scheduleRepeating(FASTTIMER);
 
 	}
 	
@@ -1082,6 +1086,21 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			dragObjects.get(j).drawMaterials(res);
 	}
 	
+	    boolean needsRepaint;
+	    
+	    void repaint() {
+	        if (!needsRepaint) {
+	            needsRepaint = true;
+	            Scheduler.get().scheduleFixedDelay(new Scheduler.RepeatingCommand() {
+	                public boolean execute() {
+	                      updateRipple();
+	                      needsRepaint = false;
+	                      return false;
+	                  }
+	            }, FASTTIMER);
+	        }
+	    }
+
 	public void updateRipple() {
 			/*if (changedWalls) {
 				prepareObjects();
@@ -1633,6 +1652,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		if (dragging) {
 			dragMouse(event);
+			repaint();
 			return;
 		}
 		int x = event.getX();
@@ -1980,7 +2000,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	@Override
 	public void onClick(ClickEvent event) {
-		event.preventDefault();
+//		event.preventDefault();
+		repaint();
 		if (event.getSource() == blankButton) {
 			doBlank();
 			drawModes();
