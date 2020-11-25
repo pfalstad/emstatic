@@ -204,7 +204,8 @@ highp vec4 getSquare(highp vec2 offset)
         highp vec2 x = offset+vTextureCoord;
 	highp vec4 q = texture2D(uSourceTexture, x);
 	highp vec4 q2 = texture2D(uRightSideTexture, x);
-        return vec4(q.r, q.g, q2.b, q2.a);
+        // switch conductors to space to avoid problems with charged conductors (need a better way to fix this)
+        return vec4(q.r, q.g, q2.b > 0.0 ? q2.b : 1.0, q2.a);
 }
 
 void main()
