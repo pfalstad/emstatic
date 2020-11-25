@@ -1502,6 +1502,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						reinit(false);
 
 						dampingBar.setValue(Integer.parseInt(st.nextToken()));
+						st.nextToken();
 //						displayChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
 						brightnessBar.setValue(new Integer(st.nextToken())
 								.intValue());
