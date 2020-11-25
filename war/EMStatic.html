@@ -365,25 +365,30 @@ void main()
 
 <script id="shader-field-vs" type="x-shader/x-vertex">
 
-attribute highp vec2 aTextureCoord;
+attribute highp vec2 aVertexPosition;
 uniform sampler2D uSampler;
 varying vec3 vColor;
 uniform float stepSizeX;
 uniform float stepSizeY;
 uniform float brightness;
 varying mat2 vMatrix;
+uniform mat3 uTextureMatrix;
+
+highp vec4 getSquare(highp vec2 coords, highp float offsetX, highp float offsetY) {
+  return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1)).xy);
+}
 
 void main() {
-  highp vec4 pa = texture2D(uSampler, aTextureCoord+vec2(stepSizeX, 0.));
-  highp vec4 pb = texture2D(uSampler, aTextureCoord-vec2(stepSizeX, 0.));
-  highp vec4 pc = texture2D(uSampler, aTextureCoord+vec2(0., stepSizeY));
-  highp vec4 pd = texture2D(uSampler, aTextureCoord-vec2(0., stepSizeY));
+  highp vec4 pa = getSquare(aVertexPosition,  stepSizeX, 0.);
+  highp vec4 pb = getSquare(aVertexPosition, -stepSizeX, 0.);
+  highp vec4 pc = getSquare(aVertexPosition, 0.,  stepSizeY);
+  highp vec4 pd = getSquare(aVertexPosition, 0., -stepSizeY);
   vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
   float len = length(grad);
   float col = len*brightness*10.0;
   vColor = col > 1.0 ? vec3(col-1.0, 1.0, col-1.0) : vec3(0.0, col, 0.0);
   vMatrix = mat2(grad.y/len, grad.x/len, -grad.x/len, grad.y/len);
-  gl_Position = vec4(-1.0+2.0*aTextureCoord.x, -1.0+2.0*aTextureCoord.y, 0.0, 1.0);
+  gl_Position = vec4(aVertexPosition.xy, 0.0, 1.0);
   gl_PointSize = 12.0;
   
 }

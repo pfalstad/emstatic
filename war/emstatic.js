@@ -118,6 +118,7 @@ var pixelWidth;
     	shaderProgramField.stepSizeYUniform = gl.getUniformLocation(shaderProgramField, "stepSizeY");
     	shaderProgramField.brightnessUniform = gl.getUniformLocation(shaderProgramField, "brightness");
     	shaderProgramField.arrowTextureUniform = gl.getUniformLocation(shaderProgramField, "uArrowTexture");
+    	shaderProgramField.textureMatrixUniform = gl.getUniformLocation(shaderProgramField, "uTextureMatrix");
     }
 
     var arrowTexture;
@@ -1140,24 +1141,27 @@ function isPowerOf2(value) {
         var i, j;
         for (i = 0; i != 80; i++)
           for (j = 0; j != 80; j++) {
-            coords.push(i/80., j/80.);
+            coords.push(-1+(i+.5)/40., -1+(j+.5)/40.);
           }
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramField.texturePositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shaderProgramField.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
         gl.uniform1i(shaderProgramField.samplerUniform, 0);
         gl.uniform1i(shaderProgramField.arrowTextureUniform, 1);
         gl.uniform1f(shaderProgramField.brightnessUniform, bright);
         gl.uniform1f(shaderProgramField.stepSizeXUniform, .5/gl.viewportWidth);
         gl.uniform1f(shaderProgramField.stepSizeYUniform, .5/gl.viewportHeight);
+        var matx = [.5*(gridSizeX-windowOffsetX*2)/gridSizeX, 0, 0, 0, .5*(gridSizeY-windowOffsetY*2)/gridSizeY, 0, 0, 0, 1];
+        matx[6] = windowOffsetX/gridSizeX + matx[0];
+        matx[7] = windowOffsetY/gridSizeY + matx[4];
+	gl.uniformMatrix3fv(shaderProgramField.textureMatrixUniform, false, matx);
         //gl.uniform3fv(shaderProgramEquip.colorsUniform, colors);
 
         //setMatrixUniforms(shaderProgramEquip);
-        //gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
-        gl.enableVertexAttribArray(shaderProgramField.textureCoordAttribute);
+        gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         gl.drawArrays(gl.POINTS, 0, coords.length/2);
-        //gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         //mvPopMatrix();

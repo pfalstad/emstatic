@@ -1221,7 +1221,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (border < 20)
 				border = 20;
 		}
-		border = 0;
+//		border = 0;
+		newWidth -= border*2; // we want gridSizeX to be a power of 2
 		if (resBar.getValue() != newWidth)
 			resBar.setValue(newWidth);
 		windowWidth = windowHeight = newWidth;
