@@ -20,13 +20,18 @@
 package com.falstad.emstatic.client;
 
 public class Ellipse extends RectDragObject {
-	Ellipse(){}
-	Ellipse(StringTokenizer st) { super(st); }
+    double pot;
+    
+	Ellipse(){ pot = 1; }
+	Ellipse(StringTokenizer st) {
+	    super(st);
+	    pot = new Double(st.nextToken()).doubleValue();
+	}
 	
-	void prepare() {
-		EMStatic.drawEllipse(
-				(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-				(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+	void drawMaterials(boolean residual) {
+		EMStatic.drawSolidEllipse(
+			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
+			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, 0, residual ? 0 : pot);
 	}
 
 	boolean hitTestInside(double x, double y) { return false; }
@@ -41,7 +46,7 @@ public class Ellipse extends RectDragObject {
 	}
 	
 	@Override void drawSelection() {
-		prepare();
+		drawMaterials(false);
 		double a = (topRight.x-topLeft.x)/2;
 		double b = (bottomRight.y-topRight.y)/2;
 		int fc = (int)Math.sqrt(Math.abs(a*a-b*b));
@@ -56,4 +61,21 @@ public class Ellipse extends RectDragObject {
 	
 	int getDumpType() { return 'e'; }
 
+	    public EditInfo getEditInfo(int n) {
+		if (n == 0)
+		    return new EditInfo("potential", pot, 0, 1);
+
+		return null;
+	    }
+
+	    public void setEditValue(int n, EditInfo ei) {
+		if (n == 0)
+		    pot = ei.value;
+	    }
+
+	    String dump() {
+		return super.dump() + " " + pot;
+	    }
+	
+	    
 }

@@ -393,8 +393,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.setTransform(a, b, c, d, e, f);
 	}-*/;
 
-	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med) /*-{
-		this.drawSolidEllipse(x1, y1, rx, ry, med);
+	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med, double pot) /*-{
+		this.drawSolidEllipse(x1, y1, rx, ry, med, pot);
 	}-*/;
 
 	static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
@@ -737,15 +737,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Slit", "Slit"));
     	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
     	mainMenuBar.addItem(getClassCheckItem("Add Point Source", "Source"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Line Source", "LineSource"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Multipole Source", "MultipoleSource"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Phased Array Source", "PhasedArraySource"));
     	mainMenuBar.addItem(getClassCheckItem("Add Solid Box", "SolidBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Moving Wall", "MovingWall"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Moving Source", "MovingSource"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Medium", "MediumBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Mode Box", "ModeBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse Medium", "MediumEllipse"));
@@ -1044,9 +1038,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 	
 	void drawMaterials(boolean res) {
-		int j;
-		for (j = 0; j != dragObjects.size(); j++)
-			dragObjects.get(j).drawMaterials(res);
+		int i;
+		for (i = 0; i != dragObjects.size(); i++) {
+			DragObject obj = dragObjects.get(i);
+			double xform[] = obj.transform;
+			setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
+			obj.drawMaterials(res);
+		}
+		setTransform(1, 0, 0, 0, 1, 0);
 	}
 	
 	    boolean needsRepaint;
@@ -1825,6 +1824,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         	zoom3d *= Math.exp(-event.getDeltaY() * .01);
         	set3dViewZoom(zoom3d);
         }
+	repaint();
 	}
 
 	@Override

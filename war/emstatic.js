@@ -902,11 +902,15 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     
-    function drawSolidEllipse(cx, cy, xr, yr, med) {
-    	setupForDrawing(med);
+    function drawSolidEllipse(cx, cy, xr, yr, med, pot) {
+	gl.colorMask(med == 0, false, true, false);
+        gl.useProgram(shaderProgramDraw);
+
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var coords = [cx, cy];
         var i;
+	xr = Math.max(xr, minFeatureWidth);
+	yr = Math.max(yr, minFeatureWidth);
         for (i = -xr; i <= xr; i++) {
         	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
         }
@@ -920,15 +924,15 @@ function isPowerOf2(value) {
 
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
         gl.drawArrays(gl.TRIANGLE_FAN, 0, coords.length/2);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
 		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
-		gl.colorMask(m1 == 0, false, true, false);
+	gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
         if (x2-x < minFeatureWidth)
@@ -1304,7 +1308,7 @@ function isPowerOf2(value) {
     	sim.drawParabola = function (x, y, w, h) { drawParabola(x, y, w, h); }
     	sim.drawLens = function (x, y, w, h, m) { drawLens(x, y, w, h, m); }
     	sim.drawEllipse = function (x, y, x2, y2, m) { drawEllipse(x, y, x2, y2); }
-    	sim.drawSolidEllipse = function (x, y, x2, y2, m) { drawSolidEllipse(x, y, x2, y2, m); }
+    	sim.drawSolidEllipse = function (x, y, x2, y2, m, p) { drawSolidEllipse(x, y, x2, y2, m, p); }
     	sim.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m, m2) { drawMedium(x, y, x2, y2, x3, y3, x4, y4, m, m2); }
     	sim.drawTriangle = function (x, y, x2, y2, x3, y3, m) { drawTriangle(x, y, x2, y2, x3, y3, m); }
     	sim.drawModes = function (x, y, x2, y2, a, b, c, d) { drawModes(x, y, x2, y2, a, b, c, d); }

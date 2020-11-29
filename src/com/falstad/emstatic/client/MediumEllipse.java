@@ -23,10 +23,10 @@ public class MediumEllipse extends MediumBox {
 	MediumEllipse() {}
 	MediumEllipse(StringTokenizer st) { super(st); }
 	
-	void prepare() {
+	void drawMaterials(boolean residual) {
 		EMStatic.drawSolidEllipse(
-				(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-				(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, speedIndex);
+			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
+			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, speedIndex, 0);
 	}
 
 	@Override double hitTest(int x, int y) {
