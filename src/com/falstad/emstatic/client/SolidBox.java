@@ -24,6 +24,7 @@ public class SolidBox extends RectDragObject {
     double pot;
 
     SolidBox() {
+	pot = 1;
     }
 
     SolidBox(StringTokenizer st) {

@@ -24,11 +24,13 @@ public class Box extends RectDragObject {
 	Box() {}
 	Box(StringTokenizer st) { super(st); }
 	
+	double pot;
+	
 	void drawMaterials(boolean residual) {
-		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y);
-		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y); 
-		EMStatic.drawWall(bottomRight.x, bottomRight.y, topRight.x, topRight.y);
-		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y, pot);
+		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y, pot); 
+		EMStatic.drawWall(bottomRight.x, bottomRight.y, topRight.x, topRight.y, pot);
+		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, pot);
 	}
 
 	// let people poke inside box

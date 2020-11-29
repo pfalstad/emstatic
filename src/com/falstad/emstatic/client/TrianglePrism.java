@@ -31,9 +31,9 @@ public class TrianglePrism extends MediumBox {
 	}
 
 	@Override void drawSelection() {
-		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y);
-		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y); 
-		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y);
+		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y, 0);
+		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y, 0); 
+		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, topRight.x, topRight.y, 0);
 	}
 	
 	// let people poke inside

@@ -365,8 +365,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.drawPhasedArray(x1, y1, x2, y2, w1, w2);
 	}-*/;
 
-	static native void drawWall(int x1, int y1, int x2, int y2) /*-{
-		this.drawWall(x1, y1, x2, y2);
+	static native void drawWall(int x1, int y1, int x2, int y2, double pot) /*-{
+		this.drawWall(x1, y1, x2, y2, pot);
 	}-*/;
 
 	static native void clearWall(int x1, int y1, int x2, int y2) /*-{
@@ -823,18 +823,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Box();
     	if (item == "MediumBox")
     		newObject = new MediumBox();
-    	if (item == "Cavity")
-    		newObject = new Cavity();
     	if (item == "MediumEllipse")
     		newObject = new MediumEllipse();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
     	if (item == "SolidBox")
     		newObject = new SolidBox();
-    	if (item == "MovingWall")
-    		newObject = new MovingWall();
-    	if (item == "ModeBox")
-    		newObject = new ModeBox();
     	if (item == "TrianglePrism")
     		newObject = new TrianglePrism();
     	if (item == "Parabola")
@@ -843,8 +837,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Lens();
     	if (item == "Source")
     		newObject = new Source();
-    	if (item == "Slit")
-    		newObject = new Slit();
     	if (newObject != null) {
     		pushUndo();
     		newObject.setInitialPosition();
@@ -855,19 +847,16 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (item == "Options") {
     		doEdit(new EditOptions(this));
     	}
+    	repaint();
     }
 
     DragObject createObj(int tint, StringTokenizer st) {
     	if (tint == 'b') return new Box(st);
-    	if (tint == 'c') return new Cavity(st);
     	if (tint == 'e') return new Ellipse(st);
     	if (tint == 'l') return new Lens(st);
     	if (tint == 'm') return new MediumBox(st);
     	if (tint == 'E') return new MediumEllipse(st);
-    	if (tint == 'M') return new ModeBox(st);
-    	if (tint == 'W') return new MovingWall(st);
     	if (tint == 'p') return new Parabola(st);
-    	if (tint == 203) return new Slit(st);
     	if (tint == 202) return new SolidBox(st);
     	if (tint == 's') return new Source(st, 1);
     	if (tint == 't') return new TrianglePrism(st);
@@ -936,20 +925,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			double xform[] = obj.transform;
 			setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
 			obj.prepare();
-		}
-		setTransform(1, 0, 0, 0, 1, 0);
-	}
-
-	// draw mode boxes
-	void drawModes() {
-		int i;
-		for (i = 0; i != dragObjects.size(); i++) {
-			DragObject obj = dragObjects.get(i);
-			if (obj instanceof ModeBox) {
-				double xform[] = obj.transform;
-				setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-				((ModeBox) obj).drawMode();
-			}
 		}
 		setTransform(1, 0, 0, 0, 1, 0);
 	}
@@ -1960,7 +1935,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		repaint();
 		if (event.getSource() == blankButton) {
 			doBlank();
-			drawModes();
 			resetTime();
 		}
 		

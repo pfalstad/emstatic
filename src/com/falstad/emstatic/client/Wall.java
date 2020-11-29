@@ -21,9 +21,12 @@ package com.falstad.emstatic.client;
 
 public class Wall extends DragObject {
 
+    double pot;
+    
 	Wall() {
 		handles.add(new DragHandle(this));
 		handles.add(new DragHandle(this));
+		pot = 1;
 		setTransform();
 	}
 	
@@ -38,16 +41,33 @@ public class Wall extends DragObject {
 		handles.add(new DragHandle(this, st));
 		handles.add(new DragHandle(this, st));
 		setTransform();
+		pot = Double.parseDouble(st.nextToken());
+	}
+	
+	void drawSelection() {
+	    drawMaterials(false);
 	}
 	
 	void drawMaterials(boolean residual) {
-		EMStatic.drawWall(handles.get(0).x, handles.get(0).y, handles.get(1).x, handles.get(1).y);
-	}
-	
-	@Override void drawSelection() {
-		prepare();
+		EMStatic.drawWall(handles.get(0).x, handles.get(0).y, handles.get(1).x, handles.get(1).y, residual ? 0 : pot);
 	}
 	
 	int getDumpType() { return 'w'; }
+
+	    public EditInfo getEditInfo(int n) {
+		if (n == 0)
+		    return new EditInfo("potential", pot, 0, 1);
+
+		return null;
+	    }
+
+	    public void setEditValue(int n, EditInfo ei) {
+		if (n == 0)
+		    pot = ei.value;
+	    }
+
+	    String dump() {
+		return super.dump() + " " + pot;
+	    }
 
 }

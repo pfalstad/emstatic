@@ -6,7 +6,7 @@ var windowWidth, windowHeight, viewAngle, viewHeight;
 var sim;
 var transform = [1, 0, 0, 1, 0, 0];
 var renderTextures = [];
-var pixelWidth;
+var minFeatureWidth;
 
     function getShader(gl, id, prefix) {
         var shaderScript = document.getElementById(id);
@@ -398,7 +398,9 @@ function isPowerOf2(value) {
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
         destHeight = rttFramebuffer.height;
-        pixelWidth = windowWidth / rttFramebuffer.width;
+
+	// minimum width/height of anything drawn, should always be at least one pixel width
+        minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
     }
     
     function simulate(srcnum, rsnum, resid) {
@@ -751,11 +753,11 @@ function isPowerOf2(value) {
     	return result;
     }
     
-    function drawWall(x, y, x2, y2, v) {
-    	setupForDrawing(v);
+    function drawWall(x, y, x2, y2, pot) {
+    	setupForDrawing(1);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         // draw line back on itself, or else one endpoint won't be drawn
-        srcCoords = thickLinePoints([x, y, x2, y2, x, y], pixelWidth*1.5);
+        srcCoords = thickLinePoints([x, y, x2, y2, x, y], sim.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -765,6 +767,7 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.drawArrays(gl.LINE_STRIP, 0, 3);
 
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, 0.0, 1.0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.lineWidth(1);
@@ -928,10 +931,10 @@ function isPowerOf2(value) {
 		gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
-        if (x2-x < pixelWidth)
-		x2 = x4 = x+pixelWidth;
-	if (y3-y < pixelWidth)
-		y3 = y4 = y+pixelWidth;
+        if (x2-x < minFeatureWidth)
+		x2 = x4 = x+minFeatureWidth;
+	if (y3-y < minFeatureWidth)
+		y3 = y4 = y+minFeatureWidth;
         var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
         //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
@@ -1296,7 +1299,7 @@ function isPowerOf2(value) {
     	sim.drawHandle = function (x, y) { drawHandle(x, y); }
     	sim.drawFocus = function (x, y) { drawFocus(x, y); }
     	sim.drawPoke = function (x, y) { drawPoke(x, y); }
-    	sim.drawWall = function (x, y, x2, y2) { drawWall(x, y, x2, y2, 0); }
+    	sim.drawWall = function (x, y, x2, y2, pot) { drawWall(x, y, x2, y2, pot); }
     	sim.clearWall = function (x, y, x2, y2) { drawWall(x, y, x2, y2, 1); }
     	sim.drawParabola = function (x, y, w, h) { drawParabola(x, y, w, h); }
     	sim.drawLens = function (x, y, w, h, m) { drawLens(x, y, w, h, m); }

@@ -144,10 +144,10 @@ public abstract class RectDragObject extends DragObject {
 	}
 	
 	@Override void drawSelection() {
-		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y);
-		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y); 
-		EMStatic.drawWall(bottomRight.x, bottomRight.y, topRight.x, topRight.y);
-		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+		EMStatic.drawWall(topLeft.x, topLeft.y, topRight.x, topRight.y, 0);
+		EMStatic.drawWall(topLeft.x, topLeft.y, bottomLeft.x, bottomLeft.y, 0); 
+		EMStatic.drawWall(bottomRight.x, bottomRight.y, topRight.x, topRight.y, 0);
+		EMStatic.drawWall(bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, 0);
 	}
 	
 	String dumpHandles() {
