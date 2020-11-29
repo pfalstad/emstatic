@@ -961,6 +961,36 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
+    function drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg) {
+	gl.colorMask(true, false, false, false);
+        gl.useProgram(shaderProgramDraw);
+
+        if (x2-x < minFeatureWidth)
+		x2 = x4 = x+minFeatureWidth;
+	if (y3-y < minFeatureWidth)
+		y3 = y4 = y+minFeatureWidth;
+        var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
+        //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(medCoords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        //gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        //gl.vertexAttribPointer(shaderProgramDraw.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramDraw);
+        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+        //gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, chg, 0.0, 0.0, 1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+        //gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
+
+		gl.colorMask(true, true, true, true);
+    }
+
     function drawModes(x, y, x2, y2, a, b, c, d) {
 		var rttFramebuffer = renderTexture1.framebuffer;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
@@ -1310,6 +1340,7 @@ function isPowerOf2(value) {
     	sim.drawEllipse = function (x, y, x2, y2, m) { drawEllipse(x, y, x2, y2); }
     	sim.drawSolidEllipse = function (x, y, x2, y2, m, p) { drawSolidEllipse(x, y, x2, y2, m, p); }
     	sim.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m, m2) { drawMedium(x, y, x2, y2, x3, y3, x4, y4, m, m2); }
+    	sim.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) { drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg); }
     	sim.drawTriangle = function (x, y, x2, y2, x3, y3, m) { drawTriangle(x, y, x2, y2, x3, y3, m); }
     	sim.drawModes = function (x, y, x2, y2, a, b, c, d) { drawModes(x, y, x2, y2, a, b, c, d); }
     	sim.setTransform = function (a, b, c, d, e, f) {
