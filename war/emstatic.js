@@ -89,6 +89,7 @@ var minFeatureWidth;
     	shaderProgram3D.brightnessUniform = gl.getUniformLocation(shaderProgram3D, "brightness");
     	shaderProgram3D.colorsUniform = gl.getUniformLocation(shaderProgram3D, "colors");
     	shaderProgram3D.xOffsetUniform = gl.getUniformLocation(shaderProgram3D, "xOffset");
+    	shaderProgram3D.normalMatrixUniform = gl.getUniformLocation(shaderProgram3D, "uNormalMatrix");
 
     	shaderProgramFixed = initShader("shader-simulate-fs", "shader-vs", null);
     	shaderProgramFixed.stepSizeXUniform = gl.getUniformLocation(shaderProgramFixed, "stepSizeX");
@@ -285,7 +286,7 @@ function isPowerOf2(value) {
     var srcCoords = [
                      -.26, 0, -.25, 0
                      ];
-    var gridSize3D = 256;
+    var gridSize3D = 128;
     var gridRange;
 
     function initBuffers() {
@@ -1060,7 +1061,7 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function drawSceneOld(s, bright) {
+    function drawScenePotential(s, bright) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1210,7 +1211,7 @@ function isPowerOf2(value) {
       if (type == 2)
         drawScene3D(s, bright);
       else if (type == 1)
-        drawSceneOld(s, bright);
+        drawScenePotential(s, bright);
       else
         drawScene(s, bright);
     }
@@ -1242,6 +1243,7 @@ function isPowerOf2(value) {
         gl.uniform1i(shaderProgram3D.samplerUniform, 0);
         gl.uniform1f(shaderProgram3D.brightnessUniform, bright*.1);
         gl.uniform3fv(shaderProgram3D.colorsUniform, colors);
+	gl.uniformMatrix4fv(shaderProgram3D.normalMatrixUniform, false, matrix3d);
 
         setMatrixUniforms(shaderProgram3D);
         gl.enableVertexAttribArray(shaderProgram3D.textureCoordAttribute);
