@@ -226,7 +226,7 @@ class EditDialog extends DialogBox  {
 			    continue;
 			elm.setEditValue(i, ei);
 		}
-		cframe.changedWalls = true;
+		cframe.needsRecalc = true;
 	}
 
 	public void itemStateChanged(GwtEvent e) {
@@ -250,7 +250,7 @@ class EditDialog extends DialogBox  {
 	    		elm.setEditValue(i, ei);
 	    		if (ei.newDialog)
 	    			changed = true;
-	    		cframe.changedWalls = true;
+	    		cframe.needsRecalc = true;
 	    	}
 	    }
 	    if (changed) {

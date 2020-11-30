@@ -31,6 +31,8 @@ import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.Duration;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JsArray;
+import com.google.gwt.core.client.JsArrayNumber;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.CanvasElement;
 import com.google.gwt.dom.client.Style.Unit;
@@ -155,7 +157,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	boolean dragSet;
 	public boolean useFrame;
 	boolean showControls;
-	boolean changedWalls;
+	boolean needsRecalc;
 	boolean ignoreFreqBarSetting;
 	double t;
 	double lengthScale, waveSpeed;
@@ -421,6 +423,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.doBlankWalls();
 	}-*/;
 
+	static native JsArrayNumber getProbeValue(int x, int y) /*-{
+		return this.getProbeValue(x, y);
+	}-*/;
+	
 	static native void setColors(int wallColor, int posColor, int negColor,
 			int zeroColor, int posMedColor, int negMedColor,
 			int medColor, int sourceColor, int zeroColor3d) /*-{
@@ -757,7 +763,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     }
 
     public void wallsChanged() {
-    	changedWalls = true;
+    	needsRecalc = true;
     }
     
     public void menuPerformed(String menu, String item) {
@@ -1076,6 +1082,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				prepareObjects();
 				changedWalls = false;
 			}*/
+	    if (needsRecalc) {
+		console("Recalc");
 			int level = debugBar1.getValue();
 			if (stoppedCheck.getState())
 				return;
@@ -1122,12 +1130,18 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				if (stepCount >= maxSteps)
 					break;
 			}
+			needsRecalc = false;
+	    }
+	    
+	    int src = getRenderTextureCount()-2;
+	    
 //			console("result = " + src);
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			updateRippleGL(src, brightMult, displayChooser.getSelectedIndex());
+			int i;
 			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
@@ -1150,10 +1164,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			return;
 		}
 		String txt = (selectedObject != null) ? selectedObject.selectText() : null;
+		Point pt = mouseLocation;
 		if (txt == null) {
 			txt = "t = " + getUnitText(getRealTime(), "s");
+			JsArrayNumber probe = getProbeValue(pt.x, pt.y);
+			txt += ", potential = " + getUnitText(probe.get(0), "V?");
 		}
-		Point pt = mouseLocation;
 		coordsLabel.setText("(" + getLengthText(pt.x) + ", " + getLengthText(windowHeight-1-pt.y) + ") " + txt);
 		absolutePanel.setWidgetPosition(coordsLabel,
 				0,
@@ -1221,7 +1237,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			DragObject obj = dragObjects.get(i);
 			obj.rescale(windowWidth/(double)oldWidth);
 		}
-		changedWalls = true;
+		needsRecalc = true;
 	}
 
 	void setResolution(int x) {
@@ -1514,7 +1530,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setDamping();
 		wallsChanged();
 		enableDisableUI();
-		console("done with reading setup, " + dragObjects.size() + " " + changedWalls);
+		console("done with reading setup, " + dragObjects.size() + " " + needsRecalc);
 	}
 
 	abstract class Setup {
@@ -1595,6 +1611,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		int x = event.getX();
 		int y = event.getY();
+		
 		dragPoint = getPointFromEvent(event);
 		dragStartX = dragX = x;
 		dragStartY = dragY = y;
@@ -1642,6 +1659,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (!preserveSelection)
 			setSelectedObject(sel);
 		mouseObject = sel;
+		repaint();
 	}
 
     static String getUnitText(double v, String u) {
@@ -1654,7 +1672,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
             return showFormat.format(v*1e9) + " n" + u;
         if (va < 1e-3)
             return showFormat.format(v*1e6) + " \u03bc" + u;
-        if (va < 1e-2 || (va < 1 && u.equals("s")))
+        if (va < 1e-2 || (va < 1 && !u.equals("m")))
             return showFormat.format(v*1e3) + " m" + u;
         if (va < 1)
             return showFormat.format(v*1e2) + " c" + u;
@@ -1724,7 +1742,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (draggingHandle != null) {
 			Point mp = selectedObject.inverseTransformPoint(pt);
 			draggingHandle.dragTo(mp.x, mp.y);
-			changedWalls = true;
+			needsRecalc = true;
 		} else if (isSelection()) {
 			if (dragPoint.x != pt.x || dragPoint.y != pt.y) {
 				int i;
@@ -1734,7 +1752,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						obj.drag(pt.x-dragPoint.x, pt.y-dragPoint.y);
 				}
 				dragPoint = pt;
-				changedWalls = true;
+				needsRecalc = true;
 			}
 		}
 	}

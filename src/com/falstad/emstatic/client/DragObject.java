@@ -34,14 +34,14 @@ public abstract class DragObject implements Editable {
 	DragObject() {
 		handles = new Vector<DragHandle>(4);
 		sim = EMStatic.theSim;
-		sim.changedWalls = true;
+		sim.needsRecalc = true;
 		setTransform();
 	}
 	
 	DragObject(StringTokenizer st) {
 		handles = new Vector<DragHandle>(4);
 		sim = EMStatic.theSim;
-		sim.changedWalls = true;
+		sim.needsRecalc = true;
 		flags = new Integer(st.nextToken()).intValue();
 	}
 
@@ -124,7 +124,7 @@ public abstract class DragObject implements Editable {
 	void rotate(double ang) {
 		rotation += ang;
 		setTransform();
-		sim.changedWalls = true;
+		sim.needsRecalc = true;
 	}
 
 	void rotateTo(int x, int y) {
@@ -132,7 +132,7 @@ public abstract class DragObject implements Editable {
 		double step = Math.PI/12;
 		rotation = Math.round(rotation/step)*step;
 		setTransform();
-		sim.changedWalls = true;
+		sim.needsRecalc = true;
 	}
 
 	boolean canRotate() { return false; }
@@ -181,7 +181,7 @@ public abstract class DragObject implements Editable {
 	}
 	
 	boolean dragHandle(DragHandle dh, int x, int y) {
-		sim.changedWalls = true;
+		sim.needsRecalc = true;
 		return true;
 	}
 	

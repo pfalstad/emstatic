@@ -259,6 +259,13 @@ function isPowerOf2(value) {
           return null;
         }
 
+        var pixels = new Float32Array(4);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.FLOAT, pixels);
+        if (gl.getError() != gl.NO_ERROR)
+            console.log("readPixels failed");
+        else
+            sim.readPixelsWorks = true;
+
     	gl.bindTexture(gl.TEXTURE_2D, null);
     	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1061,6 +1068,15 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
+    function getProbeValue(x, y) {
+        var rttFramebuffer = renderTexture1.framebuffer;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
+        gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
+        var pixels = new Float32Array(4);
+        gl.readPixels(windowOffsetX+x, gridSizeY-windowOffsetY-y-1, 1, 1, gl.RGBA, gl.FLOAT, pixels);
+        return [pixels[0]];
+    }
+
     function drawScenePotential(s, bright) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1299,6 +1315,7 @@ function isPowerOf2(value) {
     	gl.clearColor(0.0, 0.0, 1.0, 1.0);
 
     	sim.acoustic = false;
+    	sim.readPixelsWorks = false;
     	sim.display = function (s, bright, disp) { display(s, bright, disp); }
     	sim.runRelax = function (s, b, resid) { simulate(s, b, resid); }
     	sim.add = function (s, b) { add(s, b); }
@@ -1350,6 +1367,7 @@ function isPowerOf2(value) {
     		transform[2] = c; transform[3] = d;
     		transform[4] = e; transform[5] = f;
     	}
+	sim.getProbeValue = function (x, y) { return getProbeValue(x, y); }
     	sim.setDestination = function (a) { setDestination(a); }
     	sim.clearDestination = function () {
         	gl.clearColor(0.0, 0.0, 1.0, 1.0);
