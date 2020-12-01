@@ -399,6 +399,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.drawSolidEllipse(x1, y1, rx, ry, med, pot);
 	}-*/;
 
+	static native void drawChargedEllipse(int x1, int y1, int rx, int ry, double chg) /*-{
+		this.drawSolidEllipse(x1, y1, rx, ry, undefined, chg);
+	}-*/;
+	
 	static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
 		this.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
 	}-*/;
@@ -749,6 +753,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Point Source", "Source"));
     	mainMenuBar.addItem(getClassCheckItem("Add Solid Box", "SolidBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Box", "ChargedBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Charged Ellipse", "ChargedEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Medium", "MediumBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
@@ -836,6 +841,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new SolidBox();
     	if (item == "ChargedBox")
     		newObject = new ChargedBox();
+    	if (item == "ChargedEllipse")
+		newObject = new ChargedEllipse();
     	if (item == "TrianglePrism")
     		newObject = new TrianglePrism();
     	if (item == "Parabola")
@@ -866,6 +873,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'p') return new Parabola(st);
     	if (tint == 202) return new SolidBox(st);
     	if (tint == 203) return new ChargedBox(st);
+    	if (tint == 204) return new ChargedEllipse(st);
     	if (tint == 's') return new Source(st, 1);
     	if (tint == 't') return new TrianglePrism(st);
     	if (tint == 'w') return new Wall(st);

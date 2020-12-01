@@ -911,7 +911,11 @@ function isPowerOf2(value) {
     }
     
     function drawSolidEllipse(cx, cy, xr, yr, med, pot) {
-	gl.colorMask(med == 0, false, true, false);
+	if (med == undefined) {
+	    gl.colorMask(true, false, false, false);
+	    med = 0;
+	} else
+	    gl.colorMask(med == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
