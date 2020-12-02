@@ -84,6 +84,7 @@ var minFeatureWidth;
     	shaderProgramMain = initShader("shader-display-fs", "shader-vs", null);
     	shaderProgramMain.brightnessUniform = gl.getUniformLocation(shaderProgramMain, "brightness");
     	shaderProgramMain.colorsUniform = gl.getUniformLocation(shaderProgramMain, "colors");
+        shaderProgramMain.rightSideTextureUniform = gl.getUniformLocation(shaderProgramMain, "uRightSideTexture");
 
     	shaderProgram3D = initShader("shader-draw-fs", "shader-3d-vs", null);
     	shaderProgram3D.brightnessUniform = gl.getUniformLocation(shaderProgram3D, "brightness");
@@ -113,6 +114,7 @@ var minFeatureWidth;
     	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
     	shaderProgramEquip.stepSizeYUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeY");
     	shaderProgramEquip.brightnessUniform = gl.getUniformLocation(shaderProgramEquip, "brightness");
+        shaderProgramEquip.rightSideTextureUniform = gl.getUniformLocation(shaderProgramEquip, "uRightSideTexture");
 
     	shaderProgramField = initShader("shader-field-fs", "shader-field-vs", null);
     	shaderProgramField.stepSizeXUniform = gl.getUniformLocation(shaderProgramField, "stepSizeX");
@@ -570,6 +572,7 @@ function isPowerOf2(value) {
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
 		gl.colorMask(true, false, false, false);
+        console.log("pre " + gl.getError());
         gl.drawArrays(gl.LINES, 0, 2);
 		gl.colorMask(true, true, true, true);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
@@ -622,10 +625,7 @@ function isPowerOf2(value) {
         setMatrixUniforms(shaderProgramDraw);
 //        gl.lineWidth(sim.drawingSelection < 0 ? 1 : 2);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
@@ -996,7 +996,10 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         //gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, chg, 0.0, 0.0, 1.0);
+        //gl.enable(gl.BLEND);
+	//gl.blendFunc(gl.ONE, gl.ONE);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        //gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         //gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
 
@@ -1081,7 +1084,7 @@ function isPowerOf2(value) {
         return [pixels[0]];
     }
 
-    function drawScenePotential(s, bright) {
+    function drawScenePotential(s, rs, bright) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1105,7 +1108,14 @@ function isPowerOf2(value) {
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[rs].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
         gl.uniform1i(shaderProgramMain.samplerUniform, 0);
+        gl.uniform1i(shaderProgramMain.rightSideTextureUniform, 2);
         gl.uniform1f(shaderProgramMain.brightnessUniform, bright);
         gl.uniform3fv(shaderProgramMain.colorsUniform, colors);
 
@@ -1119,7 +1129,7 @@ function isPowerOf2(value) {
         mvPopMatrix();
     }
 
-    function drawSceneEquip(s, bright) {
+    function drawSceneEquip(s, rs, bright) {
         gl.useProgram(shaderProgramEquip);
 /*
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1145,7 +1155,14 @@ function isPowerOf2(value) {
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[rs].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
         gl.uniform1i(shaderProgramEquip.samplerUniform, 0);
+        gl.uniform1i(shaderProgramEquip.rightSideTextureUniform, 2);
         gl.uniform1f(shaderProgramEquip.brightnessUniform, bright);
         gl.uniform1f(shaderProgramEquip.stepSizeXUniform, .5/gl.viewportWidth);
         gl.uniform1f(shaderProgramEquip.stepSizeYUniform, .5/gl.viewportHeight);
@@ -1164,7 +1181,7 @@ function isPowerOf2(value) {
         mvPopMatrix();
     }
 
-    function drawScene(s, bright) {
+    function drawScene(s, rs, bright) {
         gl.useProgram(shaderProgramField);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1207,6 +1224,7 @@ function isPowerOf2(value) {
 
         gl.uniform1i(shaderProgramField.samplerUniform, 0);
         gl.uniform1i(shaderProgramField.arrowTextureUniform, 1);
+        gl.uniform1i(shaderProgramField.rightSideTextureUniform, 2);
         gl.uniform1f(shaderProgramField.brightnessUniform, bright);
         gl.uniform1f(shaderProgramField.stepSizeXUniform, .5/gl.viewportWidth);
         gl.uniform1f(shaderProgramField.stepSizeYUniform, .5/gl.viewportHeight);
@@ -1224,16 +1242,16 @@ function isPowerOf2(value) {
 
         //mvPopMatrix();
 
-	drawSceneEquip(s, bright);
+	drawSceneEquip(s, rs, bright);
     }
 
-    function display(s, bright, type) {
+    function display(s, rs, bright, type) {
       if (type == 2)
         drawScene3D(s, bright);
       else if (type == 1)
-        drawScenePotential(s, bright);
+        drawScenePotential(s, rs, bright);
       else
-        drawScene(s, bright);
+        drawScene(s, rs, bright);
     }
 
     function drawScene3D(s, bright) {
@@ -1291,6 +1309,7 @@ function isPowerOf2(value) {
     	var float_texture_ext = gl.getExtension('OES_texture_float');
     	var float_texture_linear_ext = gl.getExtension('OES_texture_float_linear');
     	var half_float_texture_ext = gl.getExtension('OES_texture_half_float');
+	gl.getExtension('EXT_float_blend');
 
 //    	gridSizeX = gridSizeY = 1024;
 //    	windowOffsetX = windowOffsetY = 40;
@@ -1320,7 +1339,7 @@ function isPowerOf2(value) {
 
     	sim.acoustic = false;
     	sim.readPixelsWorks = false;
-    	sim.display = function (s, bright, disp) { display(s, bright, disp); }
+    	sim.display = function (s, rs, bright, disp) { display(s, rs, bright, disp); }
     	sim.runRelax = function (s, b, resid) { simulate(s, b, resid); }
     	sim.add = function (s, b) { add(s, b); }
     	sim.copy = function (s) { copy(s); }

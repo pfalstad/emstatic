@@ -303,8 +303,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}-*/;
 
 	// call into ripple.js
-	static native void updateRippleGL(int src, double bright, int disp) /*-{
-		this.display(src, bright, disp);
+	static native void updateRippleGL(int src, int rs, double bright, int disp) /*-{
+		this.display(src, rs, bright, disp);
 	}-*/;
 
 	static native void setDestination(int d) /*-{
@@ -1090,6 +1090,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				prepareObjects();
 				changedWalls = false;
 			}*/
+	    int rtnum = getRenderTextureCount();
 	    if (needsRecalc) {
 		console("Recalc");
 			int level = debugBar1.getValue();
@@ -1098,7 +1099,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //				iterCount = 0;
 			int i;
 
-			int rtnum = getRenderTextureCount();
 			createRightSide(rtnum-1);
 			drawMaterials(false);
 			
@@ -1148,7 +1148,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// render textures 3-5 are size 32
 			// etc.
 			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(src, brightMult, displayChooser.getSelectedIndex());
+			updateRippleGL(src, rtnum-1, brightMult, displayChooser.getSelectedIndex());
 			int i;
 			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
