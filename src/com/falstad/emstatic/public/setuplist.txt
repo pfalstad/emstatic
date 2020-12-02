@@ -4,6 +4,7 @@ charge-dipole.txt Dipole Charge
 conductor.txt Conductor
 conductor-charge.txt Conductor and Charge
 dielec.txt Dielectric
+dielec-cyl.txt Dielectric Cylinder
 1source.txt Single Source
 2sources.txt Two Sources
 4sources.txt Four Sources
