@@ -35,7 +35,7 @@ public class ChargedBox extends RectDragObject {
     void drawCharge() {
 	double area = (topRight.x-topLeft.x)*(bottomRight.y-topRight.y);
 	EMStatic.drawChargedBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
-		bottomRight.y, charge/area);
+		bottomRight.y, charge);
     }
 
     int getDumpType() {
@@ -44,7 +44,7 @@ public class ChargedBox extends RectDragObject {
 
     public EditInfo getEditInfo(int n) {
 	if (n == 0)
-	    return new EditInfo("Charge", charge, 0, 1);
+	    return new EditInfo("Charge Density", charge, 0, 1);
 
 	return null;
     }

@@ -29,7 +29,7 @@ public class ChargedEllipse extends ChargedBox {
 	    double area = a*b*Math.PI;
 		EMStatic.drawChargedEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-			(int)a, (int)b, charge/area);
+			(int)a, (int)b, charge);
 	}
 
 	@Override double hitTest(int x, int y) {

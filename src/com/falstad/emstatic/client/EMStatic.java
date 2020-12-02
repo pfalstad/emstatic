@@ -1051,12 +1051,26 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	int lastRsGrid, lastSrc, lastDest;
 
-	void createRightSide(int dest) {
+	void createRightSide(int dest, int scratch1, int scratch2) {
 		int j;
 		setDestination(dest);
 		clearDestination();
-		for (j = 0; j != dragObjects.size(); j++)
-			dragObjects.get(j).drawCharge();
+		
+		// alpha isn't well supported for floating point textures so we need to do extra work to handle overlapping charges
+		for (j = 0; j != dragObjects.size(); j++) {
+		    // draw charged object into scratch texture
+		    setDestination(scratch1);
+		    clearDestination();
+		    dragObjects.get(j).drawCharge();
+		    
+		    // add scratch texture to destination
+		    setDestination(scratch2);
+		    add(scratch1, dest);
+		    
+		    // copy to destination
+		    setDestination(dest);
+		    copy(scratch2);
+		}
 	}
 	
 	void drawMaterials(boolean res) {
@@ -1099,7 +1113,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //				iterCount = 0;
 			int i;
 
-			createRightSide(rtnum-1);
+			createRightSide(rtnum-1, rtnum-2, rtnum-3);
 			drawMaterials(false);
 			
 			for (i = rtnum-1-3; i > 0; i -= 3) {
