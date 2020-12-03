@@ -1083,9 +1083,9 @@ function isPowerOf2(value) {
         var rttFramebuffer = renderTexture1.framebuffer;
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-        var pixels = new Float32Array(4);
-        gl.readPixels(windowOffsetX+x, gridSizeY-windowOffsetY-y-1, 1, 1, gl.RGBA, gl.FLOAT, pixels);
-        return [pixels[0]];
+        var pixels = new Float32Array(4*9);
+        gl.readPixels(windowOffsetX+x-1, gridSizeY-windowOffsetY-y-2, 3, 3, gl.RGBA, gl.FLOAT, pixels);
+        return [pixels[4*4], pixels[1*4], pixels[7*4], pixels[3*4], pixels[5*4]];
     }
 
     function drawScenePotential(s, rs, bright) {

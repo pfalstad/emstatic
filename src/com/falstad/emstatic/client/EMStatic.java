@@ -1190,7 +1190,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (txt == null) {
 			txt = "t = " + getUnitText(getRealTime(), "s");
 			JsArrayNumber probe = getProbeValue(pt.x, pt.y);
-			txt += ", potential = " + getUnitText(probe.get(0), "V?");
+			txt += ", potential = " + getUnitText(probe.get(0), "V?") + " field = (" +
+			getUnitText(probe.get(3)-probe.get(4), "N/C?") + ", " +
+			getUnitText(probe.get(2)-probe.get(1), "N/C?") + ")";
 		}
 		coordsLabel.setText("(" + getLengthText(pt.x) + ", " + getLengthText(windowHeight-1-pt.y) + ") " + txt);
 		absolutePanel.setWidgetPosition(coordsLabel,
