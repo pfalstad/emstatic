@@ -60,6 +60,7 @@ var minFeatureWidth;
         gl.linkProgram(shaderProgram);
 
         if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+	    console.log(gl.getProgramInfoLog(shaderProgram));
         	debugger;
             alert("Could not initialise shaders");
         }
@@ -86,11 +87,14 @@ var minFeatureWidth;
     	shaderProgramMain.colorsUniform = gl.getUniformLocation(shaderProgramMain, "colors");
         shaderProgramMain.rightSideTextureUniform = gl.getUniformLocation(shaderProgramMain, "uRightSideTexture");
 
-    	shaderProgram3D = initShader("shader-draw-fs", "shader-3d-vs", null);
+    	shaderProgram3D = initShader("shader-3d-fs", "shader-3d-vs", null);
     	shaderProgram3D.brightnessUniform = gl.getUniformLocation(shaderProgram3D, "brightness");
     	shaderProgram3D.colorsUniform = gl.getUniformLocation(shaderProgram3D, "colors");
     	shaderProgram3D.xOffsetUniform = gl.getUniformLocation(shaderProgram3D, "xOffset");
     	shaderProgram3D.normalMatrixUniform = gl.getUniformLocation(shaderProgram3D, "uNormalMatrix");
+    	shaderProgram3D.stepSizeXUniform = gl.getUniformLocation(shaderProgram3D, "stepSizeX");
+    	shaderProgram3D.stepSizeYUniform = gl.getUniformLocation(shaderProgram3D, "stepSizeY");
+        shaderProgram3D.rightSideTextureUniform = gl.getUniformLocation(shaderProgram3D, "uRightSideTexture");
 
     	shaderProgramFixed = initShader("shader-simulate-fs", "shader-vs", null);
     	shaderProgramFixed.stepSizeXUniform = gl.getUniformLocation(shaderProgramFixed, "stepSizeX");
@@ -1127,6 +1131,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
 
         mvPopMatrix();
+	drawSceneEquip(s, rs, bright);
     }
 
     function drawSceneEquip(s, rs, bright) {
@@ -1247,14 +1252,14 @@ function isPowerOf2(value) {
 
     function display(s, rs, bright, type) {
       if (type == 2)
-        drawScene3D(s, bright);
+        drawScene3D(s, rs, bright);
       else if (type == 1)
         drawScenePotential(s, rs, bright);
       else
         drawScene(s, rs, bright);
     }
 
-    function drawScene3D(s, bright) {
+    function drawScene3D(s, rs, bright) {
         gl.useProgram(shaderProgram3D);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1278,9 +1283,20 @@ function isPowerOf2(value) {
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[rs].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
         gl.uniform1i(shaderProgram3D.samplerUniform, 0);
-        gl.uniform1f(shaderProgram3D.brightnessUniform, bright*.1);
+        gl.uniform1f(shaderProgram3D.brightnessUniform, bright);
         gl.uniform3fv(shaderProgram3D.colorsUniform, colors);
+        gl.uniform1i(shaderProgram3D.rightSideTextureUniform, 2);
+        gl.uniform1f(shaderProgram3D.stepSizeXUniform, .5/gl.viewportWidth);
+        gl.uniform1f(shaderProgram3D.stepSizeYUniform, .5/gl.viewportHeight);
 	gl.uniformMatrix4fv(shaderProgram3D.normalMatrixUniform, false, matrix3d);
 
         setMatrixUniforms(shaderProgram3D);

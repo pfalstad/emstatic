@@ -330,45 +330,76 @@ void main()
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
     uniform mat4 uNormalMatrix;
-	uniform highp float xOffset;
+    uniform highp float xOffset;
 
     varying vec2 vTextureCoord;
-    varying vec4 vPosition;
-	varying vec4 vColor;
+    //varying vec4 vPosition;
+    varying vec4 vColor;
     uniform sampler2D uSampler;
     uniform float brightness;
     uniform lowp vec3 colors[TS_COL_COUNT];
 
     void main(void) {
-		highp vec2 tc  = vec2(aTextureCoord.x+xOffset, aTextureCoord.y);
+	highp vec2 tc  = vec2(aTextureCoord.x+xOffset, aTextureCoord.y);
         vec4 pv = texture2D(uSampler, tc);
-		float r =  pv.r*brightness;
-        vPosition = uMVMatrix * vec4(-1.0+2.0*tc.x, -1.0+2.0*tc.y, r, 1.0);
+	float r =  pv.r*brightness*.1;
+        vec4 vPosition = uMVMatrix * vec4(-1.0+2.0*tc.x, -1.0+2.0*tc.y, r, 1.0);
         gl_Position = uPMatrix * vPosition;
         vTextureCoord = tc;
-		float med = 1.0; // pv.b;
-		vec3 col;
-		if (med == 0.0)
-			col = colors[TS_COL_WALL];
-		else {
-			// calculate normal
-			float qx = texture2D(uSampler, vec2(aTextureCoord.x+xOffset+1./200., aTextureCoord.y)).r-pv.r;
-			float qy = texture2D(uSampler, vec2(aTextureCoord.x+xOffset, aTextureCoord.y+1./200.)).r-pv.r;
-			qx *= brightness*200.;  qy *= brightness*200.;
+	float med = 1.0; // pv.b;
+	vec3 col;
+	if (med == 0.0)
+	  col = colors[TS_COL_WALL];
+	else {
+	  // calculate normal
+	  float qx = texture2D(uSampler, vec2(aTextureCoord.x+xOffset+1./200., aTextureCoord.y)).r-pv.r;
+	  float qy = texture2D(uSampler, vec2(aTextureCoord.x+xOffset, aTextureCoord.y+1./200.)).r-pv.r;
+	  qx *= brightness*20.;  qy *= brightness*20.;
 
-			// calculate lighting
-			float normdot = max(dot(uNormalMatrix*vec4(qx, qy, -1., 1.), vec4(1., 0., -1., 0.))/length(vec3(qx, qy, -1.)), 0.0);
+	  // calculate lighting
+	  float normdot = max(dot(uNormalMatrix*vec4(qx, qy, -1., 1.), vec4(1., 0., -1., 0.))/length(vec3(qx, qy, -1.)), 0.0);
 
-	        r = 10.*clamp(r, -1., 1.);
-                if (r > 0.0)
-                        col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
-                else
-                        col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
-		// not sure why we need this clamp here but it doesn't work otherwise
-			col = clamp(col, 0., 1.) + vec3(1., 1., 1.)*normdot*.6;
-		}
+	  r = 10.*clamp(r, -1., 1.);
+          if (r > 0.0)
+            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
+          else
+            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
+	  // not sure why we need this clamp here but it doesn't work otherwise
+	  col = clamp(col, 0., 1.) + vec3(1., 1., 1.)*normdot*.6;
+	}
         vColor = vec4(col, 1.);
+    }
+</script>
 
+<script id="shader-3d-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+    varying vec4 vColor;
+
+    uniform sampler2D uSampler;
+    uniform sampler2D uRightSideTexture;
+    uniform float stepSizeX;
+    uniform float stepSizeY;
+    uniform highp float brightness;
+
+    void main(void) {
+        float alpha = 1.0;
+	vec4 rs = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
+        if (rs.b == 0.0) {
+          gl_FragColor = vec4(.5, .5, .5, 1.);
+        } else {
+          vec4 texture0 = texture2D(uSampler, vec2(vTextureCoord.s-stepSizeX, vTextureCoord.t));
+          vec4 textureS = texture2D(uSampler, vec2(vTextureCoord.s+stepSizeX, vTextureCoord.t));
+          vec4 textureA = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t-stepSizeY));
+          vec4 textureT = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t+stepSizeY));
+  
+	  float pot0 =  texture0.r*brightness;
+	  float potS =  textureS.r*brightness;
+	  float potT =  textureT.r*brightness;
+	  float potA =  textureA.r*brightness;
+          gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) : vColor;
+       }
     }
 </script>
 
