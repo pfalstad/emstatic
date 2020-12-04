@@ -135,7 +135,8 @@
 	  float potS =  textureS.r*brightness;
 	  float potT =  textureT.r*brightness;
 	  float potA =  textureA.r*brightness;
-          gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) : vec4(0., 0., 0., 0.);
+          gl_FragColor = (floor(pot0) != floor(potS) || floor(potA) != floor(potT)) ? vec4(1., 1., 1., 1.) :
+                 vec4(1., 1., 1., rs.b != 1.0 || rs.r != 0.0 ? 0.15 : 0.0);
        }
     }
 </script>
