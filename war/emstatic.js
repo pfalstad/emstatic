@@ -89,6 +89,7 @@ var minFeatureWidth;
 
     	shaderProgram3D = initShader("shader-3d-fs", "shader-3d-vs", null);
     	shaderProgram3D.brightnessUniform = gl.getUniformLocation(shaderProgram3D, "brightness");
+    	shaderProgram3D.equipMultUniform = gl.getUniformLocation(shaderProgram3D, "equipMult");
     	shaderProgram3D.colorsUniform = gl.getUniformLocation(shaderProgram3D, "colors");
     	shaderProgram3D.xOffsetUniform = gl.getUniformLocation(shaderProgram3D, "xOffset");
     	shaderProgram3D.normalMatrixUniform = gl.getUniformLocation(shaderProgram3D, "uNormalMatrix");
@@ -729,6 +730,7 @@ function isPowerOf2(value) {
     }
 
     function setupForDrawing(v) {
+        gl.useProgram(shaderProgramDraw);
         if (sim.drawingSelection > 0) {
     		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, sim.drawingSelection,
     				sim.drawingSelection, 0, 1.0);
@@ -736,7 +738,6 @@ function isPowerOf2(value) {
     		//var rttFramebuffer = renderTexture1.framebuffer;
     		//gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     		//gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-            gl.useProgram(shaderProgramDraw);
             
             // blue channel used for walls and media
     		gl.colorMask(true, false, true, false);
@@ -768,8 +769,7 @@ function isPowerOf2(value) {
     function drawWall(x, y, x2, y2, pot) {
     	setupForDrawing(1);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        // draw line back on itself, or else one endpoint won't be drawn
-        srcCoords = thickLinePoints([x, y, x2, y2, x, y], sim.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
+        srcCoords = thickLinePoints([x, y, x2, y2, x, y], sim.drawingSelection == 1 ? .5 : sim.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -779,7 +779,8 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.drawArrays(gl.LINE_STRIP, 0, 3);
 
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, 0.0, 1.0);
+	if (sim.drawingSelection < 0)
+          gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, 0.0, 1.0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.lineWidth(1);
@@ -843,7 +844,7 @@ function isPowerOf2(value) {
         }
         coords.push(coords[0], coords[1]);
 //        console.log("coords for ellipse: " + coords);
-        coords = thickLinePoints(coords, 1.5);
+        coords = thickLinePoints(coords, sim.drawingSelection == 1 ? .5 : 1.5);
 //        gl.lineWidth(4);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -1088,7 +1089,7 @@ function isPowerOf2(value) {
         return [pixels[4*4], pixels[1*4], pixels[7*4], pixels[3*4], pixels[5*4]];
     }
 
-    function drawScenePotential(s, rs, bright) {
+    function drawScenePotential(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1131,7 +1132,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
 
         mvPopMatrix();
-	drawSceneEquip(s, rs, bright);
+	drawSceneEquip(s, rs, equipMult);
     }
 
     function drawSceneEquip(s, rs, bright) {
@@ -1186,7 +1187,7 @@ function isPowerOf2(value) {
         mvPopMatrix();
     }
 
-    function drawScene(s, rs, bright) {
+    function drawSceneField(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramField);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1216,12 +1217,15 @@ function isPowerOf2(value) {
         gl.bindTexture(gl.TEXTURE_2D, arrowTexture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
         var coords = [];
         var i, j;
-        for (i = 0; i != 80; i++)
-          for (j = 0; j != 80; j++) {
-            coords.push(-1+(i+.5)/40., -1+(j+.5)/40.);
+	var count = 60; // was 80
+        for (i = 0; i != count; i++)
+          for (j = 0; j != count; j++) {
+            coords.push(-1+(i+.5)/(count/2), -1+(j+.5)/(count/2));
           }
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.DYNAMIC_DRAW);
@@ -1247,19 +1251,19 @@ function isPowerOf2(value) {
 
         //mvPopMatrix();
 
-	drawSceneEquip(s, rs, bright);
+	drawSceneEquip(s, rs, equipMult);
     }
 
-    function display(s, rs, bright, type) {
+    function display(s, rs, bright, equipMult, type) {
       if (type == 2)
-        drawScene3D(s, rs, bright);
+        drawScene3D(s, rs, bright, equipMult);
       else if (type == 1)
-        drawScenePotential(s, rs, bright);
+        drawScenePotential(s, rs, bright, equipMult);
       else
-        drawScene(s, rs, bright);
+        drawSceneField(s, rs, bright, equipMult);
     }
 
-    function drawScene3D(s, rs, bright) {
+    function drawScene3D(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgram3D);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -1293,6 +1297,7 @@ function isPowerOf2(value) {
 
         gl.uniform1i(shaderProgram3D.samplerUniform, 0);
         gl.uniform1f(shaderProgram3D.brightnessUniform, bright);
+        gl.uniform1f(shaderProgram3D.equipMultUniform, equipMult);
         gl.uniform3fv(shaderProgram3D.colorsUniform, colors);
         gl.uniform1i(shaderProgram3D.rightSideTextureUniform, 2);
         gl.uniform1f(shaderProgram3D.stepSizeXUniform, .5/gl.viewportWidth);
@@ -1355,8 +1360,8 @@ function isPowerOf2(value) {
 
     	sim.acoustic = false;
     	sim.readPixelsWorks = false;
-    	sim.display = function (s, rs, bright, disp) { display(s, rs, bright, disp); }
-    	sim.runRelax = function (s, b, resid) { simulate(s, b, resid); }
+    	sim.display = display;
+    	sim.runRelax = simulate;
     	sim.add = function (s, b) { add(s, b); }
     	sim.copy = function (s) { copy(s); }
     	sim.setResolution = function (x, y, wx, wy) {

@@ -94,14 +94,14 @@ public abstract class DragObject implements Editable {
 	}
 	
 	void draw() {
-		if (!selected)
-			return;
-		int i;
-		for (i = 0; i != handles.size(); i++) {
+		if (selected) {
+		    int i;
+		    for (i = 0; i != handles.size(); i++) {
 			DragHandle dh = handles.get(i);
 			int x = (int) (dh.x*transform[0]+dh.y*transform[1]+transform[2]);
 			int y = (int) (dh.x*transform[3]+dh.y*transform[4]+transform[5]);
 			EMStatic.drawHandle(x, y); // -sim.windowOffsetX, y-sim.windowOffsetY);
+		    }
 		}
 		drawSelection();
 	}

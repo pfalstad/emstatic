@@ -133,11 +133,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Scrollbar freqBar;
 	Scrollbar resBar;
 	Scrollbar brightnessBar;
+	Scrollbar equipotentialBar;
 	Scrollbar debugBar1, debugBar2;
 	double dampcoef;
 	double freqTimeZero;
 	double movingSourcePos = 0;
-	double brightMult = 1;
 	double zoom3d = 1.2;
 	Point mouseLocation;
 	static final double pi = 3.14159265358979323846;
@@ -267,6 +267,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			speedBar.setWidth(verticalPanelWidth);
 			freqBar.setWidth(verticalPanelWidth);
 			brightnessBar.setWidth(verticalPanelWidth);
+			equipotentialBar.setWidth(verticalPanelWidth);
 		}
 		if (cv != null) {
 			cv.setWidth(width + "PX");
@@ -303,8 +304,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}-*/;
 
 	// call into ripple.js
-	static native void updateRippleGL(int src, int rs, double bright, int disp) /*-{
-		this.display(src, rs, bright, disp);
+	static native void displayGL(int src, int rs, double bright, double equipMult, int disp) /*-{
+		this.display(src, rs, bright, equipMult, disp);
 	}-*/;
 
 	static native void setDestination(int d) /*-{
@@ -542,6 +543,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         l.addStyleName("topSpace");
 		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
 			new Command() { public void execute() { repaint(); }}));
+		verticalPanel.add(l = new Label("Equipotential Count"));
+	        l.addStyleName("topSpace");
+			verticalPanel.add(equipotentialBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
+				new Command() { public void execute() { repaint(); }}));
 		
         verticalPanel.add(iFrame = new Frame("iframe.html"));
         iFrame.setWidth(verticalPanelWidth+"px");
@@ -555,6 +560,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		speedBar.setWidth(verticalPanelWidth);
 		freqBar.setWidth(verticalPanelWidth);
 		brightnessBar.setWidth(verticalPanelWidth);
+		equipotentialBar.setWidth(verticalPanelWidth);
 		debugBar1.setWidth(verticalPanelWidth);
 		debugBar2.setWidth(verticalPanelWidth);
 
@@ -1161,8 +1167,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// render textures 0-2 are size 16
 			// render textures 3-5 are size 32
 			// etc.
-			brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			updateRippleGL(src, rtnum-1, brightMult, displayChooser.getSelectedIndex());
+			double brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
+			double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
+			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 			int i;
 			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
@@ -1170,7 +1177,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					if (obj.selected)
 						setDrawingSelection(.6+.4*Math.sin(t*.2));
 					else
-						setDrawingSelection(-1);
+						setDrawingSelection(1);
 					double xform[] = obj.transform;
 					setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
 					obj.draw();
