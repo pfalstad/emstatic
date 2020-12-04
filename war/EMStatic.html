@@ -169,6 +169,39 @@
     }
 </script>
 
+<script id="shader-edge-charge-fs" type="x-shader/x-fragment">
+    varying highp vec2 vTextureCoord1;
+    varying highp vec2 vTextureCoord2;
+    uniform sampler2D uSourceTexture;
+    uniform highp float brightness;
+
+    void main(void) {
+        highp vec4 t1 = texture2D(uSourceTexture, vTextureCoord1);
+        highp vec4 t2 = texture2D(uSourceTexture, vTextureCoord2);
+        gl_FragColor = vec4(brightness*(t1.r-t2.r), brightness*(t2.r-t1.r), 0.0, 1.0);
+    }
+</script>
+
+<script id="shader-edge-charge-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat3 uTextureMatrix;
+
+    varying vec4 vPosition;
+    varying vec2 vTextureCoord1;
+    varying vec2 vTextureCoord2;
+
+    void main(void) {
+        vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = uPMatrix * vPosition;
+        vTextureCoord1 = (uTextureMatrix * vec3(aTextureCoord.x,   aTextureCoord.y, 1.0  )).xy;
+        vTextureCoord2 = (uTextureMatrix * vec3(aVertexPosition.x, aVertexPosition.y, 1.0)).xy;
+    }
+</script>
+
 <script id="shader-mode-fs" type="x-shader/x-fragment">
     precision mediump float;
 
@@ -416,7 +449,7 @@ varying mat2 vMatrix;
 uniform mat3 uTextureMatrix;
 
 highp vec4 getSquare(highp vec2 coords, highp float offsetX, highp float offsetY) {
-  return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1)).xy);
+  return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1.0)).xy);
 }
 
 void main() {

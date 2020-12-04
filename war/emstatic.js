@@ -7,6 +7,7 @@ var sim;
 var transform = [1, 0, 0, 1, 0, 0];
 var renderTextures = [];
 var minFeatureWidth;
+var brightness;
 
     function getShader(gl, id, prefix) {
         var shaderScript = document.getElementById(id);
@@ -47,7 +48,7 @@ var minFeatureWidth;
 
 
     var shaderProgramMain, shaderProgramFixed, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
-    var shaderProgramCopy, shaderProgramResidual;
+    var shaderProgramCopy, shaderProgramResidual, shaderProgramEdgeCharge;
 
     function initShader(fs, vs, prefix) {
         var fragmentShader = getShader(gl, fs, prefix);
@@ -114,6 +115,10 @@ var minFeatureWidth;
 
     	shaderProgramDraw = initShader("shader-draw-fs", "shader-draw-vs");
     	shaderProgramMode = initShader("shader-mode-fs", "shader-draw-vs");
+
+    	shaderProgramEdgeCharge = initShader("shader-edge-charge-fs", "shader-edge-charge-vs");
+    	shaderProgramEdgeCharge.brightnessUniform = gl.getUniformLocation(shaderProgramEdgeCharge, "brightness");
+    	shaderProgramEdgeCharge.textureMatrixUniform = gl.getUniformLocation(shaderProgramEdgeCharge, "uTextureMatrix");
 
     	shaderProgramEquip = initShader("shader-equipotential-fs", "shader-vs", null);
     	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
@@ -978,6 +983,50 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
+    function displayBoxCharge(x, y, x2, y2, x3, y3, x4, y4) {
+        // double some of the coordinates to get thickLinePoints to work right on right angles
+        var thick = 2;
+        var coords = [x, y, x+thick, y+thick, x2, y2,
+                      x+thick, y+thick, x2, y2, x2-thick, y2+thick,
+                      x2, y2, x2-thick, y2+thick, x4, y4,
+                      x2-thick, y2+thick, x4, y4, x4-thick, y4-thick,
+                      x4, y4, x4-thick, y4-thick, x3, y3,
+                      x4-thick, y4-thick, x3, y3, x3+thick, y3-thick,
+                      x3, y3, x3+thick, y3-thick, x, y,
+                      x3+thick, y3-thick, x, y, x+thick, y+thick];
+        var tcoords = [x, y-2, x+thick, y-2, x2, y2-2,
+                       x+thick, y-2, x2, y2-2, x2-thick, y2-2,
+                       x2+2, y2, x2+2, y2+thick, x4+2, y4,
+                       x2+2, y2+thick, x4+2, y4, x4+2, y4-thick,
+                       x4, y4+2, x4-thick, y4+2, x3, y3+2,
+                       x4-thick, y4+2, x3, y3+2, x3+thick, y3+2,
+                       x3-2, y3, x3-2, y3-thick, x-2, y,
+                       x3-2, y3-thick, x-2, y, x-2, y+thick];
+
+        gl.useProgram(shaderProgramEdgeCharge);
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramEdgeCharge);
+	
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramEdgeCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+
+        var matx = [1/gridSizeX,0,0, 0,-1/gridSizeY,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,1];
+	gl.uniformMatrix3fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+
+        gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
+
+        gl.drawArrays(gl.TRIANGLES, 0, coords.length/2);
+        gl.disableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+    }
+
     function drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg) {
 	gl.colorMask(true, false, false, false);
         gl.useProgram(shaderProgramDraw);
@@ -1255,6 +1304,7 @@ function isPowerOf2(value) {
     }
 
     function display(s, rs, bright, equipMult, type) {
+      brightness = bright;
       if (type == 2)
         drawScene3D(s, rs, bright, equipMult);
       else if (type == 1)
@@ -1404,6 +1454,7 @@ function isPowerOf2(value) {
     	sim.drawSolidEllipse = function (x, y, x2, y2, m, p) { drawSolidEllipse(x, y, x2, y2, m, p); }
     	sim.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m, m2) { drawMedium(x, y, x2, y2, x3, y3, x4, y4, m, m2); }
     	sim.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) { drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg); }
+    	sim.displayBoxCharge = displayBoxCharge;
     	sim.drawTriangle = function (x, y, x2, y2, x3, y3, m) { drawTriangle(x, y, x2, y2, x3, y3, m); }
     	sim.drawModes = function (x, y, x2, y2, a, b, c, d) { drawModes(x, y, x2, y2, a, b, c, d); }
     	sim.setTransform = function (a, b, c, d, e, f) {
