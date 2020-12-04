@@ -178,7 +178,8 @@
     void main(void) {
         highp vec4 t1 = texture2D(uSourceTexture, vTextureCoord1);
         highp vec4 t2 = texture2D(uSourceTexture, vTextureCoord2);
-        gl_FragColor = vec4(brightness*(t1.r-t2.r), brightness*(t2.r-t1.r), 0.0, 1.0);
+        highp float yel = brightness*(t2.r-t1.r);
+        gl_FragColor = vec4(yel, yel, brightness*(t1.r-t2.r), 1.0);
     }
 </script>
 
