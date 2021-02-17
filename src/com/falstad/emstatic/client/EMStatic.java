@@ -525,10 +525,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setResolution();
 		
 		verticalPanel.add(l = new Label("Debug Bar 1"));
-		verticalPanel.add(debugBar1 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
+		verticalPanel.add(debugBar1 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100, new Command() { public void execute() { recalcAndRepaint(); }}));
 		debugBar1.addClickHandler(this);
 		verticalPanel.add(l = new Label("Debug Bar 2"));
-		verticalPanel.add(debugBar2 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100));
+		verticalPanel.add(debugBar2 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100, new Command() { public void execute() { recalcAndRepaint(); }}));
 		debugBar2.addClickHandler(this);
 		
 //		verticalPanel.add(new Label("Damping"));
@@ -1096,6 +1096,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	    boolean needsRepaint;
 	    
+	    void recalcAndRepaint() {
+		needsRecalc = true;
+		repaint();
+	    }
+	    
 	    void repaint() {
 	        if (!needsRepaint) {
 	            needsRepaint = true;
@@ -1109,6 +1114,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	        }
 	    }
 
+	    static int finalSrc = 0;
+	    
 	public void updateRipple() {
 			/*if (changedWalls) {
 				prepareObjects();
@@ -1163,9 +1170,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					break;
 			}
 			needsRecalc = false;
+			finalSrc = src;
+			if (maxSteps == 10000)
+			    console("steps = " + stepCount);
 	    }
 	    
-	    int src = getRenderTextureCount()-2;
+	    int src = finalSrc; // getRenderTextureCount()-2;
 	    
 //			console("result = " + src);
 			// render textures 0-2 are size 16
