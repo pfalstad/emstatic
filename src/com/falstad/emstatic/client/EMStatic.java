@@ -517,7 +517,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		Label l;
 		verticalPanel.add(l = new Label("Simulation Speed"));
         l.addStyleName("topSpace");
-		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 220));
+		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 220, new Command() { public void execute() { recalcAndRepaint(); }}));
 		verticalPanel.add(l = new Label("Resolution"));
         l.addStyleName("topSpace");
 		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
@@ -987,7 +987,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			return solveExactly(src, dest, rsGrid);
 		
 		// iterate a few times on fine grid
-		int iterCount = 3;
+		int iterCount = 9; // was 3
 		int i;
 		for (i = 0; i != iterCount; i++) {
 			setDestination(dest);
