@@ -759,7 +759,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     public void composeMainMenu(MenuBar mainMenuBar) {
     	mainMenuBar.addItem(getClassCheckItem("Add Wall", "Wall"));
     	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Conductor", "RectConductor"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Conducting Box", "ConductingBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Box", "ChargedBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Ellipse", "ChargedEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
@@ -837,16 +837,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	DragObject newObject = null;
     	if (item == "Wall")
     		newObject = new Wall();
-    	if (item == "Box")
-    		newObject = new Box();
     	if (item == "DielectricBox")
     		newObject = new DielectricBox();
     	if (item == "DielectricEllipse")
     		newObject = new DielectricEllipse();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
-    	if (item == "RectConductor")
-    		newObject = new RectConductor();
+    	if (item == "ConductingBox")
+    		newObject = new ConductingBox();
     	if (item == "ChargedBox")
     		newObject = new ChargedBox();
     	if (item == "ChargedEllipse")
@@ -873,13 +871,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     }
 
     DragObject createObj(int tint, StringTokenizer st) {
-    	if (tint == 'b') return new Box(st);
     	if (tint == 'e') return new Ellipse(st);
     	if (tint == 'l') return new Lens(st);
     	if (tint == 'm') return new DielectricBox(st);
     	if (tint == 'E') return new DielectricEllipse(st);
     	if (tint == 'p') return new Parabola(st);
-    	if (tint == 202) return new RectConductor(st);
+    	if (tint == 202) return new ConductingBox(st);
     	if (tint == 203) return new ChargedBox(st);
     	if (tint == 204) return new ChargedEllipse(st);
     	if (tint == 's') return new Charge(st, 1);
