@@ -19,7 +19,7 @@
 
 package com.falstad.emstatic.client;
 
-public class TrianglePrism extends MediumBox {
+public class TrianglePrism extends DielectricBox {
 	
 	TrianglePrism() {}
 	TrianglePrism(StringTokenizer st) { super(st); }

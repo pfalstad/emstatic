@@ -19,19 +19,19 @@
 
 package com.falstad.emstatic.client;
 
-public class MediumBox extends RectDragObject {
+public class DielectricBox extends RectDragObject {
 	double speedIndex;
 	
-	MediumBox() {
+	DielectricBox() {
 		speedIndex = 1.5;
 	}
 	
-	MediumBox(StringTokenizer st) {
+	DielectricBox(StringTokenizer st) {
 		super(st);
 		speedIndex = new Double(st.nextToken()).doubleValue();
 	}
 	
-	MediumBox(int x, int y, int x2, int y2) {
+	DielectricBox(int x, int y, int x2, int y2) {
 		speedIndex = 1.5;
 		topLeft.x = bottomLeft.x = x;
 		topLeft.y = topRight.y = y;

@@ -19,9 +19,9 @@
 
 package com.falstad.emstatic.client;
 
-public class MediumEllipse extends MediumBox {
-	MediumEllipse() {}
-	MediumEllipse(StringTokenizer st) { super(st); }
+public class DielectricEllipse extends DielectricBox {
+	DielectricEllipse() {}
+	DielectricEllipse(StringTokenizer st) { super(st); }
 	
 	void drawMaterials(boolean residual) {
 		EMStatic.drawSolidEllipse(

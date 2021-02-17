@@ -19,17 +19,17 @@
 
 package com.falstad.emstatic.client;
 
-public class Source extends DragObject {
+public class Charge extends DragObject {
 	double charge;
     
-	Source() {
+	Charge() {
 		handles.add(new DragHandle(this));
 		int i;
 		charge = 1;
 		setTransform();
 	}
 	
-	Source(StringTokenizer st, int ct) {
+	Charge(StringTokenizer st, int ct) {
 		super(st);
 		while (ct-- > 0)
 			handles.add(new DragHandle(this, st));
@@ -37,7 +37,7 @@ public class Source extends DragObject {
 		setTransform();
 	}
 	
-	Source(int x, int y) {
+	Charge(int x, int y) {
 		handles.add(new DragHandle(this, x, y));
 		charge = 1;
 		setTransform();

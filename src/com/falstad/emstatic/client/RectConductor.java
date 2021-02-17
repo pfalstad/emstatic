@@ -19,15 +19,15 @@
 
 package com.falstad.emstatic.client;
 
-public class SolidBox extends RectDragObject {
+public class RectConductor extends RectDragObject {
 
     double pot;
 
-    SolidBox() {
+    RectConductor() {
 	pot = 1;
     }
 
-    SolidBox(StringTokenizer st) {
+    RectConductor(StringTokenizer st) {
 	super(st);
 	pot = new Double(st.nextToken()).doubleValue();
     }

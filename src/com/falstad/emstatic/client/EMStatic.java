@@ -758,17 +758,15 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
     public void composeMainMenu(MenuBar mainMenuBar) {
     	mainMenuBar.addItem(getClassCheckItem("Add Wall", "Wall"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Slit", "Slit"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Point Source", "Source"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Solid Box", "SolidBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Conductor", "RectConductor"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Box", "ChargedBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Ellipse", "ChargedEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Medium", "MediumBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Dielectric", "DielectricBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Dielectric Ellipse", "DielectricEllipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Conducting Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Ellipse Medium", "MediumEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Parabola", "Parabola"));
     	mainMenuBar.addItem(getClassCheckItem("Add Lens", "Lens"));
     }
@@ -841,14 +839,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Wall();
     	if (item == "Box")
     		newObject = new Box();
-    	if (item == "MediumBox")
-    		newObject = new MediumBox();
-    	if (item == "MediumEllipse")
-    		newObject = new MediumEllipse();
+    	if (item == "DielectricBox")
+    		newObject = new DielectricBox();
+    	if (item == "DielectricEllipse")
+    		newObject = new DielectricEllipse();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
-    	if (item == "SolidBox")
-    		newObject = new SolidBox();
+    	if (item == "RectConductor")
+    		newObject = new RectConductor();
     	if (item == "ChargedBox")
     		newObject = new ChargedBox();
     	if (item == "ChargedEllipse")
@@ -859,8 +857,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Parabola();
     	if (item == "Lens")
     		newObject = new Lens();
-    	if (item == "Source")
-    		newObject = new Source();
+    	if (item == "Charge")
+    		newObject = new Charge();
     	if (newObject != null) {
     		pushUndo();
     		newObject.setInitialPosition();
@@ -878,13 +876,13 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'b') return new Box(st);
     	if (tint == 'e') return new Ellipse(st);
     	if (tint == 'l') return new Lens(st);
-    	if (tint == 'm') return new MediumBox(st);
-    	if (tint == 'E') return new MediumEllipse(st);
+    	if (tint == 'm') return new DielectricBox(st);
+    	if (tint == 'E') return new DielectricEllipse(st);
     	if (tint == 'p') return new Parabola(st);
-    	if (tint == 202) return new SolidBox(st);
+    	if (tint == 202) return new RectConductor(st);
     	if (tint == 203) return new ChargedBox(st);
     	if (tint == 204) return new ChargedEllipse(st);
-    	if (tint == 's') return new Source(st, 1);
+    	if (tint == 's') return new Charge(st, 1);
     	if (tint == 't') return new TrianglePrism(st);
     	if (tint == 'w') return new Wall(st);
     	return null;
@@ -1377,7 +1375,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 
 	void addMedium() {
-		MediumBox mb = new MediumBox(-windowOffsetX, windowHeight/2, windowWidth+windowOffsetX-1, windowHeight+windowOffsetY-1);
+		DielectricBox mb = new DielectricBox(-windowOffsetX, windowHeight/2, windowWidth+windowOffsetX-1, windowHeight+windowOffsetY-1);
 		dragObjects.add(mb);
 	}
 
@@ -1816,12 +1814,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int i;
 		
 		// check if all sources are same frequency
-		Source src1 = null;
+		Charge src1 = null;
 		for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
-			if (!(obj instanceof Source))
+			if (!(obj instanceof Charge))
 				continue;
-			Source src = (Source)obj;
+			Charge src = (Charge)obj;
 			
 		}
 		/*

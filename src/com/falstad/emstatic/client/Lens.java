@@ -19,7 +19,7 @@
 
 package com.falstad.emstatic.client;
 
-public class Lens extends MediumBox {
+public class Lens extends DielectricBox {
 	
 	Lens() {}
 	Lens(StringTokenizer st) { super(st); }
