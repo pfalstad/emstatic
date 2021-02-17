@@ -380,6 +380,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		this.drawEllipse(x1, y1, rx, ry);
 	}-*/;
 
+	static native void displayEllipseCharge(int x1, int y1, int rx, int ry) /*-{
+		this.displayEllipseCharge(x1, y1, rx, ry);
+	}-*/;
+
 	static native void drawParabola(int x1, int y1, int w, int h) /*-{
 		this.drawParabola(x1, y1, w, h);
 	}-*/;

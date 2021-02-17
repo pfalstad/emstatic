@@ -45,8 +45,15 @@ public class Ellipse extends RectDragObject {
 		return ht;
 	}
 	
+	    void draw() {
+		super.draw();
+		EMStatic.displayEllipseCharge((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
+			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+
+	    }
+
 	@Override void drawSelection() {
-		drawMaterials(false);
+//		drawMaterials(false);
 		double a = (topRight.x-topLeft.x)/2;
 		double b = (bottomRight.y-topRight.y)/2;
 		int fc = (int)Math.sqrt(Math.abs(a*a-b*b));

@@ -953,6 +953,50 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
+    function displayEllipseCharge(cx, cy, xr, yr) {
+        var coords = [], tcoords = [];
+        var i;
+        var insetMultX = (xr-2)/xr;
+        var insetMultY = (yr-2)/yr;
+        var outMultX = (xr+2)/xr;
+        var outMultY = (yr+2)/yr;
+        for (i = -xr; i <= xr; i++) {
+        	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
+        	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
+        	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+        	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+        }
+        for (i = xr-1; i >= -xr; i--) {
+        	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
+        	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
+        	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+        	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+        }
+
+        gl.useProgram(shaderProgramEdgeCharge);
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramEdgeCharge);
+	
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramEdgeCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+
+        var matx = [1/gridSizeX,0,0, 0,-1/gridSizeY,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,1];
+	gl.uniformMatrix3fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+
+        gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
+        gl.disableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+    }
+
     function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
 	gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
@@ -1455,6 +1499,7 @@ function isPowerOf2(value) {
     	sim.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m, m2) { drawMedium(x, y, x2, y2, x3, y3, x4, y4, m, m2); }
     	sim.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) { drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg); }
     	sim.displayBoxCharge = displayBoxCharge;
+        sim.displayEllipseCharge = displayEllipseCharge;
     	sim.drawTriangle = function (x, y, x2, y2, x3, y3, m) { drawTriangle(x, y, x2, y2, x3, y3, m); }
     	sim.drawModes = function (x, y, x2, y2, a, b, c, d) { drawModes(x, y, x2, y2, a, b, c, d); }
     	sim.setTransform = function (a, b, c, d, e, f) {
