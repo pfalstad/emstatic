@@ -34,7 +34,7 @@ public class Ellipse extends RectDragObject {
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, 0, residual ? 0 : pot);
 	}
 
-	boolean hitTestInside(double x, double y) { return false; }
+//	boolean hitTestInside(double x, double y) { return false; }
 
 	@Override double hitTest(int x, int y) {
 		x -= (topLeft.x+topRight.x)/2;
