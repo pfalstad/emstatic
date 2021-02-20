@@ -227,6 +227,7 @@ class EditDialog extends DialogBox  {
 			elm.setEditValue(i, ei);
 		}
 		cframe.needsRecalc = true;
+		cframe.repaint();
 	}
 
 	public void itemStateChanged(GwtEvent e) {
