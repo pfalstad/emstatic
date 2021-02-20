@@ -189,7 +189,7 @@
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
-    uniform mat3 uTextureMatrix;
+    uniform mat4 uTextureMatrix;
 
     varying vec4 vPosition;
     varying vec2 vTextureCoord1;
@@ -198,8 +198,8 @@
     void main(void) {
         vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
         gl_Position = uPMatrix * vPosition;
-        vTextureCoord1 = (uTextureMatrix * vec3(aTextureCoord.x,   aTextureCoord.y, 1.0  )).xy;
-        vTextureCoord2 = (uTextureMatrix * vec3(aVertexPosition.x, aVertexPosition.y, 1.0)).xy;
+        vTextureCoord1 = (uTextureMatrix * vec4(aTextureCoord.x,   aTextureCoord.y, 0.0, 1.0  )).xy;
+        vTextureCoord2 = (uTextureMatrix * vec4(aVertexPosition.x, aVertexPosition.y, 0.0, 1.0)).xy;
     }
 </script>
 

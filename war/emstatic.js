@@ -987,8 +987,12 @@ function isPowerOf2(value) {
         gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
 
-        var matx = [1/gridSizeX,0,0, 0,-1/gridSizeY,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,1];
-	gl.uniformMatrix3fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,0,1];
+        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
+                            transform[1], transform[4], 0, 0,
+                            0,0,1,0,
+                            transform[2], transform[5], 0, 1], matx);
+	gl.uniformMatrix4fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
 
         gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
 
@@ -1061,8 +1065,13 @@ function isPowerOf2(value) {
         gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
 
-        var matx = [1/gridSizeX,0,0, 0,-1/gridSizeY,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,1];
-	gl.uniformMatrix3fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+        // mat3.multiply doesn't seem to work and neither does mat4.toMat3 so we use a mat4 instead
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,0,1];
+        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
+                            transform[1], transform[4], 0, 0,
+                            0,0,1,0,
+                            transform[2], transform[5], 0, 1], matx);
+	gl.uniformMatrix4fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
 
         gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
 
