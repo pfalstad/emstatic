@@ -1238,6 +1238,8 @@ function isPowerOf2(value) {
     }
 
     function drawSceneEquip(s, rs, bright) {
+        if (bright == 0)
+          return;
         gl.useProgram(shaderProgramEquip);
 /*
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);

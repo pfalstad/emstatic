@@ -120,6 +120,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Button exportButton;
 	Checkbox stoppedCheck;
 	Checkbox debugCheck1, debugCheck2;
+	Checkbox equipCheck;
 	Choice setupChooser;
 	Choice colorChooser;
 	Choice displayChooser;
@@ -510,6 +511,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		blankButton.addClickHandler(this);
 
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
+		verticalPanel.add(equipCheck = new Checkbox("Show Equipotentials", true));
+		equipCheck.addClickHandler(this);
 
 		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
 		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
@@ -1182,6 +1185,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// etc.
 			double brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
+			if (!equipCheck.getState())
+			    equipMult = 0;
 			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 			int i;
 			if (displayChooser.getSelectedIndex() != DISP_3D)
