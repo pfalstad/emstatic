@@ -103,7 +103,7 @@ public abstract class DragObject implements Editable {
 			EMStatic.drawHandle(x, y); // -sim.windowOffsetX, y-sim.windowOffsetY);
 		    }
 		}
-		drawSelection();
+//		drawSelection();
 	}
 	
 	Point transformPoint(Point p) {
