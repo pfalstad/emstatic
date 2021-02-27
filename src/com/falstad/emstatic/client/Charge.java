@@ -49,7 +49,8 @@ public class Charge extends DragObject {
 	
 	void drawCharge() {
 		DragHandle dh = handles.get(0);
-		EMStatic.drawSource(dh.x, dh.y, charge); 
+		double e0 = 8.854e-12; 
+		EMStatic.drawSource(dh.x, dh.y, charge*512*512/e0);
 	}
 	
 	void draw() {
