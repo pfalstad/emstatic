@@ -3,11 +3,11 @@ var gl;
 var canvas;
 var gridSizeX =1024, gridSizeY =1024, windowOffsetX =40, windowOffsetY =40;
 var windowWidth, windowHeight, viewAngle, viewHeight;
-var sim;
 var transform = [1, 0, 0, 1, 0, 0];
 var renderTextures = [];
 var minFeatureWidth;
 var brightness;
+var renderer = {};
 
     function getShader(gl, id, prefix) {
         var shaderScript = document.getElementById(id);
@@ -276,7 +276,7 @@ function isPowerOf2(value) {
         if (gl.getError() != gl.NO_ERROR)
             console.log("readPixels failed");
         else
-            sim.readPixelsWorks = true;
+            renderer.readPixelsWorks = true;
 
     	gl.bindTexture(gl.TEXTURE_2D, null);
     	gl.bindRenderbuffer(gl.RENDERBUFFER, null);
@@ -412,7 +412,7 @@ function isPowerOf2(value) {
     var colors;
     var destHeight;
 
-    function setDestination(rtnum) {
+    renderer.setDestination = function (rtnum) {
     	var rt = renderTextures[rtnum];
     	var rttFramebuffer = rt.framebuffer;
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
@@ -423,7 +423,7 @@ function isPowerOf2(value) {
         minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
     }
     
-    function simulate(srcnum, rsnum, resid) {
+    renderer.runRelax = function (srcnum, rsnum, resid) {
     	var sourceRT = renderTextures[srcnum];
     	var rightSideRT = renderTextures[rsnum];
         var prog = resid ? shaderProgramResidual : shaderProgramFixed;
@@ -474,7 +474,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    function copy(srcnum) {
+    renderer.copy = function (srcnum) {
     	var sourceRT = renderTextures[srcnum];
         var prog = shaderProgramCopy;
         gl.useProgram(prog);
@@ -516,7 +516,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    function add(srcnum, rsnum) {
+    renderer.add = function (srcnum, rsnum) {
     	var sourceRT = renderTextures[srcnum];
     	var rightSideRT = renderTextures[rsnum];
         var prog = shaderProgramAdd;
@@ -564,7 +564,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    function drawSource(x, y, f) {
+    renderer.drawSource = function (x, y, f) {
         gl.useProgram(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
 
@@ -590,17 +590,17 @@ function isPowerOf2(value) {
         //mvPopMatrix();
     }
 
-    function drawHandle(x, y) {
+    renderer.drawHandle = function (x, y) {
         gl.useProgram(shaderProgramDraw);
-        if (sim.drawingSelection >= 0) {
-        	drawSelectedHandle(x, y);
+        if (renderer.drawingSelection >= 0) {
+        	renderer.drawSelectedHandle(x, y);
         	return;
         }
-        if (sim.drawingSelection < 0)
+        if (renderer.drawingSelection < 0)
         	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1.0, 1.0, 1.0);
         else 
-        	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, sim.drawingSelection,
-        			sim.drawingSelection, 0, 1.0);
+        	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, renderer.drawingSelection,
+        			renderer.drawingSelection, 0, 1.0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var cx = -1+2*(x+.5)/windowWidth;
@@ -613,14 +613,14 @@ function isPowerOf2(value) {
 
         mat4.identity(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-//        gl.lineWidth(sim.drawingSelection < 0 ? 1 : 2);
+//        gl.lineWidth(renderer.drawingSelection < 0 ? 1 : 2);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         gl.drawArrays(gl.LINE_LOOP, 0, 4);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
-    function drawSelectedHandle(x, y) {
-       	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, sim.drawingSelection, sim.drawingSelection, 0, 0.5);
+    renderer.drawSelectedHandle = function (x, y) {
+       	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, renderer.drawingSelection, renderer.drawingSelection, 0, 0.5);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var cx = -1+2*(x+.5)/windowWidth;
@@ -633,13 +633,13 @@ function isPowerOf2(value) {
 
         mat4.identity(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-//        gl.lineWidth(sim.drawingSelection < 0 ? 1 : 2);
+//        gl.lineWidth(renderer.drawingSelection < 0 ? 1 : 2);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
-    function drawFocus(x, y) {
+    renderer.drawFocus = function (x, y) {
         gl.useProgram(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1.0, 1.0, 1.0);
 
@@ -660,7 +660,7 @@ function isPowerOf2(value) {
         //mvPopMatrix();
     }
 
-    function drawLineSource(x, y, x2, y2, f) {
+    renderer.drawLineSource = function (x, y, x2, y2, f) {
         gl.useProgram(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
 
@@ -679,7 +679,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
-    function drawPhasedArray(x, y, x2, y2, f1, f2) {
+    renderer.drawPhasedArray = function (x, y, x2, y2, f1, f2) {
         var rttFramebuffer = renderTexture1.framebuffer;
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
@@ -715,7 +715,7 @@ function isPowerOf2(value) {
 
     function loadMatrix(mtx) {
     	mat4.identity(mtx);
-    	if (sim.drawingSelection > 0) {
+    	if (renderer.drawingSelection > 0) {
     		// drawing on screen
         	mtx[0] = +2/windowWidth;
         	mtx[5] = -2/windowHeight;
@@ -736,9 +736,9 @@ function isPowerOf2(value) {
 
     function setupForDrawing(v) {
         gl.useProgram(shaderProgramDraw);
-        if (sim.drawingSelection > 0) {
-    		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, sim.drawingSelection,
-    				sim.drawingSelection, 0, 1.0);
+        if (renderer.drawingSelection > 0) {
+    		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, renderer.drawingSelection,
+    				renderer.drawingSelection, 0, 1.0);
         } else {
     		//var rttFramebuffer = renderTexture1.framebuffer;
     		//gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
@@ -774,7 +774,7 @@ function isPowerOf2(value) {
     function drawWall(x, y, x2, y2, pot) {
     	setupForDrawing(1);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        srcCoords = thickLinePoints([x, y, x2, y2, x, y], sim.drawingSelection == 1 ? .5 : sim.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
+        srcCoords = thickLinePoints([x, y, x2, y2, x, y], renderer.drawingSelection == 1 ? .5 : renderer.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -784,7 +784,7 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 //        gl.drawArrays(gl.LINE_STRIP, 0, 3);
 
-	if (sim.drawingSelection < 0)
+	if (renderer.drawingSelection < 0)
           gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, 0.0, 1.0);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
@@ -794,49 +794,7 @@ function isPowerOf2(value) {
 		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function drawPoke(x, y) {
-		var rttFramebuffer = renderTexture1.framebuffer;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-		gl.colorMask(true, true, false, false);
-
-        gl.useProgram(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1.0, 0.0, 0.0, 1.0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        var verts = [x, y];
-        var colors = [1,0,0,1];
-        var steps = 8;
-        var i;
-        var r = 6;
-        for (i = 0; i != steps+1; i++) {
-        	var ang = Math.PI*2*i/steps;
-        	verts.push(x+r*Math.cos(ang), y+r*Math.sin(ang));
-        	colors.push(0,0,0,0);
-        }
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.colorAttribute, 4, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, 2+steps);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
-
-		gl.colorMask(true, true, true, true);
-		gl.disable(gl.BLEND);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
-    function drawEllipse(cx, cy, xr, yr) {
+    renderer.drawEllipse = function (cx, cy, xr, yr) {
     	setupForDrawing(0);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var coords = [];
@@ -849,7 +807,7 @@ function isPowerOf2(value) {
         }
         coords.push(coords[0], coords[1]);
 //        console.log("coords for ellipse: " + coords);
-        coords = thickLinePoints(coords, sim.drawingSelection == 1 ? .5 : 1.5);
+        coords = thickLinePoints(coords, renderer.drawingSelection == 1 ? .5 : 1.5);
 //        gl.lineWidth(4);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -866,35 +824,7 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function drawParabola(x1, y1, w, h) {
-    	setupForDrawing(0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        var coords = [];
-        var i;
-        var w2 = w/2;
-        var a = h/(w2*w2);
-        for (i = 0; i <= w; i++) {
-        	var x0 = i-w2;
-        	coords.push(x1+i, y1+h-a*x0*x0);
-        }
-        coords = thickLinePoints(coords, 1.5);
-//        gl.lineWidth(4);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-//        gl.lineWidth(1);
-
-		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
-    function drawLens(x1, y1, w, h, m) {
+    renderer.drawLens = function (x1, y1, w, h, m) {
     	setupForDrawing(m);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var i;
@@ -920,7 +850,7 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     
-    function drawSolidEllipse(cx, cy, xr, yr, med, pot) {
+    renderer.drawSolidEllipse = function (cx, cy, xr, yr, med, pot) {
 	if (med == undefined) {
 	    gl.colorMask(true, false, false, false);
 	    med = 0;
@@ -953,7 +883,7 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
-    function displayEllipseCharge(cx, cy, xr, yr) {
+    renderer.displayEllipseCharge = function (cx, cy, xr, yr) {
         var coords = [], tcoords = [];
         var i;
         var insetMultX = (xr-2)/xr;
@@ -1001,7 +931,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
     }
 
-    function drawMedium(x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
+    renderer.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
 	gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
@@ -1031,7 +961,7 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
-    function displayBoxCharge(x, y, x2, y2, x3, y3, x4, y4) {
+    renderer.displayBoxCharge = function (x, y, x2, y2, x3, y3, x4, y4) {
         // double some of the coordinates to get thickLinePoints to work right on right angles
         var thick = 2;
         var coords = [x, y, x+thick, y+thick, x2, y2,
@@ -1080,7 +1010,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
     }
 
-    function drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg) {
+    renderer.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) {
 	gl.colorMask(true, false, false, false);
         gl.useProgram(shaderProgramDraw);
 
@@ -1122,7 +1052,7 @@ function isPowerOf2(value) {
         gl.useProgram(shaderProgramMode);
         var z = 0;
         var z2 = 0;
-        if (sim.acoustic) {
+        if (renderer.acoustic) {
         	z = Math.PI/2;
         	a += z;
         	b += z;
@@ -1156,7 +1086,7 @@ function isPowerOf2(value) {
     }
 
     
-    function drawTriangle(x, y, x2, y2, x3, y3, m) {
+    renderer.drawTriangle = function (x, y, x2, y2, x3, y3, m) {
 		var rttFramebuffer = renderTexture1.framebuffer;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
 		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
@@ -1182,7 +1112,7 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
-    function getProbeValue(x, y) {
+    renderer.getProbeValue = function (x, y) {
         var rttFramebuffer = renderTexture1.framebuffer;
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
@@ -1358,7 +1288,7 @@ function isPowerOf2(value) {
 	drawSceneEquip(s, rs, equipMult);
     }
 
-    function display(s, rs, bright, equipMult, type) {
+    renderer.display = function (s, rs, bright, equipMult, type) {
       brightness = bright;
       if (type == 2)
         drawScene3D(s, rs, bright, equipMult);
@@ -1425,9 +1355,8 @@ function isPowerOf2(value) {
 
     var lastTime = 0;
 
-    document.passCanvas = function passCanvas (cv, sim_) {
+    document.passCanvas = function passCanvas (cv) {
     	canvas = cv;
-    	sim = sim_;
     	gl = cv.getContext("experimental-webgl");
         arrowTexture = loadTexture(gl, 'arrow.png');
 
@@ -1463,13 +1392,9 @@ function isPowerOf2(value) {
 
     	gl.clearColor(0.0, 0.0, 1.0, 1.0);
 
-    	sim.acoustic = false;
-    	sim.readPixelsWorks = false;
-    	sim.display = display;
-    	sim.runRelax = simulate;
-    	sim.add = function (s, b) { add(s, b); }
-    	sim.copy = function (s) { copy(s); }
-    	sim.setResolution = function (x, y, wx, wy) {
+    	renderer.acoustic = false;
+    	renderer.readPixelsWorks = false;
+    	renderer.setResolution = function (x, y, wx, wy) {
     		gridSizeX = x;
     		gridSizeY = y;
     		windowOffsetX = wx;
@@ -1494,37 +1419,19 @@ function isPowerOf2(value) {
     		renderTexture2 = renderTextures[renderTextures.length-1];
     		initBuffers();
     	}
-    	sim.getRenderTextureCount = function () { return renderTextures.length; }
-    	sim.drawSource = function (x, y, f) { drawSource(x, y, f); }
-    	sim.drawLineSource = function (x, y, x2, y2, f) { drawLineSource(x, y, x2, y2, f); }
-    	sim.drawPhasedArray = function (x, y, x2, y2, f1, f2) { drawPhasedArray(x, y, x2, y2, f1, f2); }
-    	sim.drawHandle = function (x, y) { drawHandle(x, y); }
-    	sim.drawFocus = function (x, y) { drawFocus(x, y); }
-    	sim.drawPoke = function (x, y) { drawPoke(x, y); }
-    	sim.drawWall = function (x, y, x2, y2, pot) { drawWall(x, y, x2, y2, pot); }
-    	sim.clearWall = function (x, y, x2, y2) { drawWall(x, y, x2, y2, 1); }
-    	sim.drawParabola = function (x, y, w, h) { drawParabola(x, y, w, h); }
-    	sim.drawLens = function (x, y, w, h, m) { drawLens(x, y, w, h, m); }
-    	sim.drawEllipse = function (x, y, x2, y2, m) { drawEllipse(x, y, x2, y2); }
-    	sim.drawSolidEllipse = function (x, y, x2, y2, m, p) { drawSolidEllipse(x, y, x2, y2, m, p); }
-    	sim.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m, m2) { drawMedium(x, y, x2, y2, x3, y3, x4, y4, m, m2); }
-    	sim.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) { drawChargedBox(x, y, x2, y2, x3, y3, x4, y4, chg); }
-    	sim.displayBoxCharge = displayBoxCharge;
-        sim.displayEllipseCharge = displayEllipseCharge;
-    	sim.drawTriangle = function (x, y, x2, y2, x3, y3, m) { drawTriangle(x, y, x2, y2, x3, y3, m); }
-    	sim.drawModes = function (x, y, x2, y2, a, b, c, d) { drawModes(x, y, x2, y2, a, b, c, d); }
-    	sim.setTransform = function (a, b, c, d, e, f) {
+    	renderer.getRenderTextureCount = function () { return renderTextures.length; }
+    	renderer.drawWall = function (x, y, x2, y2, pot) { drawWall(x, y, x2, y2, pot); }
+    	renderer.clearWall = function (x, y, x2, y2) { drawWall(x, y, x2, y2, 1); }
+    	renderer.setTransform = function (a, b, c, d, e, f) {
     		transform[0] = a; transform[1] = b;
     		transform[2] = c; transform[3] = d;
     		transform[4] = e; transform[5] = f;
     	}
-	sim.getProbeValue = function (x, y) { return getProbeValue(x, y); }
-    	sim.setDestination = function (a) { setDestination(a); }
-    	sim.clearDestination = function () {
+    	renderer.clearDestination = function () {
         	gl.clearColor(0.0, 0.0, 1.0, 1.0);
     		gl.clear(gl.COLOR_BUFFER_BIT);
     	}
-    	sim.doBlank = function () {
+    	renderer.doBlank = function () {
     		var rttFramebuffer = renderTexture1.framebuffer;
     		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
@@ -1534,7 +1441,7 @@ function isPowerOf2(value) {
     		gl.colorMask(true, true, true, true);
     		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     	}
-    	sim.doBlankWalls = function () {
+    	renderer.doBlankWalls = function () {
     		var rttFramebuffer = renderTexture1.framebuffer;
     		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
@@ -1544,27 +1451,27 @@ function isPowerOf2(value) {
     		gl.colorMask(true, true, true, true);
     		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	}
-    	sim.set3dViewAngle = function (x, y) {
+    	renderer.set3dViewAngle = function (x, y) {
     	    var mtemp = mat4.create();
     	    mat4.identity(mtemp);
     		mat4.rotateY(mtemp, x/100);
     		mat4.rotateX(mtemp, y/100);
     		mat4.multiply(mtemp, matrix3d, matrix3d);
     	}
-    	sim.set3dViewZoom = function (z) {
+    	renderer.set3dViewZoom = function (z) {
     		zoom3d = z;
     	}
-	sim.setColors = function () {
+	renderer.setColors = function () {
 		colors = [];
 		for(var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
 			colors.push(((arg>>16)&0xff)/255, ((arg>>8)&0xff)/255, (arg&0xff)/255);
 		}
 	}
-	sim.drawingSelection = -1;
+	renderer.drawingSelection = -1;
     mat4.identity(pMatrix);
     mat4.identity(mvMatrix);
-
+    return renderer;
 }
 
 

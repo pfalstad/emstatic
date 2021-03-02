@@ -31,6 +31,7 @@ import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
 import com.google.gwt.core.client.Duration;
 import com.google.gwt.core.client.GWT;
+import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.core.client.JsArrayNumber;
 import com.google.gwt.core.client.Scheduler;
@@ -231,6 +232,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     static ExportAsLocalFileDialog exportAsLocalFileDialog;
     static ImportFromTextDialog importFromTextDialog;
     static AboutBox aboutBox;
+    static JavaScriptObject renderer;
 
 	static final int MENUBARHEIGHT = 30;
 	static final int MAXVERTICALPANELWIDTH = 166;
@@ -300,151 +302,151 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}-*/;
 
     // pass the canvas element to ripple.js and install all the callbacks we need into "this" 
-	static native void passCanvas(CanvasElement cv) /*-{
-		$doc.passCanvas(cv, this);
+	static native JavaScriptObject passCanvas(CanvasElement cv) /*-{
+		return $doc.passCanvas(cv, this);
 	}-*/;
 
 	// call into ripple.js
 	static native void displayGL(int src, int rs, double bright, double equipMult, int disp) /*-{
-		this.display(src, rs, bright, equipMult, disp);
+		@com.falstad.emstatic.client.EMStatic::renderer.display(src, rs, bright, equipMult, disp);
 	}-*/;
 
 	static native void setDestination(int d) /*-{
-		this.setDestination(d);
+		@com.falstad.emstatic.client.EMStatic::renderer.setDestination(d);
 	}-*/;
 
 	static native void clearDestination() /*-{
-		this.clearDestination();
+		@com.falstad.emstatic.client.EMStatic::renderer.clearDestination();
 	}-*/;
 
 	static native void runRelax(int src, int b, boolean residual) /*-{
-		this.runRelax(src, b, residual);
+		@com.falstad.emstatic.client.EMStatic::renderer.runRelax(src, b, residual);
 	}-*/;
 
 	static native void copy(int src) /*-{
-		this.copy(src);
+		@com.falstad.emstatic.client.EMStatic::renderer.copy(src);
 	}-*/;
 
 	static native void add(int src, int src2) /*-{
-		this.add(src, src2);
+		@com.falstad.emstatic.client.EMStatic::renderer.add(src, src2);
 	}-*/;
 	
 	static native int getRenderTextureCount() /*-{
-		return this.getRenderTextureCount();
+		return @com.falstad.emstatic.client.EMStatic::renderer.getRenderTextureCount();
 	}-*/;
 
 	static native void setAcoustic(boolean ac) /*-{
-		this.acoustic = ac;
+		@com.falstad.emstatic.client.EMStatic::renderer.acoustic = ac;
 	}-*/;
 
 	static native void set3dViewAngle(double angle1, double angle2) /*-{
-		this.set3dViewAngle(angle1, angle2);
+		@com.falstad.emstatic.client.EMStatic::renderer.set3dViewAngle(angle1, angle2);
 	}-*/;
 
 	static native void set3dViewZoom(double zoom) /*-{
-		this.set3dViewZoom(zoom);
+		@com.falstad.emstatic.client.EMStatic::renderer.set3dViewZoom(zoom);
 	}-*/;
 
 	static native void setResolutionGL(int x, int y, int wx, int wy) /*-{
-		this.setResolution(x, y, wx, wy);
+		@com.falstad.emstatic.client.EMStatic::renderer.setResolution(x, y, wx, wy);
 	}-*/;
 	
 	static native void drawSource(int x, int y, double value) /*-{
-		this.drawSource(x, y, value);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSource(x, y, value);
 	}-*/;
 
 	static native void drawHandle(int x, int y) /*-{
-		this.drawHandle(x, y);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawHandle(x, y);
 	}-*/;
 
 	static native void drawFocus(int x, int y) /*-{
-		this.drawFocus(x, y);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawFocus(x, y);
 	}-*/;
 
 	static native void drawLineSource(int x1, int y1, int x2, int y2, double value) /*-{
-		this.drawLineSource(x1, y1, x2, y2, value);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawLineSource(x1, y1, x2, y2, value);
 	}-*/;
 
 	static native void drawPhasedArray(int x1, int y1, int x2, int y2, double w1, double w2) /*-{
-		this.drawPhasedArray(x1, y1, x2, y2, w1, w2);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawPhasedArray(x1, y1, x2, y2, w1, w2);
 	}-*/;
 
 	static native void drawWall(int x1, int y1, int x2, int y2, double pot) /*-{
-		this.drawWall(x1, y1, x2, y2, pot);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawWall(x1, y1, x2, y2, pot);
 	}-*/;
 
 	static native void clearWall(int x1, int y1, int x2, int y2) /*-{
-		this.clearWall(x1, y1, x2, y2);
+		@com.falstad.emstatic.client.EMStatic::renderer.clearWall(x1, y1, x2, y2);
 	}-*/;
 
 	static native void drawEllipse(int x1, int y1, int rx, int ry) /*-{
-		this.drawEllipse(x1, y1, rx, ry);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawEllipse(x1, y1, rx, ry);
 	}-*/;
 
 	static native void displayEllipseCharge(int x1, int y1, int rx, int ry) /*-{
-		this.displayEllipseCharge(x1, y1, rx, ry);
+		@com.falstad.emstatic.client.EMStatic::renderer.displayEllipseCharge(x1, y1, rx, ry);
 	}-*/;
 
 	static native void drawParabola(int x1, int y1, int w, int h) /*-{
-		this.drawParabola(x1, y1, w, h);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawParabola(x1, y1, w, h);
 	}-*/;
 
 	static native void drawLens(int x1, int y1, int w, int h, double med) /*-{
-		this.drawLens(x1, y1, w, h, med);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawLens(x1, y1, w, h, med);
 	}-*/;
 
 	static native void setDrawingSelection(double ds) /*-{
-		this.drawingSelection = ds;
+		@com.falstad.emstatic.client.EMStatic::renderer.drawingSelection = ds;
 	}-*/;
 
 	static native void setTransform(double a, double b, double c, double d, double e, double f) /*-{
-		this.setTransform(a, b, c, d, e, f);
+		@com.falstad.emstatic.client.EMStatic::renderer.setTransform(a, b, c, d, e, f);
 	}-*/;
 
 	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med, double pot) /*-{
-		this.drawSolidEllipse(x1, y1, rx, ry, med, pot);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, med, pot);
 	}-*/;
 
 	static native void drawChargedEllipse(int x1, int y1, int rx, int ry, double chg) /*-{
-		this.drawSolidEllipse(x1, y1, rx, ry, undefined, chg);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, undefined, chg);
 	}-*/;
 	
 	static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
-		this.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
 	}-*/;
 
 	static native void displayBoxCharge(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
-		this.displayBoxCharge(x1, y1, x2, y2, x3, y3, x4, y4);
+		@com.falstad.emstatic.client.EMStatic::renderer.displayBoxCharge(x1, y1, x2, y2, x3, y3, x4, y4);
 	}-*/;
 	
 	static native void drawChargedBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double chg) /*-{
-		this.drawChargedBox(x1, y1, x2, y2, x3, y3, x4, y4, chg);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawChargedBox(x1, y1, x2, y2, x3, y3, x4, y4, chg);
 	}-*/;
 	
 	static native void drawModes(int x1, int y1, int x2, int y2, double a, double b, double c, double d) /*-{
-		this.drawModes(x1, y1, x2, y2, a, b, c, d);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawModes(x1, y1, x2, y2, a, b, c, d);
 	}-*/;
 
 	static native void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, double med) /*-{
-		this.drawTriangle(x1, y1, x2, y2, x3, y3, med);
+		@com.falstad.emstatic.client.EMStatic::renderer.drawTriangle(x1, y1, x2, y2, x3, y3, med);
 	}-*/;
 
 	static native void doBlank() /*-{
-		this.doBlank();
+		@com.falstad.emstatic.client.EMStatic::renderer.doBlank();
 	}-*/;
 
 	static native void doBlankWalls() /*-{
-		this.doBlankWalls();
+		@com.falstad.emstatic.client.EMStatic::renderer.doBlankWalls();
 	}-*/;
 
 	static native JsArrayNumber getProbeValue(int x, int y) /*-{
-		return this.getProbeValue(x, y);
+		return @com.falstad.emstatic.client.EMStatic::renderer.getProbeValue(x, y);
 	}-*/;
 	
 	static native void setColors(int wallColor, int posColor, int negColor,
 			int zeroColor, int posMedColor, int negMedColor,
 			int medColor, int sourceColor, int zeroColor3d) /*-{
-		this.setColors(wallColor, posColor, negColor, zeroColor, posMedColor, negMedColor,
+		@com.falstad.emstatic.client.EMStatic::renderer.setColors(wallColor, posColor, negColor, zeroColor, posMedColor, negMedColor,
 			medColor, sourceColor, zeroColor3d);
 	}-*/;
 
@@ -464,7 +466,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         } catch (Exception e) { }
 
 		cv = Canvas.createIfSupported();
-		passCanvas(cv.getCanvasElement());
+		renderer = passCanvas(cv.getCanvasElement());
 		if (cv == null) {
 			RootPanel
 					.get()
