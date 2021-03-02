@@ -32,14 +32,23 @@ public class ConductingBox extends RectDragObject {
 	pot = new Double(st.nextToken()).doubleValue();
     }
 
+    static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
+    	@com.falstad.emstatic.client.EMStatic::renderer.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
+    }-*/;
+
+    static native void displayBoxCharge(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
+        @com.falstad.emstatic.client.EMStatic::renderer.displayBoxCharge(x1, y1, x2, y2, x3, y3, x4, y4);
+    }-*/;
+
+
     void drawMaterials(boolean residual) {
-	EMStatic.drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
+	drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
 		bottomRight.y, 0, residual ? 0 : pot);
     }
 
     void draw() {
 	super.draw();
-	EMStatic.displayBoxCharge(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+	displayBoxCharge(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
     
     int getDumpType() {

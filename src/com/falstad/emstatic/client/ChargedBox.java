@@ -32,9 +32,13 @@ public class ChargedBox extends RectDragObject {
 	charge = new Double(st.nextToken()).doubleValue();
     }
 
+    static native void drawChargedBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double chg) /*-{
+    	@com.falstad.emstatic.client.EMStatic::renderer.drawChargedBox(x1, y1, x2, y2, x3, y3, x4, y4, chg);
+    }-*/;
+
     void drawCharge() {
 	double area = (topRight.x-topLeft.x)*(bottomRight.y-topRight.y);
-	EMStatic.drawChargedBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
+	drawChargedBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
 		bottomRight.y, charge);
     }
 

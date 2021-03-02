@@ -41,7 +41,7 @@ public class DielectricBox extends RectDragObject {
 	}
 
 	void drawMaterials(boolean residual) {
-		EMStatic.drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, 
+		ConductingBox.drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, 
 				bottomLeft.x, bottomLeft.y,
 				bottomRight.x, bottomRight.y,
 				speedIndex, 0);

@@ -335,10 +335,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		return @com.falstad.emstatic.client.EMStatic::renderer.getRenderTextureCount();
 	}-*/;
 
-	static native void setAcoustic(boolean ac) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.acoustic = ac;
-	}-*/;
-
 	static native void set3dViewAngle(double angle1, double angle2) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.set3dViewAngle(angle1, angle2);
 	}-*/;
@@ -357,10 +353,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 	static native void drawLineSource(int x1, int y1, int x2, int y2, double value) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawLineSource(x1, y1, x2, y2, value);
-	}-*/;
-
-	static native void drawPhasedArray(int x1, int y1, int x2, int y2, double w1, double w2) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawPhasedArray(x1, y1, x2, y2, w1, w2);
 	}-*/;
 
 	static native void drawWall(int x1, int y1, int x2, int y2, double pot) /*-{
@@ -383,18 +375,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.setTransform(a, b, c, d, e, f);
 	}-*/;
 
-	static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
-	}-*/;
-
-	static native void displayBoxCharge(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.displayBoxCharge(x1, y1, x2, y2, x3, y3, x4, y4);
-	}-*/;
-	
-	static native void drawChargedBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double chg) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawChargedBox(x1, y1, x2, y2, x3, y3, x4, y4, chg);
-	}-*/;
-	
 	static native void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, double med) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawTriangle(x1, y1, x2, y2, x3, y3, med);
 	}-*/;

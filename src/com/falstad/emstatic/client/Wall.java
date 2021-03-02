@@ -88,7 +88,7 @@ public class Wall extends DragObject {
 	    EMStatic.drawMedium(cx-2, cy-len/2, cx+2, cy-len/2, cx-2, cy+len/2, cx+2, cy+len/2, 0, residual ? 0 : pot);
 	    */
 	    int len2 = (int) (wallLen/2);
-	    EMStatic.drawMedium(-2, -len2, 2, -len2, -2, len2, 2, len2, 0, residual ? 0 : pot); 
+	    ConductingBox.drawMedium(-2, -len2, 2, -len2, -2, len2, 2, len2, 0, residual ? 0 : pot); 
 	}
 	
 	void draw() {
@@ -102,7 +102,7 @@ public class Wall extends DragObject {
 	    EMStatic.displayBoxCharge(cx-2, cy-len/2, cx+2, cy-len/2, cx-2, cy+len/2, cx+2, cy+len/2);
 	    */
 	    int len2 = (int) (wallLen/2);
-	    EMStatic.displayBoxCharge(-2, -len2, 2, -len2, -2, len2, 2, len2);
+	    ConductingBox.displayBoxCharge(-2, -len2, 2, -len2, -2, len2, 2, len2);
 	}
 	
 	/*
