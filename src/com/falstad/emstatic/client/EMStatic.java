@@ -301,12 +301,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    console.log(text);
 	}-*/;
 
-    // pass the canvas element to ripple.js and install all the callbacks we need into "this" 
+    	// pass the canvas element to emstatic.js and get renderer object with all the callbacks we need 
 	static native JavaScriptObject passCanvas(CanvasElement cv) /*-{
-		return $doc.passCanvas(cv, this);
+		return $doc.passCanvas(cv);
 	}-*/;
 
-	// call into ripple.js
+	// call into emstatic.js
 	static native void displayGL(int src, int rs, double bright, double equipMult, int disp) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.display(src, rs, bright, equipMult, disp);
 	}-*/;
@@ -351,16 +351,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.setResolution(x, y, wx, wy);
 	}-*/;
 	
-	static native void drawSource(int x, int y, double value) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawSource(x, y, value);
-	}-*/;
-
 	static native void drawHandle(int x, int y) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawHandle(x, y);
-	}-*/;
-
-	static native void drawFocus(int x, int y) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawFocus(x, y);
 	}-*/;
 
 	static native void drawLineSource(int x1, int y1, int x2, int y2, double value) /*-{
@@ -379,18 +371,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.clearWall(x1, y1, x2, y2);
 	}-*/;
 
-	static native void drawEllipse(int x1, int y1, int rx, int ry) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawEllipse(x1, y1, rx, ry);
-	}-*/;
-
-	static native void displayEllipseCharge(int x1, int y1, int rx, int ry) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.displayEllipseCharge(x1, y1, rx, ry);
-	}-*/;
-
-	static native void drawParabola(int x1, int y1, int w, int h) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawParabola(x1, y1, w, h);
-	}-*/;
-
 	static native void drawLens(int x1, int y1, int w, int h, double med) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawLens(x1, y1, w, h, med);
 	}-*/;
@@ -403,14 +383,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.setTransform(a, b, c, d, e, f);
 	}-*/;
 
-	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med, double pot) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, med, pot);
-	}-*/;
-
-	static native void drawChargedEllipse(int x1, int y1, int rx, int ry, double chg) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, undefined, chg);
-	}-*/;
-	
 	static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
 	}-*/;
@@ -423,10 +395,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.drawChargedBox(x1, y1, x2, y2, x3, y3, x4, y4, chg);
 	}-*/;
 	
-	static native void drawModes(int x1, int y1, int x2, int y2, double a, double b, double c, double d) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawModes(x1, y1, x2, y2, a, b, c, d);
-	}-*/;
-
 	static native void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, double med) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawTriangle(x1, y1, x2, y2, x3, y3, med);
 	}-*/;
@@ -776,7 +744,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Dielectric Ellipse", "DielectricEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Conducting Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Parabola", "Parabola"));
     	mainMenuBar.addItem(getClassCheckItem("Add Lens", "Lens"));
     }
 
@@ -860,8 +827,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		newObject = new ChargedEllipse();
     	if (item == "TrianglePrism")
     		newObject = new TrianglePrism();
-    	if (item == "Parabola")
-    		newObject = new Parabola();
     	if (item == "Lens")
     		newObject = new Lens();
     	if (item == "Charge")
@@ -884,7 +849,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'l') return new Lens(st);
     	if (tint == 'm') return new DielectricBox(st);
     	if (tint == 'E') return new DielectricEllipse(st);
-    	if (tint == 'p') return new Parabola(st);
     	if (tint == 202) return new ConductingBox(st);
     	if (tint == 203) return new ChargedBox(st);
     	if (tint == 204) return new ChargedEllipse(st);

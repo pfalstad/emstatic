@@ -564,7 +564,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    renderer.drawSource = function (x, y, f) {
+    renderer.drawCharge = function (x, y, f) {
         gl.useProgram(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
 

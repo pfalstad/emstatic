@@ -27,10 +27,15 @@ public class ChargedEllipse extends ChargedBox {
 	    double a = (topRight.x-topLeft.x)/2;
 	    double b = (bottomLeft.y-topLeft.y)/2;
 	    double area = a*b*Math.PI;
-		EMStatic.drawChargedEllipse(
+		drawChargedEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(int)a, (int)b, charge);
 	}
+
+        static native void drawChargedEllipse(int x1, int y1, int rx, int ry, double chg) /*-{
+        	@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, undefined, chg);
+	}-*/;
+
 
 	@Override double hitTest(int x, int y) {
 		x -= (topLeft.x+topRight.x)/2;
@@ -51,9 +56,13 @@ public class ChargedEllipse extends ChargedBox {
 		return ht <= 1;
 	}
 	*/
-	
+
+	static native void drawEllipse(int x1, int y1, int rx, int ry) /*-{
+	     	@com.falstad.emstatic.client.EMStatic::renderer.drawEllipse(x1, y1, rx, ry);
+	}-*/;
+
 	@Override void drawSelection() {
-		EMStatic.drawEllipse(
+		drawEllipse(
 				(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 				(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}

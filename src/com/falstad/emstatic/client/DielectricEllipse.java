@@ -24,7 +24,7 @@ public class DielectricEllipse extends DielectricBox {
 	DielectricEllipse(StringTokenizer st) { super(st); }
 	
 	void drawMaterials(boolean residual) {
-		EMStatic.drawSolidEllipse(
+		Ellipse.drawSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, speedIndex, 0);
 	}
@@ -50,7 +50,7 @@ public class DielectricEllipse extends DielectricBox {
 	*/
 	
 	@Override void drawSelection() {
-		EMStatic.drawEllipse(
+		ChargedEllipse.drawEllipse(
 				(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 				(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}

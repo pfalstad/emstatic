@@ -19,6 +19,8 @@
 
 package com.falstad.emstatic.client;
 
+import com.google.gwt.core.client.JavaScriptObject;
+
 public class Charge extends DragObject {
 	double charge;
     
@@ -50,9 +52,14 @@ public class Charge extends DragObject {
 	void drawCharge() {
 		DragHandle dh = handles.get(0);
 		double e0 = 8.854e-12; 
-		EMStatic.drawSource(dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/e0);
+		drawChargeAt(sim.renderer, dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/e0);
 	}
-	
+
+	static native void drawChargeAt(JavaScriptObject renderer, int x, int y, double value) /*-{
+		renderer.drawCharge(x, y, value);
+	}-*/;
+
+
 	void draw() {
 		int i;
 		for (i = 0; i != handles.size(); i++) {

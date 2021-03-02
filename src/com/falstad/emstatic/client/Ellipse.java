@@ -19,6 +19,8 @@
 
 package com.falstad.emstatic.client;
 
+import com.google.gwt.core.client.JavaScriptObject;
+
 public class Ellipse extends RectDragObject {
     double pot;
     
@@ -28,8 +30,13 @@ public class Ellipse extends RectDragObject {
 	    pot = new Double(st.nextToken()).doubleValue();
 	}
 	
+	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med, double pot) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, med, pot);
+	}-*/;
+
+
 	void drawMaterials(boolean residual) {
-		EMStatic.drawSolidEllipse(
+		drawSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, 0, residual ? 0 : pot);
 	}
@@ -47,10 +54,15 @@ public class Ellipse extends RectDragObject {
 	
 	    void draw() {
 		super.draw();
-		EMStatic.displayEllipseCharge((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
+		displayEllipseCharge(sim.renderer, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 
 	    }
+
+        static native void displayEllipseCharge(JavaScriptObject renderer, int x1, int y1, int rx, int ry) /*-{
+                renderer.displayEllipseCharge(x1, y1, rx, ry);
+        }-*/;
+
 
 	@Override void drawSelection() {
 //		drawMaterials(false);
@@ -62,10 +74,15 @@ public class Ellipse extends RectDragObject {
 			fd = 0;
 		else
 			fc = 0;
-		EMStatic.drawFocus((topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
-		EMStatic.drawFocus((topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
+		drawFocus(sim.renderer, (topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
+		drawFocus(sim.renderer, (topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
 	}
 	
+        static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{
+        	renderer.drawFocus(x, y);
+	}-*/;
+
+
 	int getDumpType() { return 'e'; }
 
 	    public EditInfo getEditInfo(int n) {
