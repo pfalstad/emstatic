@@ -33,7 +33,7 @@ public class Charge extends DragObject {
 		super(st);
 		while (ct-- > 0)
 			handles.add(new DragHandle(this, st));
-		charge = new Integer(st.nextToken()).intValue();
+		charge = new Double(st.nextToken()).doubleValue();
 		setTransform();
 	}
 	
@@ -73,5 +73,5 @@ public class Charge extends DragObject {
     	    charge = ei.value;
     }
     
-	int getDumpType() { return 's'; }
+	int getDumpType() { return 'c'; }
 	}

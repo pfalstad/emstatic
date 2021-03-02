@@ -888,7 +888,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 202) return new ConductingBox(st);
     	if (tint == 203) return new ChargedBox(st);
     	if (tint == 204) return new ChargedEllipse(st);
-    	if (tint == 's') return new Charge(st, 1);
+    	if (tint == 'c') return new Charge(st, 1);
     	if (tint == 't') return new TrianglePrism(st);
     	if (tint == 'w') return new Wall(st);
     	return null;
