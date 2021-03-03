@@ -30,10 +30,20 @@ public class Ellipse extends RectDragObject {
 	    pot = new Double(st.nextToken()).doubleValue();
 	}
 	
-	static native void drawSolidEllipse(int x1, int y1, int rx, int ry, double med, double pot) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawSolidEllipse(x1, y1, rx, ry, med, pot);
+	static native void drawSolidEllipse(double cx, double cy, double xr, double yr, double med, double pot) /*-{
+		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	        var coords = [cx, cy];
+        	var i;
+        	xr = Math.max(xr, renderer.minFeatureWidth);
+        	yr = Math.max(yr, renderer.minFeatureWidth);
+        	for (i = -xr; i <= xr; i++) {
+                    coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
+        	}
+        	for (i = xr-1; i >= -xr; i--) {
+                    coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
+        	}
+                renderer.drawSolid(coords, med, pot, true);
 	}-*/;
-
 
 	void drawMaterials(boolean residual) {
 		drawSolidEllipse(

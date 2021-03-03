@@ -5,7 +5,6 @@ var gridSizeX =1024, gridSizeY =1024, windowOffsetX =40, windowOffsetY =40;
 var windowWidth, windowHeight, viewAngle, viewHeight;
 var transform = [1, 0, 0, 1, 0, 0];
 var renderTextures = [];
-var minFeatureWidth;
 var brightness;
 var renderer = {};
 
@@ -420,7 +419,7 @@ function isPowerOf2(value) {
         destHeight = rttFramebuffer.height;
 
 	// minimum width/height of anything drawn, should always be at least one pixel width
-        minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
+        renderer.minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
     }
     
     renderer.runRelax = function (srcnum, rsnum, resid) {
@@ -774,7 +773,7 @@ function isPowerOf2(value) {
     function drawWall(x, y, x2, y2, pot) {
     	setupForDrawing(1);
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        srcCoords = thickLinePoints([x, y, x2, y2, x, y], renderer.drawingSelection == 1 ? .5 : renderer.drawingSelection > 0 ? 1.5 : Math.max(minFeatureWidth, 1.5));
+        srcCoords = thickLinePoints([x, y, x2, y2, x, y], renderer.drawingSelection == 1 ? .5 : renderer.drawingSelection > 0 ? 1.5 : Math.max(renderer.minFeatureWidth, 1.5));
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -861,8 +860,8 @@ function isPowerOf2(value) {
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         var coords = [cx, cy];
         var i;
-	xr = Math.max(xr, minFeatureWidth);
-	yr = Math.max(yr, minFeatureWidth);
+	xr = Math.max(xr, renderer.minFeatureWidth);
+	yr = Math.max(yr, renderer.minFeatureWidth);
         for (i = -xr; i <= xr; i++) {
         	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
         }
@@ -881,6 +880,29 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
 		gl.colorMask(true, true, true, true);
+    }
+
+    renderer.drawSolid = function (verts, med, pot, fan) {
+	if (med == undefined) {
+	    gl.colorMask(true, false, false, false);
+	    med = 0;
+	} else
+	    gl.colorMask(med == 0, false, true, false);
+        gl.useProgram(shaderProgramDraw);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramDraw);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
+        gl.drawArrays(fan ? gl.TRIANGLE_FAN : gl.TRIANGLE_STRIP, 0, verts.length/2);
+        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+
+	gl.colorMask(true, true, true, true);
     }
 
     renderer.displayEllipseCharge = function (cx, cy, xr, yr) {
@@ -935,10 +957,10 @@ function isPowerOf2(value) {
 	gl.colorMask(m1 == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
-        if (x2-x < minFeatureWidth)
-		x2 = x4 = x+minFeatureWidth;
-	if (y3-y < minFeatureWidth)
-		y3 = y4 = y+minFeatureWidth;
+        if (x2-x < renderer.minFeatureWidth)
+		x2 = x4 = x+renderer.minFeatureWidth;
+	if (y3-y < renderer.minFeatureWidth)
+		y3 = y4 = y+renderer.minFeatureWidth;
         var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
         //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
@@ -1014,10 +1036,10 @@ function isPowerOf2(value) {
 	gl.colorMask(true, false, false, false);
         gl.useProgram(shaderProgramDraw);
 
-        if (x2-x < minFeatureWidth)
-		x2 = x4 = x+minFeatureWidth;
-	if (y3-y < minFeatureWidth)
-		y3 = y4 = y+minFeatureWidth;
+        if (x2-x < renderer.minFeatureWidth)
+		x2 = x4 = x+renderer.minFeatureWidth;
+	if (y3-y < renderer.minFeatureWidth)
+		y3 = y4 = y+renderer.minFeatureWidth;
         var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
         //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
