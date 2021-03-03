@@ -169,7 +169,7 @@
     }
 </script>
 
-<script id="shader-edge-charge-fs" type="x-shader/x-fragment">
+<script id="shader-view-charge-fs" type="x-shader/x-fragment">
     varying highp vec2 vTextureCoord1;
     varying highp vec2 vTextureCoord2;
     uniform sampler2D uSourceTexture;
@@ -183,7 +183,7 @@
     }
 </script>
 
-<script id="shader-edge-charge-vs" type="x-shader/x-vertex">
+<script id="shader-view-charge-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
     attribute vec2 aTextureCoord;
 
@@ -200,6 +200,39 @@
         gl_Position = uPMatrix * vPosition;
         vTextureCoord1 = (uTextureMatrix * vec4(aTextureCoord.x,   aTextureCoord.y, 0.0, 1.0  )).xy;
         vTextureCoord2 = (uTextureMatrix * vec4(aVertexPosition.x, aVertexPosition.y, 0.0, 1.0)).xy;
+    }
+</script>
+
+<script id="shader-calc-charge-fs" type="x-shader/x-fragment">
+    varying highp vec2 vTextureCoord1;
+    varying highp vec2 vTextureCoord2;
+    uniform sampler2D uSourceTexture;
+
+    void main(void) {
+        highp vec4 t1 = texture2D(uSourceTexture, vTextureCoord1+vTextureCoord2);
+        highp vec4 t2 = texture2D(uSourceTexture, vTextureCoord2);
+        gl_FragColor = vec4(t2.r-t1.r, 0.0, 1.0, 1.0);
+    }
+</script>
+
+<script id="shader-calc-charge-vs" type="x-shader/x-vertex">
+    attribute vec3 aVertexPosition;
+    attribute vec2 aTextureCoord;
+
+    uniform mat4 uMVMatrix;
+    uniform mat4 uPMatrix;
+    uniform mat4 uTextureMatrix;
+    uniform mat4 uTextureMatrix2;
+
+    varying vec4 vPosition;
+    varying vec2 vTextureCoord1;
+    varying vec2 vTextureCoord2;
+
+    void main(void) {
+        vPosition = uMVMatrix * vec4(aVertexPosition, 1.0);
+        gl_Position = uPMatrix * vPosition;
+        vTextureCoord1 = (uTextureMatrix2 * vec4(aTextureCoord.x,   aTextureCoord.y, 0.0, 1.0  )).xy;
+        vTextureCoord2 = (uTextureMatrix  * vec4(aVertexPosition.x, aVertexPosition.y, 0.0, 1.0)).xy;
     }
 </script>
 

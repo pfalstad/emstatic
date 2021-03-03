@@ -120,6 +120,7 @@ public abstract class DragObject implements Editable {
 
 	void drawSelection() {
 	}
+	void calcCharge() {}
 	
 	void rotate(double ang) {
 		rotation += ang;

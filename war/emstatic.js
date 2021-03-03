@@ -47,7 +47,7 @@ var renderer = {};
 
 
     var shaderProgramMain, shaderProgramFixed, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
-    var shaderProgramCopy, shaderProgramResidual, shaderProgramEdgeCharge;
+    var shaderProgramCopy, shaderProgramResidual, shaderProgramViewCharge, shaderProgramCalcCharge;
 
     function initShader(fs, vs, prefix) {
         var fragmentShader = getShader(gl, fs, prefix);
@@ -115,9 +115,13 @@ var renderer = {};
     	shaderProgramDraw = initShader("shader-draw-fs", "shader-draw-vs");
     	shaderProgramMode = initShader("shader-mode-fs", "shader-draw-vs");
 
-    	shaderProgramEdgeCharge = initShader("shader-edge-charge-fs", "shader-edge-charge-vs");
-    	shaderProgramEdgeCharge.brightnessUniform = gl.getUniformLocation(shaderProgramEdgeCharge, "brightness");
-    	shaderProgramEdgeCharge.textureMatrixUniform = gl.getUniformLocation(shaderProgramEdgeCharge, "uTextureMatrix");
+    	shaderProgramViewCharge = initShader("shader-view-charge-fs", "shader-view-charge-vs");
+    	shaderProgramViewCharge.brightnessUniform = gl.getUniformLocation(shaderProgramViewCharge, "brightness");
+    	shaderProgramViewCharge.textureMatrixUniform = gl.getUniformLocation(shaderProgramViewCharge, "uTextureMatrix");
+
+    	shaderProgramCalcCharge = initShader("shader-calc-charge-fs", "shader-calc-charge-vs");
+    	shaderProgramCalcCharge.textureMatrixUniform  = gl.getUniformLocation(shaderProgramCalcCharge, "uTextureMatrix");
+    	shaderProgramCalcCharge.textureMatrix2Uniform = gl.getUniformLocation(shaderProgramCalcCharge, "uTextureMatrix2");
 
     	shaderProgramEquip = initShader("shader-equipotential-fs", "shader-vs", null);
     	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
@@ -905,52 +909,67 @@ function isPowerOf2(value) {
 	gl.colorMask(true, true, true, true);
     }
 
-    renderer.displayEllipseCharge = function (cx, cy, xr, yr) {
-        var coords = [], tcoords = [];
-        var i;
-        var insetMultX = (xr-2)/xr;
-        var insetMultY = (yr-2)/yr;
-        var outMultX = (xr+2)/xr;
-        var outMultY = (yr+2)/yr;
-        for (i = -xr; i <= xr; i++) {
-        	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-        	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        }
-        for (i = xr-1; i >= -xr; i--) {
-        	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-        	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        }
-
-        gl.useProgram(shaderProgramEdgeCharge);
+    renderer.displayCharge = function (coords, tcoords) {
+        gl.useProgram(shaderProgramViewCharge);
         loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramEdgeCharge);
+        setMatrixUniforms(shaderProgramViewCharge);
 	
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramEdgeCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+        gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+        gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
 
-        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,0,1];
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
         mat4.multiply(matx, [transform[0], transform[3], 0, 0,
                             transform[1], transform[4], 0, 0,
                             0,0,1,0,
                             transform[2], transform[5], 0, 1], matx);
-	gl.uniformMatrix4fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
 
-        gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
+        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
-        gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+        gl.disableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
+    }
+
+    renderer.calcCharge = function (coords, tcoords) {
+        gl.useProgram(shaderProgramCalcCharge);
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramCalcCharge);
+	
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramCalcCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramCalcCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramCalcCharge.textureCoordAttribute);
+
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
+        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
+                            transform[1], transform[4], 0, 0,
+                            0,0,1,0,
+                            transform[2], transform[5], 0, 1], matx);
+	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrixUniform, false, matx);
+
+        matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, 0,0,0,1];
+        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
+                            transform[1], transform[4], 0, 0,
+                            0,0,1,0,
+                            transform[2], transform[5], 0, 1], matx);
+	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrix2Uniform, false, matx);
+
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
+        gl.disableVertexAttribArray(shaderProgramCalcCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
     }
 
     renderer.drawMedium = function (x, y, x2, y2, x3, y3, x4, y4, m1, pot) {
@@ -1003,33 +1022,33 @@ function isPowerOf2(value) {
                        x3-2, y3, x3-2, y3-thick, x-2, y,
                        x3-2, y3-thick, x-2, y, x-2, y+thick];
 
-        gl.useProgram(shaderProgramEdgeCharge);
+        gl.useProgram(shaderProgramViewCharge);
         loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramEdgeCharge);
+        setMatrixUniforms(shaderProgramViewCharge);
 	
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramEdgeCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+        gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
 
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramEdgeCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
+        gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
 
         // mat3.multiply doesn't seem to work and neither does mat4.toMat3 so we use a mat4 instead
-        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, windowOffsetX/gridSizeX,1-windowOffsetY/gridSizeY,0,1];
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
         mat4.multiply(matx, [transform[0], transform[3], 0, 0,
                             transform[1], transform[4], 0, 0,
                             0,0,1,0,
                             transform[2], transform[5], 0, 1], matx);
-	gl.uniformMatrix4fv(shaderProgramEdgeCharge.textureMatrixUniform, false, matx);
+	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
 
-        gl.uniform1f(shaderProgramEdgeCharge.brightnessUniform, brightness);
+        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
 
         gl.drawArrays(gl.TRIANGLES, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramEdgeCharge.textureCoordAttribute);
-        gl.disableVertexAttribArray(shaderProgramEdgeCharge.vertexPositionAttribute);
+        gl.disableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
     }
 
     renderer.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) {

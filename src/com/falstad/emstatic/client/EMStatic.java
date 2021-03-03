@@ -1118,6 +1118,17 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 					break;
 			}
 			needsRecalc = false;
+			
+			// calculate charge
+			    setDestination(src-1);
+			    clearDestination();
+			    for (i = 0; i != dragObjects.size(); i++) {
+				DragObject obj = dragObjects.get(i);
+				obj.calcCharge();
+			    }
+//			    src = src+1;
+
+
 			finalSrc = src;
 			if (maxSteps == 10000)
 			    console("steps = " + stepCount);
@@ -1133,8 +1144,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
 			if (!equipCheck.getState())
 			    equipMult = 0;
-			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 			int i;
+			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);
