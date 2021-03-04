@@ -1204,6 +1204,16 @@ function isPowerOf2(value) {
         return [pixels[4*4], pixels[1*4], pixels[7*4], pixels[3*4], pixels[5*4]];
     }
 
+    renderer.getCharge = function () {
+        var pixels = new Float32Array(4*destHeight*destHeight);
+        gl.readPixels(0, 0, destHeight, destHeight, gl.RGBA, gl.FLOAT, pixels);
+        var i;
+        var charge = 0;
+        for (i = 0; i != pixels.length; i += 4)
+            charge += pixels[i];
+        return charge;
+    }
+
     function drawScenePotential(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
