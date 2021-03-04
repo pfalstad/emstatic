@@ -342,6 +342,34 @@ void main()
 
 </script>
 
+<script id="shader-sum-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+    varying vec4 vPosition;
+
+    uniform sampler2D uSourceTexture;
+    uniform float stepSizeX;
+    uniform float stepSizeY;
+
+highp vec4 getSquare(highp vec2 offset)
+{
+        highp vec2 x = offset+vTextureCoord;
+	return texture2D(uSourceTexture, x);
+}
+
+void main()
+{
+    	highp float newpos = 0.;
+        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+        highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
+        highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
+        highp vec4 mid3 = getSquare(vec2(stepSizeX, stepSizeY));
+        gl_FragColor = vec4(pv.r + mid1.r + mid2.r + mid3.r, 0.0, 1., 1.);
+}
+
+</script>
+
 <script id="shader-add-fs" type="x-shader/x-fragment">
     precision mediump float;
 

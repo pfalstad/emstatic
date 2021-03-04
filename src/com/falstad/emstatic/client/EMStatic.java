@@ -327,6 +327,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.copy(src);
 	}-*/;
 
+	static native void sum(int src) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.sum(src);
+	}-*/;
+	
 	static native void add(int src, int src2) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.add(src, src2);
 	}-*/;
@@ -1119,20 +1123,31 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			}
 			needsRecalc = false;
 			
+			finalSrc = src;
+			
+			/*
+			console("setdest " + src + " " + (src % 3));
+			
 			// calculate charge
-			    setDestination(src-1);
+			    setDestination(src+1);
 			    clearDestination();
 			    for (i = 0; i != dragObjects.size(); i++) {
 				DragObject obj = dragObjects.get(i);
 				obj.calcCharge();
 			    }
-//			    src = src+1;
+			    src = src+1;
+			    while (src >= 3) {
+				setDestination(src-3);
+				clearDestination();
+				sum(src);
+				src = src-3;
+			    }
+*/
 
-
-			finalSrc = src;
 			if (maxSteps == 10000)
 			    console("steps = " + stepCount);
 	    }
+	    console("dests " + finalSrc + " " + (rtnum-1));
 	    
 	    int src = finalSrc; // getRenderTextureCount()-2;
 	    
