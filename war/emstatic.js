@@ -245,7 +245,7 @@ function isPowerOf2(value) {
     	gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     	rttFramebuffer.width = sz;
     	rttFramebuffer.height = sz;
-    	console.log("makgin framebuffer of size " + sz);
+    	//console.log("makgin framebuffer of size " + sz);
 
     	var rttTexture = gl.createTexture();
     	gl.bindTexture(gl.TEXTURE_2D, rttTexture);
@@ -426,6 +426,7 @@ function isPowerOf2(value) {
         gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
         destHeight = rttFramebuffer.height;
 
+        //console.log("setting destination to " + rtnum + ", height = " + destHeight);
 	// minimum width/height of anything drawn, should always be at least one pixel width
         renderer.minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
     }
@@ -966,6 +967,13 @@ function isPowerOf2(value) {
         gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
 
+    	var sourceRT = renderTextures[renderer.chargeSource];
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.uniform1i(shaderProgramViewCharge.sourceTextureUniform, 0);
+
         var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
         mat4.multiply(matx, [transform[0], transform[3], 0, 0,
                             transform[1], transform[4], 0, 0,
@@ -994,6 +1002,13 @@ function isPowerOf2(value) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramCalcCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramCalcCharge.textureCoordAttribute);
+
+    	var sourceRT = renderTextures[renderer.chargeSource];
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.uniform1i(shaderProgramCalcCharge.sourceTextureUniform, 0);
 
         var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
         mat4.multiply(matx, [transform[0], transform[3], 0, 0,

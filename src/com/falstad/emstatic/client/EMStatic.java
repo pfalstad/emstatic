@@ -406,6 +406,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			medColor, sourceColor, zeroColor3d);
 	}-*/;
 
+	static native void setChargeSource(int cs) /*-{
+	    	@com.falstad.emstatic.client.EMStatic::renderer.chargeSource = cs;
+	}-*/;
+	
 	Frame iFrame;
 	
 	public void init() {
@@ -1128,10 +1132,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			needsRecalc = false;
 			
 			finalSrc = src;
-			console("setdest " + src + " " + (src % 3));
+//			console("setdest " + src + " " + (src % 3));
 			
 			// calculate charge
-			setDestination(src+1);
+			setChargeSource(finalSrc);
+			src--;
+			setDestination(src);
 			clearDestination();
 			for (i = 0; i != dragObjects.size(); i++) {
 			    DragObject obj = dragObjects.get(i);
@@ -1141,7 +1147,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// sum charge into smaller and smaller bitmaps so we can count it more efficiently.
 			// it turns out it's so fast to count the large bitmap that we don't really need this,
 			// but I wrote it before I discovered that
-			src = src+1;
 			while (src >= 3) {
 			    setDestination(src-3);
 			    clearDestination();
@@ -1154,7 +1159,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (maxSteps == 10000)
 			    console("steps = " + stepCount);
 	    }
-	    console("dests " + finalSrc + " " + (rtnum-1));
+//	    console("dests " + finalSrc + " " + (rtnum-1));
 	    
 	    int src = finalSrc; // getRenderTextureCount()-2;
 	    
