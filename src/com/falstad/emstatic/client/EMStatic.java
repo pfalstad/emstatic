@@ -1131,20 +1131,24 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			console("setdest " + src + " " + (src % 3));
 			
 			// calculate charge
-			    setDestination(src+1);
+			setDestination(src+1);
+			clearDestination();
+			for (i = 0; i != dragObjects.size(); i++) {
+			    DragObject obj = dragObjects.get(i);
+			    obj.calcCharge();
+			}
+			
+			// sum charge into smaller and smaller bitmaps so we can count it more efficiently.
+			// it turns out it's so fast to count the large bitmap that we don't really need this,
+			// but I wrote it before I discovered that
+			src = src+1;
+			while (src >= 3) {
+			    setDestination(src-3);
 			    clearDestination();
-			    for (i = 0; i != dragObjects.size(); i++) {
-				DragObject obj = dragObjects.get(i);
-				obj.calcCharge();
-			    }
-			    src = src+1;
-			    while (src >= 3) {
-				setDestination(src-3);
-				clearDestination();
-				sum(src);
-				src = src-3;
-			    }
-			    console("charge = " + getCharge());
+			    sum(src);
+			    src = src-3;
+			}
+			console("charge = " + getCharge());
 
 
 			if (maxSteps == 10000)
