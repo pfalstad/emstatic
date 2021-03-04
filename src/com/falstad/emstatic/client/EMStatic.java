@@ -1136,22 +1136,26 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			
 			// calculate charge
 			setChargeSource(finalSrc);
-			src--;
-			setDestination(src);
-			clearDestination();
 			for (i = 0; i != dragObjects.size(); i++) {
+			    src = finalSrc-1;
 			    DragObject obj = dragObjects.get(i);
-			    obj.calcCharge();
-			}
-			
-			// sum charge into smaller and smaller bitmaps so we can count it more efficiently.
-			// it turns out it's so fast to count the large bitmap that we don't really need this,
-			// but I wrote it before I discovered that
-			while (src >= 3) {
-			    setDestination(src-3);
+			    if (!obj.isConductor())
+				continue;
+			    
+			    setDestination(src);
 			    clearDestination();
-			    sum(src);
-			    src = src-3;
+			    obj.calcCharge();
+			
+			    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
+			    // it turns out it's so fast to count the large bitmap that we don't really need this,
+			    // but I wrote it before I discovered that
+			    while (src >= 3) {
+				setDestination(src-3);
+				clearDestination();
+				sum(src);
+				src = src-3;
+			    }
+			    obj.setConductorCharge(getCharge());
 			}
 			console("charge = " + getCharge());
 

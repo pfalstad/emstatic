@@ -167,5 +167,6 @@ public class Ellipse extends RectDragObject {
 		return super.dump() + " " + pot;
 	    }
 	
-	    
+	    boolean isConductor() { return true; }
+	    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C?"); }
 }

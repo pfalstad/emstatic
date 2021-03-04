@@ -29,6 +29,7 @@ public abstract class DragObject implements Editable {
 	double transform[];
 	double invTransform[];
 	double centerX, centerY;  // set in setTransform()
+	double conductorCharge;
 	int flags;
 	
 	DragObject() {
@@ -275,4 +276,6 @@ public abstract class DragObject implements Editable {
 		double len = Math.round(Math.hypot(dh1.x-dh2.x, dh1.y-dh2.y));
 		return len;
 	}
+	boolean isConductor() { return false; }
+	void setConductorCharge(double c) { conductorCharge = c; }
 }
