@@ -226,7 +226,7 @@ class EditDialog extends DialogBox  {
 			    continue;
 			elm.setEditValue(i, ei);
 		}
-		cframe.needsRecalc = true;
+		cframe.recalcAndRepaint();
 		cframe.repaint();
 	}
 
@@ -251,7 +251,7 @@ class EditDialog extends DialogBox  {
 	    		elm.setEditValue(i, ei);
 	    		if (ei.newDialog)
 	    			changed = true;
-	    		cframe.needsRecalc = true;
+	    		cframe.recalcAndRepaint();
 	    	}
 	    }
 	    if (changed) {

@@ -159,7 +159,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	boolean dragSet;
 	public boolean useFrame;
 	boolean showControls;
-	boolean needsRecalc;
+	
+	// level of calculation we've done.  0 = need to recalculate, 1 = less accurate, 2 = full accuracy
+	int calcLevel;
+	
 	boolean ignoreFreqBarSetting;
 	double t;
 	double lengthScale, waveSpeed;
@@ -745,7 +748,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     }
 
     public void wallsChanged() {
-    	needsRecalc = true;
+	calcLevel = 0;
     }
     
     public void menuPerformed(String menu, String item) {
@@ -948,7 +951,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			return solveExactly(src, dest, rsGrid);
 		
 		// iterate a few times on fine grid
-		int iterCount = 9; // was 3
+		// iterate more times for higher accuracy on second try
+		int iterCount = (calcLevel == 0) ? 9 : 100;
 		int i;
 		for (i = 0; i != iterCount; i++) {
 			setDestination(dest);
@@ -1058,7 +1062,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    boolean needsRepaint;
 	    
 	    void recalcAndRepaint() {
-		needsRecalc = true;
+		calcLevel = 0;
 		repaint();
 	    }
 	    
@@ -1083,8 +1087,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				changedWalls = false;
 			}*/
 	    int rtnum = getRenderTextureCount();
-	    if (needsRecalc) {
-		console("Recalc");
+	    if (calcLevel < 2) {
+		console("Recalc " + calcLevel);
 			int level = debugBar1.getValue();
 			if (stoppedCheck.getState())
 				return;
@@ -1130,7 +1134,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				if (stepCount >= maxSteps)
 					break;
 			}
-			needsRecalc = false;
+			calcLevel++;
 			
 			finalSrc = src;
 //			console("setdest " + src + " " + (src % 3));
@@ -1277,7 +1281,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			DragObject obj = dragObjects.get(i);
 			obj.rescale(windowWidth/(double)oldWidth);
 		}
-		needsRecalc = true;
+		calcLevel = 0;
 	}
 
 	void setResolution(int x) {
@@ -1570,7 +1574,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setDamping();
 		wallsChanged();
 		enableDisableUI();
-		console("done with reading setup, " + dragObjects.size() + " " + needsRecalc);
 	}
 
 	abstract class Setup {
@@ -1782,7 +1785,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (draggingHandle != null) {
 			Point mp = selectedObject.inverseTransformPoint(pt);
 			draggingHandle.dragTo(mp.x, mp.y);
-			needsRecalc = true;
+			calcLevel = 0;
 		} else if (isSelection()) {
 			if (dragPoint.x != pt.x || dragPoint.y != pt.y) {
 				int i;
@@ -1792,7 +1795,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						obj.drag(pt.x-dragPoint.x, pt.y-dragPoint.y);
 				}
 				dragPoint = pt;
-				needsRecalc = true;
+				calcLevel = 0;
 			}
 		}
 	}
