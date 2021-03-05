@@ -33,13 +33,28 @@ public class ConductingBox extends RectDragObject {
     }
 
     static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
-    	@com.falstad.emstatic.client.EMStatic::renderer.drawMedium(x1, y1, x2, y2, x3, y3, x4, y4, med, med2);
+        var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+        if (x2-x1 < renderer.minFeatureWidth)
+            x2 = x4 = x1+renderer.minFeatureWidth;
+        if (y3-y1 < renderer.minFeatureWidth)
+            y3 = y4 = y1+renderer.minFeatureWidth;
+        var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
+    	renderer.drawSolid(medCoords, med, med2, false);
     }-*/;
 
-    static native void displayBoxCharge(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
-        @com.falstad.emstatic.client.EMStatic::renderer.displayBoxCharge(x1, y1, x2, y2, x3, y3, x4, y4);
+    static native void displayBoxCharge(int x, int y, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
+        var thick = 2;
+        // 4 triangle strips
+        var coords = [x, y, x+thick, y+thick, x2, y2, x2-thick, y2+thick,
+                      x2, y2, x2-thick, y2+thick, x4, y4, x4-thick, y4-thick,
+                      x4, y4, x4-thick, y4-thick, x3, y3, x3+thick, y3-thick,
+                      x3, y3, x3+thick, y3-thick, x, y, x+thick, y+thick];
+        var tcoords = [x, y-2, x+thick, y-2, x2, y2-2, x2-thick, y2-2,
+                       x2+2, y2, x2+2, y2+thick, x4+2, y4, x4+2, y4-thick,
+                       x4, y4+2, x4-thick, y4+2, x3, y3+2, x3+thick, y3+2,                       
+                       x3-2, y3, x3-2, y3-thick, x-2, y, x-2, y+thick];
+        @com.falstad.emstatic.client.EMStatic::renderer.displayCharge(coords, tcoords);
     }-*/;
-
 
     void drawMaterials(boolean residual) {
 	drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
