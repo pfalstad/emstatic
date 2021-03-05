@@ -64,39 +64,47 @@ public class Ellipse extends RectDragObject {
 	
 	    void draw() {
 		super.draw();
-		displayEllipseCharge((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
+		doEllipseCharge(false, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	    }
 
-	    static native void displayEllipseCharge(double cx, double cy, double xr, double yr) /*-{
+	    static native void doEllipseCharge(boolean calc, double cx, double cy, double xr, double yr) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-        	var insetMultX = (xr-2)/xr;
-        	var insetMultY = (yr-2)/yr;
-        	var outMultX = (xr+2)/xr;
-        	var outMultY = (yr+2)/yr;
+		var margin = (calc) ? 5 : 2;
+        	var insetMultX = (xr-margin)/xr;
+        	var insetMultY = (yr-margin)/yr;
+        	var outMultX = 2/xr;
+        	var outMultY = 2/yr;
+        	var tcx = cx;
+        	var tcy = cy;
+        	if (!calc) {
+        	    outMultX += 1;
+        	    outMultY += 1;
+        	} else
+        	    tcx = tcy = 0;
         	var i;
         	var coords = [];
         	var tcoords = [];
         	for (i = -xr; i <= xr; i++) {
                 	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
                 	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(cx-i*outMultX, cy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
         	}
         	for (i = xr-1; i >= -xr; i--) {
                 	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
                 	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(cx-i*outMultX, cy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
+                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
         	}
-                renderer.displayCharge(coords, tcoords);	    
+        	if (calc) {
+        	    for (i = 0; i != coords.length; i++)
+        	    	tcoords[i] = Math.round(tcoords[i]);
+        	    renderer.calcCharge(coords, tcoords);
+        	} else
+                    renderer.displayCharge(coords, tcoords);	    
 	}-*/;
 	    
-        static native void displayEllipseCharge(JavaScriptObject renderer, int x1, int y1, int rx, int ry) /*-{
-                renderer.displayEllipseCharge(x1, y1, rx, ry);
-        }-*/;
-
-
 	@Override void drawSelection() {
 //		drawMaterials(false);
 		double a = (topRight.x-topLeft.x)/2;
@@ -112,37 +120,8 @@ public class Ellipse extends RectDragObject {
 	}
 	
 	void calcCharge() {
-		calcEllipseCharge((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+		doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}
-	
-	static native void calcEllipseCharge(double cx, double cy, double xr, double yr) /*-{
-		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-        	var insetMultX = (xr-15)/xr;
-        	var insetMultY = (yr-15)/yr;
-        	var outMultX = 2/xr;
-        	var outMultY = 2/yr;
-        	var i;
-        	var coords = [];
-        	var tcoords = [];
-        	for (i = -xr; i <= xr; i++) {
-                	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(-i*outMultX, -yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(-i*outMultX, -yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	for (i = xr-1; i >= -xr; i--) {
-                	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(-i*outMultX, yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(-i*outMultX, yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	for (i = 0; i != coords.length; i++) {
-//        	    coords [i] = Math.round( coords[i]);
-        	    tcoords[i] = Math.round(tcoords[i]);
-        	}
-                renderer.calcCharge(coords, tcoords);	    
-	}-*/;
-	
 	
         static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{
         	renderer.drawFocus(x, y);
