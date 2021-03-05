@@ -72,7 +72,7 @@ public class ConductingBox extends RectDragObject {
     }
     
     boolean isConductor() { return true; }
-    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C?"); }
+    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
     
     int getDumpType() {
 	return 202;

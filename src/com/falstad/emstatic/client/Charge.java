@@ -51,8 +51,7 @@ public class Charge extends DragObject {
 	
 	void drawCharge() {
 		DragHandle dh = handles.get(0);
-		double e0 = 8.854e-12; 
-		drawChargeAt(sim.renderer, dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/e0);
+		drawChargeAt(sim.renderer, dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/sim.e0);
 	}
 
 	static native void drawChargeAt(JavaScriptObject renderer, int x, int y, double value) /*-{

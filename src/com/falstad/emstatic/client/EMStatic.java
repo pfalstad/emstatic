@@ -233,6 +233,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     static ImportFromTextDialog importFromTextDialog;
     static AboutBox aboutBox;
     static JavaScriptObject renderer;
+    static final double e0 = 8.854e-12;
 
 	static final int MENUBARHEIGHT = 30;
 	static final int MAXVERTICALPANELWIDTH = 166;
@@ -1156,9 +1157,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				sum(src);
 				src = src-3;
 			    }
-			    obj.setConductorCharge(getCharge());
+			    // don't know where sqrt(2) comes from
+			    // e0 is from Gauss's law, .5 is from fact that we use 2-pixel thick layer to compute charge
+			    obj.setConductorCharge(getCharge()*e0*.5/Math.sqrt(2));
 			}
-			console("charge = " + getCharge());
 
 
 			if (maxSteps == 10000)

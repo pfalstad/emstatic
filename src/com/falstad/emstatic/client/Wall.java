@@ -82,7 +82,7 @@ public class Wall extends DragObject {
 	}
 	    
 	boolean isConductor() { return true; }
-	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C?"); }
+	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
 	
 	/*
 	void drawSelection() {
