@@ -1017,11 +1017,13 @@ function isPowerOf2(value) {
                             transform[2], transform[5], 0, 1], matx);
 	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrixUniform, false, matx);
 
+/*
         matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, 0,0,0,1];
         mat4.multiply(matx, [transform[0], transform[3], 0, 0,
                             transform[1], transform[4], 0, 0,
                             0,0,1,0,
                             transform[2], transform[5], 0, 1], matx);
+*/
 	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrix2Uniform, false, matx);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);

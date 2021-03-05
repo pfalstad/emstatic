@@ -42,18 +42,19 @@ public class ConductingBox extends RectDragObject {
     	renderer.drawSolid(medCoords, med, med2, false);
     }-*/;
 
-    static native void displayBoxCharge(int x, int y, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
+    static native void doBoxCharge(boolean calc, int x, int y, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
         var thick = 2;
         // 4 triangle strips
-        var coords = [x, y, x+thick, y+thick, x2, y2, x2-thick, y2+thick,
-                      x2, y2, x2-thick, y2+thick, x4, y4, x4-thick, y4-thick,
-                      x4, y4, x4-thick, y4-thick, x3, y3, x3+thick, y3-thick,
-                      x3, y3, x3+thick, y3-thick, x, y, x+thick, y+thick];
-        var tcoords = [x, y-2, x+thick, y-2, x2, y2-2, x2-thick, y2-2,
-                       x2+2, y2, x2+2, y2+thick, x4+2, y4, x4+2, y4-thick,
-                       x4, y4+2, x4-thick, y4+2, x3, y3+2, x3+thick, y3+2,                       
-                       x3-2, y3, x3-2, y3-thick, x-2, y, x-2, y+thick];
-        @com.falstad.emstatic.client.EMStatic::renderer.displayCharge(coords, tcoords);
+        var coords = [x, y, x+thick, y+thick, x2, y2, x2-thick, y2+thick, x4, y4, x4-thick, y4-thick, x3, y3, x3+thick, y3-thick,
+                      x, y, x+thick, y+thick];
+        if (calc)
+            x = y = x2 = y2 = x3 = y3 = x4 = y4 = 0;
+        var tcoords = [x-2, y-2, x-2, y-2, x2+2, y2-2, x2+2, y2-2, x4+2, y4+2, x4+2, y4+2, x3-2, y3+2, x3-2, y3+2,
+        	       x-2, y-2, x-2, y-2];
+     	if (calc)
+            @com.falstad.emstatic.client.EMStatic::renderer.calcCharge(coords, tcoords);
+        else
+            @com.falstad.emstatic.client.EMStatic::renderer.displayCharge(coords, tcoords);
     }-*/;
 
     void drawMaterials(boolean residual) {
@@ -63,8 +64,15 @@ public class ConductingBox extends RectDragObject {
 
     void draw() {
 	super.draw();
-	displayBoxCharge(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+	doBoxCharge(false, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
+
+    void calcCharge() {
+	doBoxCharge(true, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+    }
+    
+    boolean isConductor() { return true; }
+    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C?"); }
     
     int getDumpType() {
 	return 202;

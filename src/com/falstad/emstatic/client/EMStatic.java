@@ -1145,6 +1145,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			    setDestination(src);
 			    clearDestination();
 			    obj.calcCharge();
+//			    if (i >= 0) { finalSrc = src; break; }   // uncomment to test charge calculation
 			
 			    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
 			    // it turns out it's so fast to count the large bitmap that we don't really need this,

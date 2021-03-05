@@ -72,8 +72,17 @@ public class Wall extends DragObject {
 	    super.draw();
 	    setWallTransform();
 	    int len2 = (int) (wallLen/2);
-	    ConductingBox.displayBoxCharge(-2, -len2, 2, -len2, -2, len2, 2, len2);
+	    ConductingBox.doBoxCharge(false, -2, -len2, 2, -len2, -2, len2, 2, len2);
 	}
+	
+	void calcCharge() {
+	    setWallTransform();
+	    int len2 = (int) (wallLen/2);
+	    ConductingBox.doBoxCharge(true, -2, -len2, 2, -len2, -2, len2, 2, len2);
+	}
+	    
+	boolean isConductor() { return true; }
+	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C?"); }
 	
 	/*
 	void drawSelection() {
