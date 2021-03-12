@@ -21,19 +21,18 @@ package com.falstad.emstatic.client;
 
 public class Wall extends DragObject {
 
-    double pot;
-    
 	Wall() {
 		handles.add(new DragHandle(this));
 		handles.add(new DragHandle(this));
-		pot = 1;
 		setTransform();
+		materialType = MT_CONDUCTING;
 	}
 	
 	Wall(int x1, int y1, int x2, int y2) {
 		handles.add(new DragHandle(this, x1, y1));
 		handles.add(new DragHandle(this, x2, y2));
 		setTransform();
+		materialType = MT_CONDUCTING;
 	}
 
 	Wall(StringTokenizer st) {
@@ -41,7 +40,6 @@ public class Wall extends DragObject {
 		handles.add(new DragHandle(this, st));
 		handles.add(new DragHandle(this, st));
 		setTransform();
-		pot = Double.parseDouble(st.nextToken());
 	}
 
 	double wallLen;
@@ -55,7 +53,7 @@ public class Wall extends DragObject {
 	    EMStatic.setTransform(xf0, xf1, cx, -xf1, xf0, cy);
 	}
 
-	void drawMaterials(boolean residual) {
+	void drawMaterials() {
 	    setWallTransform();
 	    /*
 	    int len = (int)Math.hypot(handles.get(0).x-handles.get(1).x, handles.get(0).y-handles.get(1).y);
@@ -65,23 +63,22 @@ public class Wall extends DragObject {
 	    EMStatic.drawMedium(cx-2, cy-len/2, cx+2, cy-len/2, cx-2, cy+len/2, cx+2, cy+len/2, 0, residual ? 0 : pot);
 	    */
 	    int len2 = (int) (wallLen/2);
-	    ConductingBox.drawMedium(-2, -len2, 2, -len2, -2, len2, 2, len2, 0, residual ? 0 : pot); 
+	    Box.drawMedium(-2, -len2, 2, -len2, -2, len2, 2, len2); 
 	}
 	
 	void draw() {
 	    super.draw();
 	    setWallTransform();
 	    int len2 = (int) (wallLen/2);
-	    ConductingBox.doBoxCharge(false, -2, -len2, 2, -len2, -2, len2, 2, len2);
+	    Box.doBoxCharge(false, -2, -len2, 2, -len2, -2, len2, 2, len2);
 	}
 	
 	void calcCharge() {
 	    setWallTransform();
 	    int len2 = (int) (wallLen/2);
-	    ConductingBox.doBoxCharge(true, -2, -len2, 2, -len2, -2, len2, 2, len2);
+	    Box.doBoxCharge(true, -2, -len2, 2, -len2, -2, len2, 2, len2);
 	}
 	    
-	boolean isConductor() { return true; }
 	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
 	
 	/*
@@ -97,21 +94,4 @@ public class Wall extends DragObject {
 	*/
 	
 	int getDumpType() { return 'w'; }
-
-	    public EditInfo getEditInfo(int n) {
-		if (n == 0)
-		    return new EditInfo("potential", pot, 0, 1);
-
-		return null;
-	    }
-
-	    public void setEditValue(int n, EditInfo ei) {
-		if (n == 0)
-		    pot = ei.value;
-	    }
-
-	    String dump() {
-		return super.dump() + " " + pot;
-	    }
-
 }

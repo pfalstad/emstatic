@@ -19,27 +19,24 @@
 
 package com.falstad.emstatic.client;
 
-public class ConductingBox extends RectDragObject {
+public class Box extends RectDragObject {
 
-    double pot;
-
-    ConductingBox() {
-	pot = 1;
+    Box() {
+	materialType = MT_CONDUCTING;
     }
 
-    ConductingBox(StringTokenizer st) {
+    Box(StringTokenizer st) {
 	super(st);
-	pot = new Double(st.nextToken()).doubleValue();
     }
 
-    static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, double med, double med2) /*-{
+    static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
         var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
         if (x2-x1 < renderer.minFeatureWidth)
             x2 = x4 = x1+renderer.minFeatureWidth;
         if (y3-y1 < renderer.minFeatureWidth)
             y3 = y4 = y1+renderer.minFeatureWidth;
         var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
-    	renderer.drawSolid(medCoords, med, med2, false);
+    	renderer.drawSolid(medCoords, false);
     }-*/;
 
     static native void doBoxCharge(boolean calc, int x, int y, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
@@ -57,41 +54,25 @@ public class ConductingBox extends RectDragObject {
             @com.falstad.emstatic.client.EMStatic::renderer.displayCharge(coords, tcoords);
     }-*/;
 
-    void drawMaterials(boolean residual) {
+    void drawMaterials() {
 	drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
-		bottomRight.y, 0, residual ? 0 : pot);
+		bottomRight.y);
     }
 
     void draw() {
 	super.draw();
-	doBoxCharge(false, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+	if (isCharged())
+	    doBoxCharge(false, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
 
     void calcCharge() {
 	doBoxCharge(true, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
     
-    boolean isConductor() { return true; }
     String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
     
     int getDumpType() {
-	return 202;
-    }
-
-    public EditInfo getEditInfo(int n) {
-	if (n == 0)
-	    return new EditInfo("potential", pot, 0, 1);
-
-	return null;
-    }
-
-    public void setEditValue(int n, EditInfo ei) {
-	if (n == 0)
-	    pot = ei.value;
-    }
-
-    String dump() {
-	return super.dump() + " " + pot;
+	return 'b';
     }
 
 }

@@ -737,13 +737,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     public void composeMainMenu(MenuBar mainMenuBar) {
     	mainMenuBar.addItem(getClassCheckItem("Add Wall", "Wall"));
     	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Conducting Box", "ConductingBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Charged Box", "ChargedBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Dielectric", "DielectricBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Lens", "Lens"));
     }
 
     MenuItem getClassCheckItem(String s, String t) {
@@ -812,18 +808,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	DragObject newObject = null;
     	if (item == "Wall")
     		newObject = new Wall();
-    	if (item == "DielectricBox")
-    		newObject = new DielectricBox();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
-    	if (item == "ConductingBox")
-    		newObject = new ConductingBox();
-    	if (item == "ChargedBox")
-    		newObject = new ChargedBox();
-    	if (item == "TrianglePrism")
-    		newObject = new TrianglePrism();
-    	if (item == "Lens")
-    		newObject = new Lens();
+    	if (item == "Box")
+    		newObject = new Box();
     	if (item == "Charge")
     		newObject = new Charge();
     	if (newObject != null) {
@@ -841,12 +829,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
     DragObject createObj(int tint, StringTokenizer st) {
     	if (tint == 'e') return new Ellipse(st);
-    	if (tint == 'l') return new Lens(st);
-    	if (tint == 'm') return new DielectricBox(st);
-    	if (tint == 202) return new ConductingBox(st);
-    	if (tint == 203) return new ChargedBox(st);
+    	if (tint == 'b') return new Box(st);
     	if (tint == 'c') return new Charge(st, 1);
-    	if (tint == 't') return new TrianglePrism(st);
     	if (tint == 'w') return new Wall(st);
     	return null;
     }
@@ -1375,11 +1359,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				schemeColors[cn][i] = Color.hex2Rgb(st.nextToken());
 		}
 		colorChooser.add("Color Scheme " + (cn + 1));
-	}
-
-	void addMedium() {
-		DielectricBox mb = new DielectricBox(-windowOffsetX, windowHeight/2, windowWidth+windowOffsetX-1, windowHeight+windowOffsetY-1);
-		dragObjects.add(mb);
 	}
 
     void getSetupList() {
