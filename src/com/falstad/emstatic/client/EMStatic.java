@@ -740,6 +740,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Quadrupole Lens", "QuadrupoleLens"));
     }
 
     MenuItem getClassCheckItem(String s, String t) {
@@ -810,6 +811,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Wall();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
+    	if (item == "QuadrupoleLens")
+		newObject = new QuadrupoleLens();
     	if (item == "Box")
     		newObject = new Box();
     	if (item == "Charge")
@@ -832,6 +835,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'b') return new Box(st);
     	if (tint == 'c') return new Charge(st, 1);
     	if (tint == 'w') return new Wall(st);
+    	if (tint == 'q') return new QuadrupoleLens(st);
     	return null;
     }
     
