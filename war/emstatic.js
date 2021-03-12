@@ -423,6 +423,7 @@ function isPowerOf2(value) {
     var colorBuffer;
     var colors;
     var destHeight;
+    var minFeatureWidth;
 
     renderer.setDestination = function (rtnum) {
     	var rt = renderTextures[rtnum];
@@ -433,9 +434,13 @@ function isPowerOf2(value) {
 
         //console.log("setting destination to " + rtnum + ", height = " + destHeight);
 	// minimum width/height of anything drawn, should always be at least one pixel width
-        renderer.minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
+        minFeatureWidth = (windowWidth / rttFramebuffer.width) * 1.5;
+        renderer.minFeatureWidth = minFeatureWidth;
     }
     
+    // we do this to work around apparent Javascript bug on Safari
+    renderer.getMinFeatureWidth = function () { return minFeatureWidth; }
+
     renderer.runRelax = function (srcnum, rsnum, resid) {
     	var sourceRT = renderTextures[srcnum];
     	var rightSideRT = renderTextures[rsnum];

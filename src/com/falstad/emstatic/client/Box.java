@@ -31,10 +31,10 @@ public class Box extends RectDragObject {
 
     static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
         var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-        if (x2-x1 < renderer.minFeatureWidth)
-            x2 = x4 = x1+renderer.minFeatureWidth;
-        if (y3-y1 < renderer.minFeatureWidth)
-            y3 = y4 = y1+renderer.minFeatureWidth;
+        if (x2-x1 < renderer.getMinFeatureWidth())
+            x2 = x4 = x1+renderer.getMinFeatureWidth();
+        if (y3-y1 < renderer.getMinFeatureWidth())
+            y3 = y4 = y1+renderer.getMinFeatureWidth();
         var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
     	renderer.drawSolid(medCoords, false);
     }-*/;

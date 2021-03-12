@@ -34,8 +34,8 @@ public class Ellipse extends RectDragObject {
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = [cx, cy];
         	var i;
-        	xr = Math.max(xr, renderer.minFeatureWidth);
-        	yr = Math.max(yr, renderer.minFeatureWidth);
+        	xr = Math.max(xr, renderer.getMinFeatureWidth());
+        	yr = Math.max(yr, renderer.getMinFeatureWidth());
         	for (i = -xr; i <= xr; i++) {
                     coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
         	}
