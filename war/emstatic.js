@@ -8,6 +8,11 @@ var renderTextures = [];
 var brightness;
 var renderer = {};
 
+// from DragObject.java
+const MT_CHARGED = 1;
+const MT_CONDUCTING = 2;
+const MT_DIELECTRIC = 3;
+
     function getShader(gl, id, prefix) {
         var shaderScript = document.getElementById(id);
         if (!shaderScript) {
@@ -929,7 +934,9 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
-    renderer.drawSolid = function (verts, med, pot, fan) {
+    renderer.drawSolid = function (verts, fan) {
+        var med = renderer.permittivity;
+        var pot = renderer.residual ? 0 : renderer.potential;
 	if (med == undefined) {
 	    gl.colorMask(true, false, false, false);
 	    med = 0;

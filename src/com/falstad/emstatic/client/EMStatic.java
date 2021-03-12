@@ -399,6 +399,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.doBlankWalls();
 	}-*/;
 
+	static native void setResidualFlag(boolean res) /*-{
+	   var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	   renderer.residual = res;
+	}-*/;
+	
 	static native JsArrayNumber getProbeValue(int x, int y) /*-{
 		return @com.falstad.emstatic.client.EMStatic::renderer.getProbeValue(x, y);
 	}-*/;
@@ -734,11 +739,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
     	mainMenuBar.addItem(getClassCheckItem("Add Conducting Box", "ConductingBox"));
     	mainMenuBar.addItem(getClassCheckItem("Add Charged Box", "ChargedBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Charged Ellipse", "ChargedEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Dielectric", "DielectricBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Dielectric Ellipse", "DielectricEllipse"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Conducting Ellipse", "Ellipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Prism", "TrianglePrism"));
     	mainMenuBar.addItem(getClassCheckItem("Add Lens", "Lens"));
     }
@@ -811,16 +814,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Wall();
     	if (item == "DielectricBox")
     		newObject = new DielectricBox();
-    	if (item == "DielectricEllipse")
-    		newObject = new DielectricEllipse();
     	if (item == "Ellipse")
     		newObject = new Ellipse();
     	if (item == "ConductingBox")
     		newObject = new ConductingBox();
     	if (item == "ChargedBox")
     		newObject = new ChargedBox();
-    	if (item == "ChargedEllipse")
-		newObject = new ChargedEllipse();
     	if (item == "TrianglePrism")
     		newObject = new TrianglePrism();
     	if (item == "Lens")
@@ -844,10 +843,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (tint == 'e') return new Ellipse(st);
     	if (tint == 'l') return new Lens(st);
     	if (tint == 'm') return new DielectricBox(st);
-    	if (tint == 'E') return new DielectricEllipse(st);
     	if (tint == 202) return new ConductingBox(st);
     	if (tint == 203) return new ChargedBox(st);
-    	if (tint == 204) return new ChargedEllipse(st);
     	if (tint == 'c') return new Charge(st, 1);
     	if (tint == 't') return new TrianglePrism(st);
     	if (tint == 'w') return new Wall(st);
@@ -980,7 +977,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		copy(dest);
 		
 		// draw materials on coarse grid (should draw all conductors as 0 potentials)
-		drawMaterials(true);
+		setResidualFlag(true);
+		drawMaterials();
 
 		if (++stepCount == maxSteps) {
 			console("vcycle residual coarse " + stepCount);
@@ -1048,13 +1046,16 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 	}
 	
-	void drawMaterials(boolean res) {
+	void drawMaterials() {
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
-			DragObject obj = dragObjects.get(i);
-			double xform[] = obj.transform;
-			setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-			obj.drawMaterials(res);
+		    DragObject obj = dragObjects.get(i);
+		    if (obj.isCharged())
+			continue;
+		    obj.useMaterial();
+		    double xform[] = obj.transform;
+		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
+		    obj.drawMaterials();
 		}
 		setTransform(1, 0, 0, 0, 1, 0);
 	}
@@ -1095,13 +1096,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //				iterCount = 0;
 			int i;
 
+			setResidualFlag(false);
 			createRightSide(rtnum-1, rtnum-2, rtnum-3);
-			drawMaterials(false);
+			drawMaterials();
 			
 			for (i = rtnum-1-3; i > 0; i -= 3) {
 				setDestination(i);
 				copy(i+3);
-				drawMaterials(false);
+				drawMaterials();
 			}
 			
 			// start with 0

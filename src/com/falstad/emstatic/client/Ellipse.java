@@ -22,15 +22,15 @@ package com.falstad.emstatic.client;
 import com.google.gwt.core.client.JavaScriptObject;
 
 public class Ellipse extends RectDragObject {
-    double pot;
-    
-	Ellipse(){ pot = 1; }
+	Ellipse() {
+	    materialType = MT_CONDUCTING;
+	}
+
 	Ellipse(StringTokenizer st) {
 	    super(st);
-	    pot = new Double(st.nextToken()).doubleValue();
 	}
 	
-	static native void drawSolidEllipse(double cx, double cy, double xr, double yr, double med, double pot) /*-{
+	static native void drawSolidEllipse(double cx, double cy, double xr, double yr) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = [cx, cy];
         	var i;
@@ -42,13 +42,13 @@ public class Ellipse extends RectDragObject {
         	for (i = xr-1; i >= -xr; i--) {
                     coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
         	}
-                renderer.drawSolid(coords, med, pot, true);
+                renderer.drawSolid(coords, true);
 	}-*/;
 
-	void drawMaterials(boolean residual) {
+	void drawMaterials() {
 		drawSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, 0, residual ? 0 : pot);
+			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}
 
 //	boolean hitTestInside(double x, double y) { return false; }
@@ -62,11 +62,12 @@ public class Ellipse extends RectDragObject {
 		return ht;
 	}
 	
-	    void draw() {
-		super.draw();
+	void draw() {
+	    super.draw();
+	    if (isConductor())
 		doEllipseCharge(false, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
-	    }
+		    (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+	}
 
 	    static native void doEllipseCharge(boolean calc, double cx, double cy, double xr, double yr) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
@@ -106,21 +107,21 @@ public class Ellipse extends RectDragObject {
 	}-*/;
 	    
 	@Override void drawSelection() {
-//		drawMaterials(false);
-		double a = (topRight.x-topLeft.x)/2;
-		double b = (bottomRight.y-topRight.y)/2;
-		int fc = (int)Math.sqrt(Math.abs(a*a-b*b));
-		int fd = fc;
-		if (a > b)
-			fd = 0;
-		else
-			fc = 0;
-		drawFocus(sim.renderer, (topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
-		drawFocus(sim.renderer, (topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
+	    //		drawMaterials(false);
+	    double a = (topRight.x-topLeft.x)/2;
+	    double b = (bottomRight.y-topRight.y)/2;
+	    int fc = (int)Math.sqrt(Math.abs(a*a-b*b));
+	    int fd = fc;
+	    if (a > b)
+		fd = 0;
+	    else
+		fc = 0;
+	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
+	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
 	}
 	
 	void calcCharge() {
-		doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+	    doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}
 	
         static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{
@@ -130,24 +131,7 @@ public class Ellipse extends RectDragObject {
 
 	int getDumpType() { return 'e'; }
 
-	    public EditInfo getEditInfo(int n) {
-		if (n == 0)
-		    return new EditInfo("potential", pot, 0, 1);
-
-		return null;
-	    }
-
-	    public void setEditValue(int n, EditInfo ei) {
-		if (n == 0)
-		    pot = ei.value;
-	    }
-
-	    String dump() {
-		return super.dump() + " " + pot;
-	    }
-	
-	    boolean isConductor() { return true; }
-	    String selectText() {
-		return super.selectText() + " " + sim.getUnitText(conductorCharge, "C");
-	    }
+	String selectText() {
+	    return super.selectText() + " " + sim.getUnitText(conductorCharge, "C");
+	}
 }

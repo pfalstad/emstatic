@@ -30,117 +30,132 @@ public abstract class DragObject implements Editable {
 	double invTransform[];
 	double centerX, centerY;  // set in setTransform()
 	double conductorCharge;
+	double chargeDensity;
+	double potential;
+	double permittivity;
+	int materialType;
+	static final int MT_OTHER = 0;
+	static final int MT_CHARGED = 1;
+	static final int MT_CONDUCTING = 2;
+	static final int MT_DIELECTRIC = 3;
+	
 	int flags;
 	
 	DragObject() {
-		handles = new Vector<DragHandle>(4);
-		sim = EMStatic.theSim;
-		sim.recalcAndRepaint();
-		setTransform();
+	    handles = new Vector<DragHandle>(4);
+	    sim = EMStatic.theSim;
+	    sim.recalcAndRepaint();
+	    setTransform();
 	}
 	
 	DragObject(StringTokenizer st) {
-		handles = new Vector<DragHandle>(4);
-		sim = EMStatic.theSim;
-		sim.recalcAndRepaint();
-		flags = new Integer(st.nextToken()).intValue();
+	    handles = new Vector<DragHandle>(4);
+	    sim = EMStatic.theSim;
+	    sim.recalcAndRepaint();
+	    flags = Integer.parseInt(st.nextToken());
+	    materialType = Integer.parseInt(st.nextToken());
+	    if (materialType == MT_CHARGED)
+		chargeDensity = Double.parseDouble(st.nextToken());
+	    else if (materialType == MT_CONDUCTING)
+		potential = Double.parseDouble(st.nextToken());
+	    else if (materialType == MT_DIELECTRIC)
+		permittivity = Double.parseDouble(st.nextToken());
 	}
 
 	void prepare() {}
 	void setSelected(boolean s) { selected = s; }
 	boolean isSelected() { return selected; }
-	void drawCharge() {}
-	void drawMaterials(boolean residual) {}
+	void drawMaterials() {}
 	void delete() {}
 	void setTransform() {
-		if (transform == null) {
-			transform = new double[6];
-			invTransform = new double[6];
-		}
-		int i;
-		double cx = 0, cy = 0;
-		for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			cx += dh.x;
-			cy += dh.y;
-		}
-		cx /= handles.size();
-		cy /= handles.size();
-		centerX = cx;
-		centerY = cy;
-		
-		// make translation-rotation-translation matrix to rotate object about cx,cy
-		transform[0] = transform[4] = Math.cos(rotation);
-		transform[1] = Math.sin(rotation);
-		transform[3] = -transform[1];
-		transform[2] = (1-transform[0])*cx - transform[1]*cy;
-		transform[5] = -transform[3]*cx + (1-transform[4])*cy;
-		// inverse transform
-		invTransform[0] = invTransform[4] = transform[0];
-		invTransform[1] = transform[3];
-		invTransform[3] = transform[1];
-		invTransform[2] = (1-transform[0])*cx + transform[1]*cy;
-		invTransform[5] = transform[3]*cx + (1-transform[4])*cy;
+	    if (transform == null) {
+		transform = new double[6];
+		invTransform = new double[6];
+	    }
+	    int i;
+	    double cx = 0, cy = 0;
+	    for (i = 0; i != handles.size(); i++) {
+		DragHandle dh = handles.get(i);
+		cx += dh.x;
+		cy += dh.y;
+	    }
+	    cx /= handles.size();
+	    cy /= handles.size();
+	    centerX = cx;
+	    centerY = cy;
+
+	    // make translation-rotation-translation matrix to rotate object about cx,cy
+	    transform[0] = transform[4] = Math.cos(rotation);
+	    transform[1] = Math.sin(rotation);
+	    transform[3] = -transform[1];
+	    transform[2] = (1-transform[0])*cx - transform[1]*cy;
+	    transform[5] = -transform[3]*cx + (1-transform[4])*cy;
+	    // inverse transform
+	    invTransform[0] = invTransform[4] = transform[0];
+	    invTransform[1] = transform[3];
+	    invTransform[3] = transform[1];
+	    invTransform[2] = (1-transform[0])*cx + transform[1]*cy;
+	    invTransform[5] = transform[3]*cx + (1-transform[4])*cy;
 	}
-	
+
 	boolean drag(int dx, int dy) {
+	    int i;
+	    for (i = 0; i != handles.size(); i++) {
+		DragHandle dh = handles.get(i);
+		dh.x += dx;
+		dh.y += dy;
+	    }
+	    setTransform();
+	    return true;
+	}
+
+	void draw() {
+	    if (selected) {
 		int i;
 		for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			dh.x += dx;
-			dh.y += dy;
+		    DragHandle dh = handles.get(i);
+		    int x = (int) (dh.x*transform[0]+dh.y*transform[1]+transform[2]);
+		    int y = (int) (dh.x*transform[3]+dh.y*transform[4]+transform[5]);
+		    EMStatic.drawHandle(x, y); // -sim.windowOffsetX, y-sim.windowOffsetY);
 		}
-		setTransform();
-		return true;
-	}
-	
-	void draw() {
-		if (selected) {
-		    int i;
-		    for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			int x = (int) (dh.x*transform[0]+dh.y*transform[1]+transform[2]);
-			int y = (int) (dh.x*transform[3]+dh.y*transform[4]+transform[5]);
-			EMStatic.drawHandle(x, y); // -sim.windowOffsetX, y-sim.windowOffsetY);
-		    }
-		}
-//		drawSelection();
+	    }
+	    //		drawSelection();
 	}
 	
 	Point transformPoint(Point p) {
-		int x = (int) (p.x*transform[0]+p.y*transform[1]+transform[2]);
-		int y = (int) (p.x*transform[3]+p.y*transform[4]+transform[5]);
-		return new Point(x, y);
+	    int x = (int) (p.x*transform[0]+p.y*transform[1]+transform[2]);
+	    int y = (int) (p.x*transform[3]+p.y*transform[4]+transform[5]);
+	    return new Point(x, y);
 	}
 
 	Point inverseTransformPoint(Point p) {
-		int x = (int) (p.x*invTransform[0]+p.y*invTransform[1]+invTransform[2]);
-		int y = (int) (p.x*invTransform[3]+p.y*invTransform[4]+invTransform[5]);
-		return new Point(x, y);
+	    int x = (int) (p.x*invTransform[0]+p.y*invTransform[1]+invTransform[2]);
+	    int y = (int) (p.x*invTransform[3]+p.y*invTransform[4]+invTransform[5]);
+	    return new Point(x, y);
 	}
 
 	void drawSelection() {
 	}
 	void calcCharge() {}
-	
+
 	void rotate(double ang) {
-		rotation += ang;
-		setTransform();
-		sim.recalcAndRepaint();
+	    rotation += ang;
+	    setTransform();
+	    sim.recalcAndRepaint();
 	}
 
 	void rotateTo(int x, int y) {
-		rotation = Math.atan2(-y+centerY, x-centerX)-Math.PI/2;
-		double step = Math.PI/12;
-		rotation = Math.round(rotation/step)*step;
-		setTransform();
-		sim.recalcAndRepaint();
+	    rotation = Math.atan2(-y+centerY, x-centerX)-Math.PI/2;
+	    double step = Math.PI/12;
+	    rotation = Math.round(rotation/step)*step;
+	    setTransform();
+	    sim.recalcAndRepaint();
 	}
 
 	boolean canRotate() { return false; }
 	
 	static double hypotf(double x, double y) {
-		return Math.sqrt(x*x+y*y);
+	    return Math.sqrt(x*x+y*y);
 	}
 	
 	static double distanceToLineSegment(double x, double y, double lx1, double ly1, double lx2, double ly2)
@@ -188,94 +203,149 @@ public abstract class DragObject implements Editable {
 	}
 	
 	void setInitialPosition() {
-		if (handles.size() == 1) {
-			Rectangle start = sim.findSpace(this, 0, 0);
-			DragHandle dh = handles.get(0);
-			dh.x = start.x;
-			dh.y = start.y;
-		}
-		if (handles.size() == 2) {
-			Rectangle start = sim.findSpace(this, 40, 0);
-			DragHandle dh1 = handles.get(0);
-			DragHandle dh2 = handles.get(1);
-			dh1.x = start.x;
-			dh1.y = start.y;
-			dh2.x = start.x + start.width;
-			dh2.y = start.y;
-		}
+	    if (handles.size() == 1) {
+		Rectangle start = sim.findSpace(this, 0, 0);
+		DragHandle dh = handles.get(0);
+		dh.x = start.x;
+		dh.y = start.y;
+	    }
+	    if (handles.size() == 2) {
+		Rectangle start = sim.findSpace(this, 40, 0);
+		DragHandle dh1 = handles.get(0);
+		DragHandle dh2 = handles.get(1);
+		dh1.x = start.x;
+		dh1.y = start.y;
+		dh2.x = start.x + start.width;
+		dh2.y = start.y;
+	    }
 	}
 	
 	Rectangle boundingBox() {
-		int minx = 10000, miny = 10000, maxx = -10000, maxy = -10000;
-		int i;
-		for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			Point p = transformPoint(new Point(dh.x, dh.y));
-            if (p.x < minx)
-                minx = p.x;
-        if (p.y < miny)
-                miny = p.y;
-        if (p.x > maxx)
-                maxx = p.x;
-        if (p.y > maxy)
-                maxy = p.y;
-		}
-		return new Rectangle(minx, miny, maxx-minx, maxy-miny);
+	    int minx = 10000, miny = 10000, maxx = -10000, maxy = -10000;
+	    int i;
+	    for (i = 0; i != handles.size(); i++) {
+		DragHandle dh = handles.get(i);
+		Point p = transformPoint(new Point(dh.x, dh.y));
+		if (p.x < minx)
+		    minx = p.x;
+		if (p.y < miny)
+		    miny = p.y;
+		if (p.x > maxx)
+		    maxx = p.x;
+		if (p.y > maxy)
+		    maxy = p.y;
+	    }
+	    return new Rectangle(minx, miny, maxx-minx, maxy-miny);
 	}
 
 	abstract int getDumpType();
 	
 	String dump() {
-		int t = getDumpType();
-		String out;
-		if (t >= 200)
-			out = t + " 0";
-		else
-			out = (char)t + " 0";
-		out += dumpHandles();
-		return out;
+	    int t = getDumpType();
+	    String out;
+	    if (t >= 200)
+		out = t + " 0";
+	    else
+		out = (char)t + " 0";
+	    out += " " + materialType;
+	    if (materialType == MT_CONDUCTING)
+		out += " " + potential;
+	    else if (materialType == MT_DIELECTRIC)
+		out += " " + permittivity;
+	    else if (materialType == MT_CHARGED)
+		out += " " + chargeDensity;
+	    out += dumpHandles();
+	    return out;
 	}
 
 	String dumpHandles() {
-		String out = "";
-		int i;
-		for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			out += " " + dh.x + " " + dh.y;
-		}
-		return out;
+	    String out = "";
+	    int i;
+	    for (i = 0; i != handles.size(); i++) {
+		DragHandle dh = handles.get(i);
+		out += " " + dh.x + " " + dh.y;
+	    }
+	    return out;
 	}
 
 	@Override
 	public EditInfo getEditInfo(int n) {
-		return null;
+	    if (n == 0 && materialType != MT_OTHER) {
+		EditInfo ei = new EditInfo("Type", 0);
+		ei.choice = new Choice();
+		ei.choice.add("Charged");
+		ei.choice.add("Conducting");
+		ei.choice.add("Dielectric");
+		ei.choice.setSelectedIndex(materialType-MT_CHARGED);
+		return ei;
+	    }
+	    if (n == 1 && materialType == MT_CHARGED)
+		return new EditInfo("Charge Density", chargeDensity, 0, 1);
+	    if (n == 1 && materialType == MT_DIELECTRIC)
+		return new EditInfo("Relative Permittivity", permittivity, 0, 1);
+	    if (n == 1 && materialType == MT_CONDUCTING)
+		return new EditInfo("Potential", potential, 0, 1);
+	    return null;
 	}
 
-	@Override
 	public void setEditValue(int n, EditInfo ei) {
+	    if (n == 0 && materialType != MT_OTHER) {
+		materialType = ei.choice.getSelectedIndex() + MT_CHARGED;
+		ei.newDialog = true;
+		return;
+	    }
+	    if (n == 1) {
+		if (materialType == MT_CHARGED)
+		    chargeDensity = ei.value;
+		else if (materialType == MT_DIELECTRIC)
+		    permittivity = ei.value;
+		else if (materialType == MT_CONDUCTING)
+		    potential = ei.value;
+		return;
+	    }
+	}
+
+	void drawCharge() {
+	    if (materialType == MT_CHARGED) {
+		useMaterialType(MT_CHARGED, 0, chargeDensity, false);
+		drawMaterials();
+	    }
 	}
 	
+	void useMaterial() {
+	   useMaterialType(materialType, permittivity, potential, materialType == MT_DIELECTRIC);
+	}
+
+	native static void useMaterialType(int type, double pm, double pot, boolean dielec) /*-{
+	   var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	   renderer.materialType = type;
+	   renderer.permittivity = dielec ? pm : 0;
+	   renderer.potential = pot;
+	}-*/;
+	
 	void rescale(double scale) {
-		int i;
-		for (i = 0; i != handles.size(); i++) {
-			DragHandle dh = handles.get(i);
-			dh.rescale(scale);
-		}
-		setTransform();
+	    int i;
+	    for (i = 0; i != handles.size(); i++) {
+		DragHandle dh = handles.get(i);
+		dh.rescale(scale);
+	    }
+	    setTransform();
 	}
 	
 	String selectText() {
-		if (handles.size() != 2)
-			return null;
-		return "length = " + sim.getLengthText(length());
+	    if (handles.size() != 2)
+		return null;
+	    return "length = " + sim.getLengthText(length());
 	}
-	
+
 	double length() {
-		DragHandle dh1 = handles.get(0);
-		DragHandle dh2 = handles.get(1);
-		double len = Math.round(Math.hypot(dh1.x-dh2.x, dh1.y-dh2.y));
-		return len;
+	    DragHandle dh1 = handles.get(0);
+	    DragHandle dh2 = handles.get(1);
+	    double len = Math.round(Math.hypot(dh1.x-dh2.x, dh1.y-dh2.y));
+	    return len;
 	}
-	boolean isConductor() { return false; }
+	int getMaterialType() { return materialType; }
+	boolean isConductor() { return materialType == MT_CONDUCTING; }
+	boolean isCharged() { return materialType == MT_CHARGED; }
 	void setConductorCharge(double c) { conductorCharge = c; }
 }
