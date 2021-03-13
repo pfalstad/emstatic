@@ -1070,97 +1070,103 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 	    static int finalSrc = 0;
 	    
+	    void recalculate() {
+		int rtnum = getRenderTextureCount();
+		console("Recalc " + calcLevel);
+		int level = debugBar1.getValue();
+		if (stoppedCheck.getState())
+			return;
+//			iterCount = 0;
+		int i;
+
+		setResidualFlag(false);
+		createRightSide(rtnum-1, rtnum-2, rtnum-3);
+		drawMaterials();
+		
+		for (i = rtnum-1-3; i > 0; i -= 3) {
+			setDestination(i);
+			copy(i+3);
+			drawMaterials();
+		}
+		
+		// start with 0
+		setDestination(0);
+		clearDestination();
+		solveExactly(0, 1, 2);
+
+		maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
+		stepCount = 0;
+		
+		int src = 1;
+		for (i = 3; i < rtnum; i += 3) {
+			if (i >= level && debugCheck1.getState()) {
+				int j;
+				int dest = lastDest;
+				for (j = 0; j < speedBar.getValue(); j++) {
+					setDestination(dest);
+					runRelax(src, lastRsGrid, false);
+					int q = dest; dest = src; src = q;
+				}
+				console("iterated another " + j + " times, rsgrid = " + lastRsGrid);
+				break;
+			}
+			
+			// interpolate to finer grid
+			setDestination(i);
+			copy(src);
+			
+			src = multigridVCycle(i, i+1, i+2);
+			if (stepCount >= maxSteps)
+				break;
+		}
+		calcLevel++;
+		
+		finalSrc = src;
+//		console("setdest " + src + " " + (src % 3));
+		
+		calculateCharge();
+		if (maxSteps == 10000)
+		    console("steps = " + stepCount);
+	    }
+	    
+	    void calculateCharge() {
+		// calculate charge
+		setChargeSource(finalSrc);
+		int i;
+		for (i = 0; i != dragObjects.size(); i++) {
+		    int src = finalSrc-1;
+		    DragObject obj = dragObjects.get(i);
+		    if (!obj.isConductor())
+			continue;
+		    
+		    setDestination(src);
+		    clearDestination();
+		    obj.calcCharge();
+//		    if (i >= 0) { finalSrc = src; break; }   // uncomment to test charge calculation
+		
+		    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
+		    // it turns out it's so fast to count the large bitmap that we don't really need this,
+		    // but I wrote it before I discovered that
+		    while (src >= 3) {
+			setDestination(src-3);
+			clearDestination();
+			sum(src);
+			src = src-3;
+		    }
+		    // don't know where sqrt(2) comes from
+		    // e0 is from Gauss's law, .5 is from fact that we use 2-pixel thick layer to compute charge
+		    obj.setConductorCharge(getCharge()*e0*.5/Math.sqrt(2));
+		}
+	    }
+	    
 	public void updateRipple() {
 			/*if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
 			}*/
 	    int rtnum = getRenderTextureCount();
-	    if (calcLevel < 2) {
-		console("Recalc " + calcLevel);
-			int level = debugBar1.getValue();
-			if (stoppedCheck.getState())
-				return;
-//				iterCount = 0;
-			int i;
-
-			setResidualFlag(false);
-			createRightSide(rtnum-1, rtnum-2, rtnum-3);
-			drawMaterials();
-			
-			for (i = rtnum-1-3; i > 0; i -= 3) {
-				setDestination(i);
-				copy(i+3);
-				drawMaterials();
-			}
-			
-			// start with 0
-			setDestination(0);
-			clearDestination();
-			solveExactly(0, 1, 2);
-
-			maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
-			stepCount = 0;
-			
-			int src = 1;
-			for (i = 3; i < rtnum; i += 3) {
-				if (i >= level && debugCheck1.getState()) {
-					int j;
-					int dest = lastDest;
-					for (j = 0; j < speedBar.getValue(); j++) {
-						setDestination(dest);
-						runRelax(src, lastRsGrid, false);
-						int q = dest; dest = src; src = q;
-					}
-					console("iterated another " + j + " times, rsgrid = " + lastRsGrid);
-					break;
-				}
-				
-				// interpolate to finer grid
-				setDestination(i);
-				copy(src);
-				
-				src = multigridVCycle(i, i+1, i+2);
-				if (stepCount >= maxSteps)
-					break;
-			}
-			calcLevel++;
-			
-			finalSrc = src;
-//			console("setdest " + src + " " + (src % 3));
-			
-			// calculate charge
-			setChargeSource(finalSrc);
-			for (i = 0; i != dragObjects.size(); i++) {
-			    src = finalSrc-1;
-			    DragObject obj = dragObjects.get(i);
-			    if (!obj.isConductor())
-				continue;
-			    
-			    setDestination(src);
-			    clearDestination();
-			    obj.calcCharge();
-//			    if (i >= 0) { finalSrc = src; break; }   // uncomment to test charge calculation
-			
-			    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
-			    // it turns out it's so fast to count the large bitmap that we don't really need this,
-			    // but I wrote it before I discovered that
-			    while (src >= 3) {
-				setDestination(src-3);
-				clearDestination();
-				sum(src);
-				src = src-3;
-			    }
-			    // don't know where sqrt(2) comes from
-			    // e0 is from Gauss's law, .5 is from fact that we use 2-pixel thick layer to compute charge
-			    obj.setConductorCharge(getCharge()*e0*.5/Math.sqrt(2));
-			}
-
-
-			if (maxSteps == 10000)
-			    console("steps = " + stepCount);
-	    }
-//	    console("dests " + finalSrc + " " + (rtnum-1));
+	    if (calcLevel < 2)
+		recalculate();
 	    
 	    int src = finalSrc; // getRenderTextureCount()-2;
 	    
@@ -1471,7 +1477,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		int i;
 		dump = "$ 1 " + windowWidth + " " + windowOffsetX + " " + dampingBar.getValue() + " " +
-				displayChooser.getSelectedIndex() + " " + brightnessBar.getValue() + " " + lengthScale + "\n";
+				displayChooser.getSelectedIndex() + " " + brightnessBar.getValue() + " " + lengthScale + " " + equipotentialBar.getValue() + "\n";
 /*		for (i = 0; i != sourceCount; i++) {
 			OscSource src = sources[i];
 			dump += "s " + src.x + " " + src.y + "\n";
@@ -1534,6 +1540,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						brightnessBar.setValue(new Integer(st.nextToken())
 								.intValue());
 						lengthScale = Double.parseDouble(st.nextToken());
+						try {
+						    equipotentialBar.setValue(Integer.parseInt(st.nextToken()));
+						} catch (Exception e) {}
 						break;
 					}
                     if (tint >= '0' && tint <= '9')

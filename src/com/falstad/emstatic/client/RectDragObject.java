@@ -63,6 +63,7 @@ public abstract class RectDragObject extends DragObject {
 	static boolean minXHandles[] = { true, false, false, true };
 	static boolean minYHandles[] = { true, true, false, false };
 
+	// drag handle to x, y in our rotated coordinate frame
 	@Override boolean dragHandle(DragHandle handle, int x, int y) {
 	    int i;
 	    int handleIndex = -1;
@@ -76,14 +77,12 @@ public abstract class RectDragObject extends DragObject {
 	    if (handleIndex < 0)
 	        return false;
 	    
-	    // undo any rotation
-	    Point pt = new Point(x, y); // [self rotatePoint:CGPointMake(x_, y_) dir:-1];
+	    Point pt = new Point(x, y);
 	    
 	    // check that rectangle is not backwards
 	    for (i = 0; i != 4; i++) {
 	        DragHandle dh = handles.get(i);
 	        Point hp = new Point(dh.x, dh.y);
-//	        CGPoint hp = [self rotatePoint:CGPointMake(dh.x, dh.y) dir:-1];
 	        if (minXHandles[i] && !minXHandles[handleIndex] && pt.x <= hp.x)
 	            return false;
 	        if (!minXHandles[i] && minXHandles[handleIndex] && pt.x >= hp.x)
@@ -98,20 +97,25 @@ public abstract class RectDragObject extends DragObject {
 	    for (i = 0; i != 4; i++) {
 	        DragHandle dh = handles.get(i);
 	        Point hp = new Point(dh.x, dh.y);
-//	        CGPoint hp = [self rotatePoint:CGPointMake(dh.x, dh.y) dir:-1];
 	        if (minXHandles[i] == minXHandles[handleIndex])
 	            hp.x = pt.x;
 	        if (minYHandles[i] == minYHandles[handleIndex])
 	            hp.y = pt.y;
 	        
-	        // redo rotation
-//	        hp = [self rotatePoint:hp dir:1];
 	        dh.x = hp.x;
 	        dh.y = hp.y;        
 	    }
 	    
-		return false;
+	    if (mustBeSquare()) {
+		int w = width();
+		bottomLeft.y = topLeft.y+w;
+		bottomRight.y = topRight.y+w;
+	    }
+	    
+	    return false;
 	}
+	
+	boolean mustBeSquare() { return false; }
 	
 	@Override double hitTest(int x, int y) {
 		double result = 1e8;

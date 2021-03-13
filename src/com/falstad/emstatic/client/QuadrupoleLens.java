@@ -36,7 +36,7 @@ public class QuadrupoleLens extends RectDragObject {
         	var i;
         	xr = Math.max(xr, renderer.getMinFeatureWidth());
         	yr = Math.max(yr, renderer.getMinFeatureWidth());
-        	var h = yr/2;
+        	var h = yr*.4;
         	for (i = -xr; i <= xr; i++) {
         	    var yd = Math.sqrt(i*i+h*h);
         	    if (yd > yr)
@@ -63,7 +63,7 @@ public class QuadrupoleLens extends RectDragObject {
 		renderer.potential = -renderer.potential;
 	}-*/;
 	
-//	boolean hitTestInside(double x, double y) { return false; }
+	boolean hitTestInside(double x, double y) { return false; }
 
 	/*
 	@Override double hitTest(int x, int y) {
@@ -140,14 +140,25 @@ public class QuadrupoleLens extends RectDragObject {
 	    doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
 	}
 	
+	boolean mustBeSquare() { return true; }
+
         static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{
         	renderer.drawFocus(x, y);
 	}-*/;
 
 
-	int getDumpType() { return 'e'; }
+	int getDumpType() { return 'q'; }
 
 	String selectText() {
 	    return super.selectText() + " " + sim.getUnitText(conductorCharge, "C");
 	}
+	
+	public EditInfo getEditInfo(int n) {
+	    return super.getEditInfo(n+1);
+	}
+
+	public void setEditValue(int n, EditInfo ei) {
+	    super.setEditValue(n+1, ei);
+	}
+
 }

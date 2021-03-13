@@ -61,7 +61,7 @@ public class Box extends RectDragObject {
 
     void draw() {
 	super.draw();
-	if (isCharged())
+	if (isConductor())
 	    doBoxCharge(false, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
 
