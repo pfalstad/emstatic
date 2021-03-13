@@ -29,15 +29,18 @@ public abstract class DragObject implements Editable {
 	double transform[];
 	double invTransform[];
 	double centerX, centerY;  // set in setTransform()
-	double conductorCharge;
+	double conductorCharge; // calculated
 	double chargeDensity;
 	double potential;
 	double permittivity;
+	double totalChargeFloating;
 	int materialType;
 	static final int MT_OTHER = 0;
 	static final int MT_CHARGED = 1;
 	static final int MT_CONDUCTING = 2;
 	static final int MT_DIELECTRIC = 3;
+	static final int MT_FLOATING = 4;
+	static DragObject currentFloatingConductor;
 	
 	int flags;
 	
@@ -60,6 +63,8 @@ public abstract class DragObject implements Editable {
 		potential = Double.parseDouble(st.nextToken());
 	    else if (materialType == MT_DIELECTRIC)
 		permittivity = Double.parseDouble(st.nextToken());
+	    else if (materialType == MT_FLOATING)
+		totalChargeFloating = Double.parseDouble(st.nextToken());
 	}
 
 	void prepare() {}
@@ -276,6 +281,7 @@ public abstract class DragObject implements Editable {
 		ei.choice.add("Charged");
 		ei.choice.add("Conducting");
 		ei.choice.add("Dielectric");
+		ei.choice.add("Floating");
 		ei.choice.setSelectedIndex(materialType-MT_CHARGED);
 		return ei;
 	    }
@@ -313,7 +319,11 @@ public abstract class DragObject implements Editable {
 	}
 	
 	void useMaterial() {
-	   useMaterialType(materialType, permittivity, potential, materialType == MT_DIELECTRIC);
+	    if (currentFloatingConductor != null && isConductor()) {
+		// if this member is set then all conductors must have 0 potential except this one, which has 1
+		useMaterialType(materialType, 0, currentFloatingConductor == this ? 1 : 0, false);
+	    } else
+		useMaterialType(materialType, permittivity, potential, materialType == MT_DIELECTRIC);
 	}
 
 	native static void useMaterialType(int type, double pm, double pot, boolean dielec) /*-{
@@ -345,7 +355,9 @@ public abstract class DragObject implements Editable {
 	    return len;
 	}
 	int getMaterialType() { return materialType; }
-	boolean isConductor() { return materialType == MT_CONDUCTING; }
+	boolean isConductor() { return materialType == MT_CONDUCTING || materialType == MT_FLOATING; }
+	boolean isFloating() { return materialType == MT_FLOATING; }
 	boolean isCharged() { return materialType == MT_CHARGED; }
+	void setPotential(double x) { potential = x; }
 	void setConductorCharge(double c) { conductorCharge = c; }
 }

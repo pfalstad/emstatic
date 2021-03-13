@@ -891,19 +891,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			doSetup();
 	}
 
-	// draw objects into blue channel of render texture
-	void prepareObjects() {
-		doBlankWalls();
-		int i;
-		for (i = 0; i != dragObjects.size(); i++) {
-			DragObject obj = dragObjects.get(i);
-			double xform[] = obj.transform;
-			setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-			obj.prepare();
-		}
-		setTransform(1, 0, 0, 0, 1, 0);
-	}
-
 	String lastLog = "";
 	int stepCount, maxSteps;
 	
@@ -1012,6 +999,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	int lastRsGrid, lastSrc, lastDest;
 
+	void createEmptyRightSide(int dest) {
+		setDestination(dest);
+		clearDestination();
+	}
+	
 	void createRightSide(int dest, int scratch1, int scratch2) {
 		int j;
 		setDestination(dest);
@@ -1071,6 +1063,54 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    static int finalSrc = 0;
 	    
 	    void recalculate() {
+		int i;
+		DragObject.currentFloatingConductor = null;
+		Vector<DragObject> floatingVec = new Vector<DragObject>();
+		for (i = 0; i != dragObjects.size(); i++) {
+		    DragObject obj = dragObjects.get(i);
+		    if (obj.isFloating()) {
+			floatingVec.add(obj);
+			obj.setPotential(0);
+		    }
+		}
+		recalculateStep(false);
+		
+		// no floating conductors?  we're done
+		if (floatingVec.size() == 0) {
+		    calcLevel++;
+		    return;
+		}
+		
+		int fct = floatingVec.size();
+		double chargeMatrix[][] = new double[fct][fct];
+		double baseCharge[] = new double[fct];
+		for (i = 0; i != floatingVec.size(); i++)
+		    baseCharge[i] = floatingVec.get(i).conductorCharge;
+		
+		// for each floating conductor, set the potential to 1 and then calculate the charge on all floating conductors
+		// (with all charges removed and all other conductors grounded)
+		for (i = 0; i != floatingVec.size(); i++) {
+		    DragObject fo = floatingVec.get(0);
+		    DragObject.currentFloatingConductor = fo;
+		    recalculateStep(true);
+		    int j;
+		    for (j = 0; j != floatingVec.size(); j++)
+			chargeMatrix[i][j] = floatingVec.get(j).conductorCharge;
+		}
+		DragObject.currentFloatingConductor = null;
+		
+		if (fct == 1) {
+		    DragObject f0 = floatingVec.get(0);
+		    double pot = -baseCharge[0]/chargeMatrix[0][0];
+		    f0.setPotential(pot);
+		    console("fct " + fct + " " + chargeMatrix[0][0] + " " + baseCharge[0] + " " + pot);
+		    recalculateStep(false);
+		    console("fct0 " + f0.conductorCharge);
+		}
+		calcLevel++;
+	    }
+	    
+	    void recalculateStep(boolean suppressCharges) {
 		int rtnum = getRenderTextureCount();
 		console("Recalc " + calcLevel);
 		int level = debugBar1.getValue();
@@ -1080,7 +1120,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int i;
 
 		setResidualFlag(false);
-		createRightSide(rtnum-1, rtnum-2, rtnum-3);
+		if (suppressCharges)
+		    createEmptyRightSide(rtnum-1);
+		else
+		    createRightSide(rtnum-1, rtnum-2, rtnum-3);
 		drawMaterials();
 		
 		for (i = rtnum-1-3; i > 0; i -= 3) {
@@ -1119,7 +1162,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (stepCount >= maxSteps)
 				break;
 		}
-		calcLevel++;
 		
 		finalSrc = src;
 //		console("setdest " + src + " " + (src % 3));
