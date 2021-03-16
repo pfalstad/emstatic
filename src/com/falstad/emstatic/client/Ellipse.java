@@ -32,7 +32,7 @@ public class Ellipse extends RectDragObject {
 	
 	static native void drawSolidEllipse(double cx, double cy, double xr, double yr) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-	        var coords = [cx, cy];
+	        var coords = []; // cx, cy];
         	var i;
         	xr = Math.max(xr, renderer.getMinFeatureWidth());
         	yr = Math.max(yr, renderer.getMinFeatureWidth());

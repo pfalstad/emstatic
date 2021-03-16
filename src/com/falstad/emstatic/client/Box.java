@@ -35,23 +35,13 @@ public class Box extends RectDragObject {
             x2 = x4 = x1+renderer.getMinFeatureWidth();
         if (y3-y1 < renderer.getMinFeatureWidth())
             y3 = y4 = y1+renderer.getMinFeatureWidth();
-        var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
+        var medCoords = [x1, y1, x2, y2, x4, y4, x3, y3];
     	renderer.drawSolid(medCoords, false);
     }-*/;
 
-    static native void doBoxCharge(boolean calc, int x, int y, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
-        var thick = 2;
-        // 4 triangle strips
-        var coords = [x, y, x+thick, y+thick, x2, y2, x2-thick, y2+thick, x4, y4, x4-thick, y4-thick, x3, y3, x3+thick, y3-thick,
-                      x, y, x+thick, y+thick];
-        if (calc)
-            x = y = x2 = y2 = x3 = y3 = x4 = y4 = 0;
-        var tcoords = [x-2, y-2, x-2, y-2, x2+2, y2-2, x2+2, y2-2, x4+2, y4+2, x4+2, y4+2, x3-2, y3+2, x3-2, y3+2,
-        	       x-2, y-2, x-2, y-2];
-     	if (calc)
-            @com.falstad.emstatic.client.EMStatic::renderer.calcCharge(coords, tcoords);
-        else
-            @com.falstad.emstatic.client.EMStatic::renderer.displayCharge(coords, tcoords);
+    static native void doBoxCharge(boolean calc, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
+        if (calc) return;
+    	@com.falstad.emstatic.client.EMStatic::renderer.displayChargeNew([x1, y1, x2, y2, x4, y4, x3, y3]);
     }-*/;
 
     void drawMaterials() {

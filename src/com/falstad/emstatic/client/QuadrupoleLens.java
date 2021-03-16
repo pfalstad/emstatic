@@ -41,8 +41,9 @@ public class QuadrupoleLens extends RectDragObject {
         	    var yd = Math.sqrt(i*i+h*h);
         	    if (yd > yr)
         	    	continue;
-                    coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry, cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
+                    coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry); // , cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
         	}
+        	coords.push(cx+xr*dirx+yr*diry, cy+yr*dirx+xr*diry);
                 renderer.drawSolid(coords, false);
 	}-*/;
 

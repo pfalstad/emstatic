@@ -1,4 +1,3 @@
-
 var gl;
 var canvas;
 var gridSizeX =1024, gridSizeY =1024, windowOffsetX =40, windowOffsetY =40;
@@ -400,6 +399,8 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simDamping), gl.STATIC_DRAW);
     	simVertexDampingBuffer.itemSize = 1;
     	simVertexDampingBuffer.numItems = simDamping.length;
+
+    	indexBuffer = gl.createBuffer();
     }
 
     // create coordinates for a rectangular portion of the grid, making sure to set the damping attribute
@@ -421,6 +422,7 @@ function isPowerOf2(value) {
 
     var sourceBuffer;
     var colorBuffer;
+    var indexBuffer;
     var colors;
     var destHeight;
     var minFeatureWidth;
@@ -939,7 +941,7 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
-    renderer.drawSolid = function (verts, fan) {
+    renderer.drawSolid = function (verts) {
         var med = renderer.permittivity;
         var pot = renderer.residual ? 0 : renderer.potential;
 	if (med == undefined) {
@@ -949,19 +951,88 @@ function isPowerOf2(value) {
 	    gl.colorMask(med == 0, false, true, false);
         gl.useProgram(shaderProgramDraw);
 
+        var res = Tess2.tesselate({
+          contours: [verts],
+          polySize: 3 // output triangles
+        });
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(res.vertices), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(res.elements), gl.STATIC_DRAW);
 
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
-        gl.drawArrays(fan ? gl.TRIANGLE_FAN : gl.TRIANGLE_STRIP, 0, verts.length/2);
+        gl.drawElements(gl.TRIANGLES, res.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
 	gl.colorMask(true, true, true, true);
+    }
+
+    renderer.displayChargeNew = function (coords, tcoords) {
+        gl.useProgram(shaderProgramViewCharge);
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramViewCharge);
+	
+        var th = 5;
+        var verts2 = [coords[0], coords[1]+th, coords[2], coords[3]+th, coords[2]-th, coords[3], coords[4]-th, coords[5],
+                      coords[4], coords[5]-th, coords[6], coords[7]-th, coords[6]+th, coords[7], coords[0]+th, coords[1]];
+        verts2 = [coords[0]+th, coords[1], coords[6]+th, coords[7], coords[6], coords[7]-th, coords[4], coords[5]-th, coords[4]-th, coords[5],
+                  coords[2]-th, coords[3], coords[2], coords[3]+th, coords[0], coords[1]+th];
+        var res = Tess2.tesselate({
+          contours: [coords, verts2],
+          polySize: 3, // output triangles
+          windingRule: Tess2.WINDING_POSITIVE
+        });
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(res.vertices), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
+
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+tcoords = [
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+];
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
+
+    	var sourceRT = renderTextures[renderer.chargeSource];
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.uniform1i(shaderProgramViewCharge.sourceTextureUniform, 0);
+
+        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
+        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
+                            transform[1], transform[4], 0, 0,
+                            0,0,1,0,
+                            transform[2], transform[5], 0, 1], matx);
+	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(res.elements), gl.STATIC_DRAW);
+
+        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
+
+console.log("glerrora " + gl.getError());
+        gl.drawElements(gl.TRIANGLES, res.elements.length, gl.UNSIGNED_SHORT, 0);
+console.log("glerror " + gl.getError());
+        gl.disableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
+        gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
     }
 
     renderer.displayCharge = function (coords, tcoords) {
