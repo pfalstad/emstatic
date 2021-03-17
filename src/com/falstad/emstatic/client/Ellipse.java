@@ -74,36 +74,20 @@ public class Ellipse extends RectDragObject {
 		var margin = (calc) ? 5 : 2;
         	var insetMultX = (xr-margin)/xr;
         	var insetMultY = (yr-margin)/yr;
-        	var outMultX = 2/xr;
-        	var outMultY = 2/yr;
-        	var tcx = cx;
-        	var tcy = cy;
-        	if (!calc) {
-        	    outMultX += 1;
-        	    outMultY += 1;
-        	} else
-        	    tcx = tcy = 0;
         	var i;
         	var coords = [];
-        	var tcoords = [];
         	for (i = -xr; i <= xr; i++) {
                 	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
                 	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
         	}
         	for (i = xr-1; i >= -xr; i--) {
                 	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
                 	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
         	}
-        	if (calc) {
-        	    for (i = 0; i != coords.length; i++)
-        	    	tcoords[i] = Math.round(tcoords[i]);
-        	    renderer.calcCharge(coords, tcoords);
-        	} else
-                    renderer.displayCharge(coords, tcoords);	    
+        	if (calc)
+        	    renderer.calcCharge(coords);
+        	else
+                    renderer.displayCharge(coords);	    
 	}-*/;
 	    
 	@Override void drawSelection() {

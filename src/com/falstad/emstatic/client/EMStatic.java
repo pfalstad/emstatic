@@ -1189,6 +1189,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
 		    // it turns out it's so fast to count the large bitmap that we don't really need this,
 		    // but I wrote it before I discovered that
+		    setChargeSource(src); // -6);
 		    while (src >= 3) {
 			setDestination(src-3);
 			clearDestination();

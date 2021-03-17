@@ -129,7 +129,6 @@ const MT_DIELECTRIC = 3;
 
     	shaderProgramCalcCharge = initShader("shader-calc-charge-fs", "shader-calc-charge-vs");
     	shaderProgramCalcCharge.textureMatrixUniform  = gl.getUniformLocation(shaderProgramCalcCharge, "uTextureMatrix");
-    	shaderProgramCalcCharge.textureMatrix2Uniform = gl.getUniformLocation(shaderProgramCalcCharge, "uTextureMatrix2");
 
     	shaderProgramEquip = initShader("shader-equipotential-fs", "shader-vs", null);
     	shaderProgramEquip.stepSizeXUniform = gl.getUniformLocation(shaderProgramEquip, "stepSizeX");
@@ -972,70 +971,7 @@ function isPowerOf2(value) {
 	gl.colorMask(true, true, true, true);
     }
 
-    renderer.displayChargeNew = function (coords, tcoords) {
-        gl.useProgram(shaderProgramViewCharge);
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramViewCharge);
-	
-        var th = 5;
-        var verts2 = [coords[0], coords[1]+th, coords[2], coords[3]+th, coords[2]-th, coords[3], coords[4]-th, coords[5],
-                      coords[4], coords[5]-th, coords[6], coords[7]-th, coords[6]+th, coords[7], coords[0]+th, coords[1]];
-        verts2 = [coords[0]+th, coords[1], coords[6]+th, coords[7], coords[6], coords[7]-th, coords[4], coords[5]-th, coords[4]-th, coords[5],
-                  coords[2]-th, coords[3], coords[2], coords[3]+th, coords[0], coords[1]+th];
-        var res = Tess2.tesselate({
-          contours: [coords, verts2],
-          polySize: 3, // output triangles
-          windingRule: Tess2.WINDING_POSITIVE
-        });
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(res.vertices), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
-
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-tcoords = [
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
-
-    	var sourceRT = renderTextures[renderer.chargeSource];
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
-    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.uniform1i(shaderProgramViewCharge.sourceTextureUniform, 0);
-
-        var matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, (windowOffsetX+.5)/gridSizeX,1-(windowOffsetY+.5)/gridSizeY,0,1];
-        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
-                            transform[1], transform[4], 0, 0,
-                            0,0,1,0,
-                            transform[2], transform[5], 0, 1], matx);
-	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(res.elements), gl.STATIC_DRAW);
-
-        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
-
-console.log("glerrora " + gl.getError());
-        gl.drawElements(gl.TRIANGLES, res.elements.length, gl.UNSIGNED_SHORT, 0);
-console.log("glerror " + gl.getError());
-        gl.disableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
-        gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
-    }
-
-    renderer.displayCharge = function (coords, tcoords) {
+    renderer.displayCharge = function (coords) {
         gl.useProgram(shaderProgramViewCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramViewCharge);
@@ -1045,12 +981,9 @@ console.log("glerror " + gl.getError());
         gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramViewCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
-
+        // grid containing calculated charge
     	var sourceRT = renderTextures[renderer.chargeSource];
+console.log("displaying charge from " + renderer.chargeSource);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -1067,11 +1000,10 @@ console.log("glerror " + gl.getError());
         gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
 
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramViewCharge.textureCoordAttribute);
         gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
     }
 
-    renderer.calcCharge = function (coords, tcoords) {
+    renderer.calcCharge = function (coords) {
         gl.useProgram(shaderProgramCalcCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramCalcCharge);
@@ -1081,12 +1013,9 @@ console.log("glerror " + gl.getError());
         gl.vertexAttribPointer(shaderProgramCalcCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
 
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tcoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramCalcCharge.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramCalcCharge.textureCoordAttribute);
-
+        // potential grid to calculate the charge from
     	var sourceRT = renderTextures[renderer.chargeSource];
+console.log("calculating charge from " + renderer.chargeSource);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -1100,17 +1029,7 @@ console.log("glerror " + gl.getError());
                             transform[2], transform[5], 0, 1], matx);
 	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrixUniform, false, matx);
 
-/*
-        matx = [1/gridSizeX,0,0,0, 0,-1/gridSizeY,0,0, 0,0,1,0, 0,0,0,1];
-        mat4.multiply(matx, [transform[0], transform[3], 0, 0,
-                            transform[1], transform[4], 0, 0,
-                            0,0,1,0,
-                            transform[2], transform[5], 0, 1], matx);
-*/
-	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrix2Uniform, false, matx);
-
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramCalcCharge.textureCoordAttribute);
         gl.disableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
     }
 
