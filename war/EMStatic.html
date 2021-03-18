@@ -212,7 +212,7 @@
         highp vec4 td = texture2D(uSourceTexture, vTextureCoordDown);
         highp vec4 tl = texture2D(uSourceTexture, vTextureCoordLeft);
         highp vec4 tr = texture2D(uSourceTexture, vTextureCoordRight);
-        gl_FragColor = vec4(tu.r+td.r+tl.r+tr.r-4.0*t0.r, 0.0, 1.0, 1.0);
+        gl_FragColor = vec4(4.0*t0.r-tu.r-td.r-tl.r-tr.r, 0.0, 1.0, 1.0);
     }
 </script>
 
