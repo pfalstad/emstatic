@@ -253,7 +253,7 @@
     }
 </script>
 
-<script id="shader-copy-fs" type="x-shader/x-fragment">
+<script id="shader-copy-rg-fs" type="x-shader/x-fragment">
     precision mediump float;
 
     varying vec2 vTextureCoord;
@@ -263,6 +263,20 @@ void main()
 {
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         gl_FragColor = vec4(pv.rg, 1., 1.);
+}
+
+</script>
+
+<script id="shader-copy-rgb-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+    uniform sampler2D uSourceTexture;
+
+void main()
+{
+        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+        gl_FragColor = vec4(pv.rgb, 1.);
 }
 
 </script>

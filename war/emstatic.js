@@ -51,7 +51,8 @@ const MT_DIELECTRIC = 3;
 
 
     var shaderProgramMain, shaderProgramFixed, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
-    var shaderProgramCopy, shaderProgramResidual, shaderProgramViewCharge, shaderProgramCalcCharge, shaderProgramSum;
+    var shaderProgramCopyRG, shaderProgramResidual, shaderProgramViewCharge, shaderProgramCalcCharge, shaderProgramSum;
+    var shaderProgramCopyRGB;
 
     function initShader(fs, vs, prefix) {
         var fragmentShader = getShader(gl, fs, prefix);
@@ -114,11 +115,8 @@ const MT_DIELECTRIC = 3;
     	shaderProgramSum.stepSizeYUniform = gl.getUniformLocation(shaderProgramSum, "stepSizeY");
 
     	shaderProgramAdd = initShader("shader-add-fs", "shader-vs", null);
-    	shaderProgramCopy = initShader("shader-copy-fs", "shader-vs", null);
-
-    	shaderProgramAcoustic = initShader("shader-simulate-fs", "shader-vs", "#define ACOUSTIC 1\n");
-    	shaderProgramAcoustic.stepSizeXUniform = gl.getUniformLocation(shaderProgramAcoustic, "stepSizeX");
-    	shaderProgramAcoustic.stepSizeYUniform = gl.getUniformLocation(shaderProgramAcoustic, "stepSizeY");
+    	shaderProgramCopyRG = initShader("shader-copy-rg-fs", "shader-vs", null);
+    	shaderProgramCopyRGB = initShader("shader-copy-rgb-fs", "shader-vs", null);
 
     	shaderProgramDraw = initShader("shader-draw-fs", "shader-draw-vs");
     	shaderProgramMode = initShader("shader-mode-fs", "shader-draw-vs");
@@ -493,9 +491,51 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    renderer.copy = function (srcnum) {
+    renderer.copyRG = function (srcnum) {
     	var sourceRT = renderTextures[srcnum];
-        var prog = shaderProgramCopy;
+        var prog = shaderProgramCopyRG;
+        gl.useProgram(prog);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+
+    	simPosition = [];
+    	simDamping = [];
+    	simTextureCoord = [];
+
+    	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexPositionBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simPosition), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.vertexPositionAttribute, simVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexTextureCoordBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(prog.dampingAttribute);
+        gl.enableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.enableVertexAttribArray(prog.textureCoordAttribute);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
+        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(prog.sourceTextureUniform, 0);
+ 
+        setMatrixUniforms(prog);
+        gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
+        gl.disableVertexAttribArray(prog.dampingAttribute);
+        gl.disableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.disableVertexAttribArray(prog.textureCoordAttribute);
+    }
+
+    renderer.copyRGB = function (srcnum) {
+    	var sourceRT = renderTextures[srcnum];
+        var prog = shaderProgramCopyRGB;
         gl.useProgram(prog);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -1482,11 +1522,12 @@ console.log("calculating charge from " + renderer.chargeSource);
     				break;
     			sz *= 2;
     		}
+    		renderTextures.push(initTextureFramebuffer(sz));
     		renderTexture1 = renderTextures[renderTextures.length-2];
     		renderTexture2 = renderTextures[renderTextures.length-1];
     		initBuffers();
     	}
-    	renderer.getRenderTextureCount = function () { return renderTextures.length; }
+    	renderer.getRenderTextureCount = function () { return renderTextures.length-1; }
     	renderer.drawWall = function (x, y, x2, y2, pot) { drawWall(x, y, x2, y2, pot); }
     	renderer.clearWall = function (x, y, x2, y2) { drawWall(x, y, x2, y2, 1); }
     	renderer.setTransform = function (a, b, c, d, e, f) {
