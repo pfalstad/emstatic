@@ -7,3 +7,4 @@ conductor-charge.txt Conductor and Charge
 dielec.txt Dielectric
 charged-cyl.txt Charged Cylinder
 qlens.txt Quadrupole Lens
+dcyl.txt Dielectric Cylinder in Field
