@@ -305,19 +305,25 @@ highp vec4 getSquare(highp vec2 offset)
 
 void main()
 {
-    	highp float newpos = 0.;
-        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+    	highp float newpot = 0.;
+        highp vec4 sv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
-                highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
-                highp vec4 mid2 = getSquare(vec2(-stepSizeX, 0.));
-                highp vec4 mid3 = getSquare(vec2(0., stepSizeY));
-                highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
-		newpos = (mid1.r*mid1.b + mid2.r*mid2.b + mid3.r*mid3.b + mid4.r*mid4.b)/(mid1.b+mid2.b+mid3.b+mid4.b) +
-		         .25*(rv.r*stepSizeX*stepSizeY/rv.b);
+          highp vec4 mid0 = getSquare(vec2(0., 0.));
+          highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
+          highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
+          highp vec4 mid3 = getSquare(vec2(-stepSizeX, 0.));
+          highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
+          highp vec4 mid5 = getSquare(vec2(-stepSizeX, -stepSizeY));
+          highp float a0 = mid0.b + mid3.b + mid4.b + mid5.b;
+          highp float a1 = .5*(mid0.b+mid4.b);
+          highp float a2 = .5*(mid3.b+mid0.b);
+          highp float a3 = .5*(mid5.b+mid3.b);
+          highp float a4 = .5*(mid4.b+mid5.b);
+          newpot = (a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r + rv.r*stepSizeX*stepSizeY)/a0;
         } else
-		newpos = rv.r;
-        gl_FragColor = vec4(newpos, 0., pv.b, 1.);
+	  newpot = rv.r;
+        gl_FragColor = vec4(newpot, 0., sv.b, 1.);
 }
 
 </script>
@@ -337,7 +343,10 @@ void main()
 highp vec4 getSquare(highp vec2 offset)
 {
         highp vec2 x = offset+vTextureCoord;
-	return texture2D(uSourceTexture, x);
+	highp vec4 q = texture2D(uSourceTexture, x);
+	highp vec4 q2 = texture2D(uRightSideTexture, x);
+        // switch conductors to space to avoid problems with charged conductors (need a better way to fix this)
+        return vec4(q.r, q.g, q2.b > 0.0 ? q2.b : 1.0, q2.a);
 }
 
 void main()
@@ -346,13 +355,22 @@ void main()
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
-                highp float pos = pv.r;
-                highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
-                highp vec4 mid2 = getSquare(vec2(-stepSizeX, 0.));
-                highp vec4 mid3 = getSquare(vec2(0., stepSizeY));
-                highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
-		newpos = (4./(stepSizeX*stepSizeY)) *
-                        ((mid1.r*mid1.b + mid2.r*mid2.b + mid3.r*mid3.b + mid4.r*mid4.b)/(mid1.b+mid2.b+mid3.b+mid4.b) - pos) + rv.r/rv.b;
+          highp float pos = pv.r;
+          highp vec4 mid0 = getSquare(vec2(0., 0.));
+          highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
+          highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
+          highp vec4 mid3 = getSquare(vec2(-stepSizeX, 0.));
+          highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
+          highp vec4 mid5 = getSquare(vec2(-stepSizeX, -stepSizeY));
+          highp float a0 = mid0.b + mid3.b + mid4.b + mid5.b;
+          highp float a1 = .5*(mid0.b+mid4.b);
+          highp float a2 = .5*(mid3.b+mid0.b);
+          highp float a3 = .5*(mid5.b+mid3.b);
+          highp float a4 = .5*(mid4.b+mid5.b);
+          newpos = 4./(stepSizeX*stepSizeY) * ((a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r + rv.r*stepSizeX*stepSizeY)/a0 - pos);
+          //newpos = (4./(stepSizeX*stepSizeY)) * (a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r - pos)/a0 + rv.r/rv.b; // 4.*rv.r/a0;
+            //newpos = (4./(stepSizeX*stepSizeY)) * ((mid1.r*mid1.b + mid2.r*mid2.b + mid3.r*mid3.b + mid4.r*mid4.b)/(mid1.b+mid2.b+mid3.b+mid4.b) - pos) + rv.r/rv.b;
+
         }
         //gl_FragColor = vec4(newpos, 0.0, pv.b, 1.);
         //gl_FragColor = vec4(newpos, 0.0, rv.b, 1.);
@@ -403,7 +421,7 @@ void main()
 {
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
-        gl_FragColor = pv+rv;
+        gl_FragColor = vec4(pv.r+rv.r, pv.g, pv.b, 1.0);
 }
 
 </script>

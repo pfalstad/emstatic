@@ -928,13 +928,15 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		// iterate a few times on fine grid
 		// iterate more times for higher accuracy on second try
-		int iterCount = (calcLevel == 0) ? 9 : 20; // (calcLevel == 0) ? 9 : 100;
+		int iterCount = (calcLevel == 0) ? 9 : 100; // (calcLevel == 0) ? 9 : 100;
 		int i;
 		for (i = 0; i != iterCount; i++) {
 			setDestination(dest);
 			runRelax(src, rsGrid, false);
 			int q = dest; dest = src; src = q;
 		}
+		
+//		if (calcLevel > 0) return src; // when refining solution only use relaxation (debug)
 		
 		if (++stepCount == maxSteps) {
 			console("vcycle after iterating a few times " + stepCount);
@@ -944,7 +946,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// calculate residual
 		setDestination(dest);
 		runRelax(src, rsGrid, true);
-
+		
 		if (++stepCount == maxSteps) {
 			console("vcycle residual " + stepCount);
 			return dest;
