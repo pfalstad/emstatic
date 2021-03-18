@@ -54,45 +54,26 @@ public class Wall extends DragObject {
 	}
 
 	void drawMaterials() {
+	    drawWall(DO_DRAW);
+	}
+	
+	void drawWall(int type) {
 	    setWallTransform();
-	    /*
-	    int len = (int)Math.hypot(handles.get(0).x-handles.get(1).x, handles.get(0).y-handles.get(1).y);
-	    int cx = (int) ((handles.get(0).x+handles.get(1).x)/2);
-	    int cy = (int) ((handles.get(0).y+handles.get(1).y)/2);
-	    cx = cy = 0;
-	    EMStatic.drawMedium(cx-2, cy-len/2, cx+2, cy-len/2, cx-2, cy+len/2, cx+2, cy+len/2, 0, residual ? 0 : pot);
-	    */
 	    int len2 = (int) (wallLen/2);
-	    Box.drawMedium(-2, -len2, 2, -len2, -2, len2, 2, len2); 
+	    Box.drawBox(-2, -len2, 2, -len2, -2, len2, 2, len2, type); 
 	}
 	
 	void draw() {
 	    super.draw();
-	    setWallTransform();
-	    int len2 = (int) (wallLen/2);
-	    Box.doBoxCharge(false, -2, -len2, 2, -len2, -2, len2, 2, len2);
+	    drawWall(DO_DRAW_CHARGE);
 	}
 	
 	void calcCharge() {
-	    setWallTransform();
-	    int len2 = (int) (wallLen/2);
-	    Box.doBoxCharge(true, -2, -len2, 2, -len2, -2, len2, 2, len2);
+	    drawWall(DO_CALC_CHARGE);
 	}
 	    
 	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
 	
-	/*
-	void drawSelection() {
-	    drawMaterials(false);
-	}
-	*/
-	
-	/*
-	void drawMaterials(boolean residual) {
-		EMStatic.drawWall(handles.get(0).x, handles.get(0).y, handles.get(1).x, handles.get(1).y, residual ? 0 : pot);
-	}
-	*/
-
 	public EditInfo getEditInfo(int n) {
 	    return super.getEditInfo(n+1);
 	}

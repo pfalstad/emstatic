@@ -30,7 +30,7 @@ public class QuadrupoleLens extends RectDragObject {
 	    super(st);
 	}
 	
-	static native void drawLens(double cx, double cy, double xr, double yr, double dirx, double diry) /*-{
+	static native void drawLens(double cx, double cy, double xr, double yr, double dirx, double diry, int type) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = [];
         	var i;
@@ -41,24 +41,25 @@ public class QuadrupoleLens extends RectDragObject {
         	    var yd = Math.sqrt(i*i+h*h);
         	    if (yd > yr)
         	    	continue;
-                    coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry); // , cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
+                    coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry, cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
         	}
-        	coords.push(cx+xr*dirx+yr*diry, cy+yr*dirx+xr*diry);
-                renderer.drawSolid(coords, false);
+                renderer.drawObject(coords, type);
 	}-*/;
 
-	void drawMaterials() {
+	void drawFullLens(int type) {
 	    int cx = (topLeft.x+topRight.x)/2;
 	    int cy = (topLeft.y+bottomLeft.y)/2;
 	    int xr = (topRight.x-topLeft.x)/2;
 	    int yr = (bottomLeft.y-topLeft.y)/2;
-	    drawLens(cx, cy, xr, yr, 1, 0);
-	    drawLens(cx, cy, xr, yr, -1, 0);
+	    drawLens(cx, cy, xr, yr, 1, 0, type);
+	    drawLens(cx, cy, xr, yr, -1, 0, type);
 	    flipPotential();
-	    drawLens(cx, cy, xr, yr, 0, 1);
-	    drawLens(cx, cy, xr, yr, 0, -1);
+	    drawLens(cx, cy, xr, yr, 0, 1, type);
+	    drawLens(cx, cy, xr, yr, 0, -1, type);
 	}
 
+	void drawMaterials() { drawFullLens(DO_DRAW); }
+	
 	static native void flipPotential() /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 		renderer.potential = -renderer.potential;
@@ -66,63 +67,12 @@ public class QuadrupoleLens extends RectDragObject {
 	
 	boolean hitTestInside(double x, double y) { return false; }
 
-	/*
-	@Override double hitTest(int x, int y) {
-		x -= (topLeft.x+topRight.x)/2;
-		y -= (topLeft.y+bottomLeft.y)/2;
-		double a = (topRight.x-topLeft.x)/2;
-		double b = (bottomLeft.y-topLeft.y)/2;
-		double ht = Math.abs(Math.sqrt(x*x/(a*a)+y*y/(b*b))-1)*a;
-		return ht;
-	}
-	*/
-	
 	void draw() {
 	    super.draw();
-	    /*
 	    if (isConductor())
-		doEllipseCharge(false, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-		    (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
-		    */
+		drawFullLens(DO_DRAW_CHARGE);
 	}
 
-	    static native void doEllipseCharge(boolean calc, double cx, double cy, double xr, double yr) /*-{
-		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-		var margin = (calc) ? 5 : 2;
-        	var insetMultX = (xr-margin)/xr;
-        	var insetMultY = (yr-margin)/yr;
-        	var outMultX = 2/xr;
-        	var outMultY = 2/yr;
-        	var tcx = cx;
-        	var tcy = cy;
-        	if (!calc) {
-        	    outMultX += 1;
-        	    outMultY += 1;
-        	} else
-        	    tcx = tcy = 0;
-        	var i;
-        	var coords = [];
-        	var tcoords = [];
-        	for (i = -xr; i <= xr; i++) {
-                	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy-yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	for (i = xr-1; i >= -xr; i--) {
-                	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-                	tcoords.push(tcx-i*outMultX, tcy+yr*outMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	if (calc) {
-        	    for (i = 0; i != coords.length; i++)
-        	    	tcoords[i] = Math.round(tcoords[i]);
-        	    renderer.calcCharge(coords, tcoords);
-        	} else
-                    renderer.displayCharge(coords, tcoords);	    
-	}-*/;
-	    
 	@Override void drawSelection() {
 	    //		drawMaterials(false);
 	    double a = (topRight.x-topLeft.x)/2;
@@ -138,7 +88,7 @@ public class QuadrupoleLens extends RectDragObject {
 	}
 	
 	void calcCharge() {
-	    doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+	    drawFullLens(DO_CALC_CHARGE);
 	}
 	
 	boolean mustBeSquare() { return true; }

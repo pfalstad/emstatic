@@ -40,6 +40,9 @@ public abstract class DragObject implements Editable {
 	static final int MT_CONDUCTING = 2;
 	static final int MT_DIELECTRIC = 3;
 	static final int MT_FLOATING = 4;
+	static final int DO_DRAW = 0;
+	static final int DO_DRAW_CHARGE = 1;
+	static final int DO_CALC_CHARGE = 2;
 	static DragObject currentFloatingConductor;
 	
 	int flags;

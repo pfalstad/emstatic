@@ -940,7 +940,41 @@ function isPowerOf2(value) {
 		gl.colorMask(true, true, true, true);
     }
 
+    renderer.drawObject = function (coords, type) {
+      if (type == 0)
+        renderer.drawSolid(coords);
+      else if (type == 1)
+        renderer.displayCharge(coords);
+      else if (type == 2)
+        renderer.calcCharge(coords);
+    }
+
     renderer.drawSolid = function (verts) {
+        var med = renderer.permittivity;
+        var pot = renderer.residual ? 0 : renderer.potential;
+        if (med == undefined) {
+            gl.colorMask(true, false, false, false);
+            med = 0;
+        } else
+            gl.colorMask(med == 0, false, true, false);
+        gl.useProgram(shaderProgramDraw);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+
+        loadMatrix(pMatrix);
+        setMatrixUniforms(shaderProgramDraw);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, verts.length/2);
+        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+
+        gl.colorMask(true, true, true, true);
+    }
+
+    renderer.drawSolidOld = function (verts) {
         var med = renderer.permittivity;
         var pot = renderer.residual ? 0 : renderer.potential;
 	if (med == undefined) {

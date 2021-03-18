@@ -1183,6 +1183,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    
 		    setDestination(src);
 		    clearDestination();
+		    double xform[] = obj.transform;
+		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
 		    obj.calcCharge();
 //		    if (i >= 0) { finalSrc = src; break; }   // uncomment to test charge calculation
 		
@@ -1208,6 +1210,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    DragObject obj = dragObjects.get(i);
 		    if (!obj.isConductor())
 			continue;		    
+		    double xform[] = obj.transform;
+		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
 		    obj.calcCharge();
 		}
 		setChargeSource(src);

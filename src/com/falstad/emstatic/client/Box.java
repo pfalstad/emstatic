@@ -29,14 +29,14 @@ public class Box extends RectDragObject {
 	super(st);
     }
 
-    static native void drawMedium(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
+    static native void drawBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int type) /*-{
         var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
         if (x2-x1 < renderer.getMinFeatureWidth())
             x2 = x4 = x1+renderer.getMinFeatureWidth();
         if (y3-y1 < renderer.getMinFeatureWidth())
             y3 = y4 = y1+renderer.getMinFeatureWidth();
-        var medCoords = [x1, y1, x2, y2, x4, y4, x3, y3];
-    	renderer.drawSolid(medCoords, false);
+        var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
+        renderer.drawObject(medCoords, type);
     }-*/;
 
     static native void doBoxCharge(boolean calc, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
@@ -47,18 +47,17 @@ public class Box extends RectDragObject {
     }-*/;
 
     void drawMaterials() {
-	drawMedium(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x,
-		bottomRight.y);
+	drawBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, DO_DRAW);
     }
 
     void draw() {
 	super.draw();
 	if (isConductor())
-	    doBoxCharge(false, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+	    drawBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, DO_DRAW_CHARGE);
     }
 
     void calcCharge() {
-	doBoxCharge(true, topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
+	drawBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y, DO_CALC_CHARGE);
     }
     
     String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }

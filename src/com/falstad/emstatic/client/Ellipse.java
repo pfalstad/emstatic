@@ -30,7 +30,7 @@ public class Ellipse extends RectDragObject {
 	    super(st);
 	}
 	
-	static native void drawSolidEllipse(double cx, double cy, double xr, double yr) /*-{
+	static native void drawSolidEllipse(double cx, double cy, double xr, double yr, int type) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = []; // cx, cy];
         	var i;
@@ -38,17 +38,15 @@ public class Ellipse extends RectDragObject {
         	yr = Math.max(yr, renderer.getMinFeatureWidth());
         	for (i = -xr; i <= xr; i++) {
                     coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	for (i = xr-1; i >= -xr; i--) {
                     coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
         	}
-                renderer.drawSolid(coords, true);
+                renderer.drawObject(coords, type);
 	}-*/;
 
 	void drawMaterials() {
 		drawSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW);
 	}
 
 //	boolean hitTestInside(double x, double y) { return false; }
@@ -65,31 +63,9 @@ public class Ellipse extends RectDragObject {
 	void draw() {
 	    super.draw();
 	    if (isConductor())
-		doEllipseCharge(false, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
-		    (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+		drawSolidEllipse((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW_CHARGE);
 	}
 
-	    static native void doEllipseCharge(boolean calc, double cx, double cy, double xr, double yr) /*-{
-		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-		var margin = (calc) ? 5 : 2;
-        	var insetMultX = (xr-margin)/xr;
-        	var insetMultY = (yr-margin)/yr;
-        	var i;
-        	var coords = [];
-        	for (i = -xr; i <= xr; i++) {
-                	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy-yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	for (i = xr-1; i >= -xr; i--) {
-                	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-                	coords.push(cx-i*insetMultX, cy+yr*insetMultY*Math.sqrt(1-i*i/(xr*xr)));
-        	}
-        	if (calc)
-        	    renderer.calcCharge(coords);
-        	else
-                    renderer.displayCharge(coords);	    
-	}-*/;
-	    
 	@Override void drawSelection() {
 	    //		drawMaterials(false);
 	    double a = (topRight.x-topLeft.x)/2;
@@ -105,7 +81,7 @@ public class Ellipse extends RectDragObject {
 	}
 	
 	void calcCharge() {
-	    doEllipseCharge(true, (topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2);
+	    drawSolidEllipse((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_CALC_CHARGE);
 	}
 	
         static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{
