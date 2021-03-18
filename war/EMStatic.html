@@ -82,7 +82,7 @@
     uniform float brightness;
     uniform lowp vec3 colors[TS_COL_COUNT];
 
-	// shader for displaying waves on screen
+	// shader for displaying potential (not default which is field vectors)
     void main(void) {
         float alpha = 1.0;
         vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
@@ -94,7 +94,7 @@
 		if (med == 0.0)
 			col = colors[TS_COL_WALL];
 		else {
-			// red channel used to store wave height
+			// red channel used to store potential
 			float r =  textureColor.r*brightness;
 	        r = clamp(r, -1., 1.);
             if (r > 0.0)
