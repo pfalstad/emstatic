@@ -1189,7 +1189,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // sum charge into smaller and smaller bitmaps so we can count it more efficiently.
 		    // it turns out it's so fast to count the large bitmap that we don't really need this,
 		    // but I wrote it before I discovered that
-		    setChargeSource(src); // -6);
 		    while (src >= 3) {
 			setDestination(src-3);
 			clearDestination();
@@ -1200,6 +1199,18 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // e0 is from Gauss's law, .5 is from fact that we use 2-pixel thick layer to compute charge
 		    obj.setConductorCharge(getCharge()*e0*.5/Math.sqrt(2));
 		}
+		
+		// now do it again to get one map with all charges
+		int src = finalSrc-1;
+		setDestination(src);
+		clearDestination();
+		for (i = 0; i != dragObjects.size(); i++) {
+		    DragObject obj = dragObjects.get(i);
+		    if (!obj.isConductor())
+			continue;		    
+		    obj.calcCharge();
+		}
+		setChargeSource(src);
 	    }
 	    
 	public void updateRipple() {
