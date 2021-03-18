@@ -1275,8 +1275,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			coordsLabel.setVisible(false);
 			return;
 		}
+		setDestination(finalSrc); // for getProbeValue()
 		String txt = (selectedObject != null) ? selectedObject.selectText() : null;
 		Point pt = mouseLocation;
+		txt = null;
 		if (txt == null) {
 			txt = "t = " + getUnitText(getRealTime(), "s");
 			JsArrayNumber probe = getProbeValue(pt.x, pt.y);
