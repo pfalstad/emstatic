@@ -1145,7 +1145,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    int src = multigridVCycle(rtnum-3, rtnum-2, rtnum-1);
 		    setDestination(finalSrc);
 		    copyRG(src);
-		    calculateCharge();
+		    calculateCharge(src);
 		    return;
 		}
 		
@@ -1178,21 +1178,21 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		
 		setDestination(rtnum);
-		copyRG(src);
+		copyRGB(src);
 		finalSrc = rtnum;
 //		console("setdest " + src + " " + (src % 3));
 		
-		calculateCharge();
+		calculateCharge(src);
 		if (maxSteps == 10000)
 		    console("steps = " + stepCount);
 	    }
 	    
-	    void calculateCharge() {
+	    void calculateCharge(int csrc) {
 		// calculate charge
-		setChargeSource(finalSrc);
+		setChargeSource(csrc);
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
-		    int src = finalSrc-1;
+		    int src = csrc-1;
 		    DragObject obj = dragObjects.get(i);
 		    if (!obj.isConductor())
 			continue;
@@ -1219,7 +1219,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		
 		// now do it again to get one map with all charges
-		int src = finalSrc-1;
+		int src = csrc-1;
 		setDestination(src);
 		clearDestination();
 		for (i = 0; i != dragObjects.size(); i++) {
