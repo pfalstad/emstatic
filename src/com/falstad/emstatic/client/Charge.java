@@ -27,7 +27,7 @@ public class Charge extends DragObject {
 	Charge() {
 		handles.add(new DragHandle(this));
 		int i;
-		charge = 1;
+		charge = 1e-9;
 		setTransform();
 	}
 	
