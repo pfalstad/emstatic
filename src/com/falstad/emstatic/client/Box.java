@@ -35,15 +35,8 @@ public class Box extends RectDragObject {
             x2 = x4 = x1+renderer.getMinFeatureWidth();
         if (y3-y1 < renderer.getMinFeatureWidth())
             y3 = y4 = y1+renderer.getMinFeatureWidth();
-        var medCoords = [x1, y1, x2, y2, x3, y3, x4, y4];
+        var medCoords = [x1, y1, x2, y2, x4, y4, x3, y3];
         renderer.drawObject(medCoords, type);
-    }-*/;
-
-    static native void doBoxCharge(boolean calc, int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
-        if (calc)
-    		@com.falstad.emstatic.client.EMStatic::renderer.calcCharge([x1, y1, x2, y2, x3, y3, x4, y4]);
-    	else
-    		@com.falstad.emstatic.client.EMStatic::renderer.displayCharge([x1, y1, x2, y2, x3, y3, x4, y4]);
     }-*/;
 
     void drawMaterials() {

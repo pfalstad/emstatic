@@ -947,49 +947,21 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     
-    renderer.drawSolidEllipse = function (cx, cy, xr, yr, med, pot) {
-	if (med == undefined) {
-	    gl.colorMask(true, false, false, false);
-	    med = 0;
-	} else
-	    gl.colorMask(med == 0, false, true, false);
-        gl.useProgram(shaderProgramDraw);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        var coords = [cx, cy];
-        var i;
-	xr = Math.max(xr, renderer.minFeatureWidth);
-	yr = Math.max(yr, renderer.minFeatureWidth);
-        for (i = -xr; i <= xr; i++) {
-        	coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
-        }
-        for (i = xr-1; i >= -xr; i--) {
-        	coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-        }
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
-        gl.drawArrays(gl.TRIANGLE_FAN, 0, coords.length/2);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-		gl.colorMask(true, true, true, true);
-    }
-
     renderer.drawObject = function (coords, type) {
+      var res = Tess2.tesselate({
+          contours: [coords],
+          polySize: 3 // output triangles
+      });
+
       if (type == 0)
-        renderer.drawSolid(coords);
+        renderer.drawSolid(res);
       else if (type == 1)
-        renderer.displayCharge(coords);
+        renderer.displayCharge(res);
       else if (type == 2)
-        renderer.calcCharge(coords);
+        renderer.calcCharge(res);
     }
 
-    renderer.drawSolid = function (verts) {
+    renderer.drawSolid = function (tess) {
         var med = renderer.permittivity;
         var pot = renderer.residual ? 0 : renderer.potential;
         if (med == undefined) {
@@ -1000,60 +972,35 @@ function isPowerOf2(value) {
         gl.useProgram(shaderProgramDraw);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verts), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tess.vertices), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(tess.elements), gl.STATIC_DRAW);
 
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, verts.length/2);
+        gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
         gl.colorMask(true, true, true, true);
     }
 
-    renderer.drawSolidOld = function (verts) {
-        var med = renderer.permittivity;
-        var pot = renderer.residual ? 0 : renderer.potential;
-	if (med == undefined) {
-	    gl.colorMask(true, false, false, false);
-	    med = 0;
-	} else
-	    gl.colorMask(med == 0, false, true, false);
-        gl.useProgram(shaderProgramDraw);
-
-        var res = Tess2.tesselate({
-          contours: [verts],
-          polySize: 3 // output triangles
-        });
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(res.vertices), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(res.elements), gl.STATIC_DRAW);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
-        gl.drawElements(gl.TRIANGLES, res.elements.length, gl.UNSIGNED_SHORT, 0);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-	gl.colorMask(true, true, true, true);
-    }
-
-    renderer.displayCharge = function (coords) {
+    renderer.displayCharge = function (tess) {
         gl.useProgram(shaderProgramViewCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramViewCharge);
 	
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tess.vertices), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramViewCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(tess.elements), gl.STATIC_DRAW);
 
         // grid containing calculated charge
     	var sourceRT = renderTextures[renderer.chargeSource];
@@ -1072,20 +1019,23 @@ console.log("displaying charge from " + renderer.chargeSource);
 	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
 
         gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
+        gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
         gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
     }
 
-    renderer.calcCharge = function (coords) {
+    renderer.calcCharge = function (tess) {
         gl.useProgram(shaderProgramCalcCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramCalcCharge);
 	
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(tess.vertices), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramCalcCharge.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(tess.elements), gl.STATIC_DRAW);
 
         // potential grid to calculate the charge from
     	var sourceRT = renderTextures[renderer.chargeSource];
@@ -1103,7 +1053,7 @@ console.log("calculating charge from " + renderer.chargeSource);
                             transform[2], transform[5], 0, 1], matx);
 	gl.uniformMatrix4fv(shaderProgramCalcCharge.textureMatrixUniform, false, matx);
 
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, coords.length/2);
+        gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
     }
 

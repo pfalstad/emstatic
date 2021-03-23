@@ -36,10 +36,10 @@ public class Ellipse extends RectDragObject {
         	var i;
         	xr = Math.max(xr, renderer.getMinFeatureWidth());
         	yr = Math.max(yr, renderer.getMinFeatureWidth());
-        	for (i = -xr; i <= xr; i++) {
-                    coords.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
+        	for (i = -xr; i <= xr; i++)
+                    coords.push(cx+i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
+        	for (i = -xr; i <= xr; i++)
                     coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-        	}
                 renderer.drawObject(coords, type);
 	}-*/;
 

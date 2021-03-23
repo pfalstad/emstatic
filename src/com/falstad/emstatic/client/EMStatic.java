@@ -928,7 +928,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		// iterate a few times on fine grid
 		// iterate more times for higher accuracy on second try
-		int iterCount = (calcLevel == 0) ? 9 : 100; // (calcLevel == 0) ? 9 : 100;
+		int iterCount = (calcLevel == 0) ? 9 : 20; // (calcLevel == 0) ? 9 : 100;
 		int i;
 		for (i = 0; i != iterCount; i++) {
 			setDestination(dest);
