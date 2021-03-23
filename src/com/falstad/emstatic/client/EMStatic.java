@@ -742,9 +742,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Wall", "Wall"));
     	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
     	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Hollow Box", "HollowBox"));
-    	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Hollow Box", "HollowBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Hollow Ellipse", "HollowEllipse"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Quadrupole Lens", "QuadrupoleLens"));
     }
 
@@ -822,6 +823,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     		newObject = new Box();
     	if (item == "HollowBox")
 		newObject = new HollowBox();
+    	if (item == "HollowEllipse")
+		newObject = new HollowEllipse();
     	if (item == "Charge")
     		newObject = new Charge();
     	if (newObject != null) {
@@ -839,6 +842,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
     DragObject createObj(int tint, StringTokenizer st) {
     	if (tint == 'e') return new Ellipse(st);
+    	if (tint == 'E') return new HollowEllipse(st);
     	if (tint == 'b') return new Box(st);
     	if (tint == 'B') return new HollowBox(st);
     	if (tint == 'c') return new Charge(st, 1);
