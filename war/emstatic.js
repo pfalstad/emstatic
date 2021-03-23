@@ -947,9 +947,9 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     
-    renderer.drawObject = function (coords, type) {
+    renderer.drawObject = function (contours, type) {
       var res = Tess2.tesselate({
-          contours: [coords],
+          contours: contours,
           polySize: 3 // output triangles
       });
 

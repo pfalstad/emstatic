@@ -40,7 +40,7 @@ public class Ellipse extends RectDragObject {
                     coords.push(cx+i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
         	for (i = -xr; i <= xr; i++)
                     coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-                renderer.drawObject(coords, type);
+                renderer.drawObject([coords], type);
 	}-*/;
 
 	void drawMaterials() {

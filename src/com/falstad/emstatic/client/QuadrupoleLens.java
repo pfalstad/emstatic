@@ -43,7 +43,7 @@ public class QuadrupoleLens extends RectDragObject {
         	    	continue;
                     coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry); //, cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
         	}
-                renderer.drawObject(coords, type);
+                renderer.drawObject([coords], type);
 	}-*/;
 
 	void drawFullLens(int type) {
