@@ -21,8 +21,9 @@ package com.falstad.emstatic.client;
 
 public class HollowEllipse extends RectHollowDragObject {
 
-    HollowEllipse() {
+    HollowEllipse(boolean square) {
 	materialType = MT_CONDUCTING;
+	flags = (square) ? RectDragObject.FLAG_SQUARE : 0;
     }
 
     HollowEllipse(StringTokenizer st) {

@@ -21,6 +21,7 @@ package com.falstad.emstatic.client;
 
 public abstract class RectDragObject extends DragObject {
 	DragHandle topLeft, topRight, bottomLeft, bottomRight;
+	static int FLAG_SQUARE = 1;
 	
 	RectDragObject() {
 		int i;
@@ -115,7 +116,7 @@ public abstract class RectDragObject extends DragObject {
 	    return false;
 	}
 	
-	boolean mustBeSquare() { return false; }
+	boolean mustBeSquare() { return (flags & FLAG_SQUARE) != 0; }
 	
 	@Override double hitTest(int x, int y) {
 		double result = 1e8;

@@ -91,7 +91,9 @@ public abstract class RectHollowDragObject extends DragObject {
 	    
 	    int base = handleIndex >= 4 ? 4 : 0;
 	    int baseIndex = handleIndex-base;
-	    
+	    int dx = x-handles.get(handleIndex).x;
+	    int dy = y-handles.get(handleIndex).y;
+	    	    
 	    // check that rectangle is not backwards
 	    for (i = 0; i != 4; i++) {
 	        DragHandle dh = handles.get(i+base);
@@ -111,9 +113,6 @@ public abstract class RectHollowDragObject extends DragObject {
 		    return false;
 	    }
 	    
-	    int dx = x-handles.get(handleIndex).x;
-	    int dy = y-handles.get(handleIndex).y;
-	    
 	    // move affected points
 	    for (i = base; i != 8; i++) {
 	        DragHandle dh = handles.get(i);
@@ -127,16 +126,10 @@ public abstract class RectHollowDragObject extends DragObject {
 	        dh.y = hp.y;        
 	    }
 	    
-	    if (mustBeSquare()) {
-		int w = width();
-		bottomLeft.y = topLeft.y+w;
-		bottomRight.y = topRight.y+w;
-	    }
-	    
 	    return false;
 	}
 	
-	boolean mustBeSquare() { return false; }
+	boolean mustBeSquare() { return (flags & RectDragObject.FLAG_SQUARE) != 0; }
 	
 	@Override double hitTest(int x, int y) {
 		double result = 1e8;

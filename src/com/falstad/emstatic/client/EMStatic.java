@@ -742,8 +742,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	mainMenuBar.addItem(getClassCheckItem("Add Wall", "Wall"));
     	mainMenuBar.addItem(getClassCheckItem("Add Point Charge", "Charge"));
     	mainMenuBar.addItem(getClassCheckItem("Add Box", "Box"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Circle", "Circle"));
     	mainMenuBar.addItem(getClassCheckItem("Add Ellipse", "Ellipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Hollow Box", "HollowBox"));
+    	mainMenuBar.addItem(getClassCheckItem("Add Hollow Circle", "HollowCircle"));
     	mainMenuBar.addItem(getClassCheckItem("Add Hollow Ellipse", "HollowEllipse"));
     	mainMenuBar.addItem(getClassCheckItem("Add Cavity", "Cavity"));
     	mainMenuBar.addItem(getClassCheckItem("Add Quadrupole Lens", "QuadrupoleLens"));
@@ -816,7 +818,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (item == "Wall")
     		newObject = new Wall();
     	if (item == "Ellipse")
-    		newObject = new Ellipse();
+    		newObject = new Ellipse(false);
+    	if (item == "Circle")
+		newObject = new Ellipse(true);
     	if (item == "QuadrupoleLens")
 		newObject = new QuadrupoleLens();
     	if (item == "Box")
@@ -824,7 +828,9 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     	if (item == "HollowBox")
 		newObject = new HollowBox();
     	if (item == "HollowEllipse")
-		newObject = new HollowEllipse();
+		newObject = new HollowEllipse(false);
+    	if (item == "HollowCircle")
+		newObject = new HollowEllipse(true);
     	if (item == "Charge")
     		newObject = new Charge();
     	if (newObject != null) {

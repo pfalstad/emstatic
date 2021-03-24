@@ -22,8 +22,9 @@ package com.falstad.emstatic.client;
 import com.google.gwt.core.client.JavaScriptObject;
 
 public class Ellipse extends RectDragObject {
-	Ellipse() {
+	Ellipse(boolean square) {
 	    materialType = MT_CONDUCTING;
+	    flags = (square) ? FLAG_SQUARE : 0;
 	}
 
 	Ellipse(StringTokenizer st) {

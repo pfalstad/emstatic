@@ -252,9 +252,9 @@ public abstract class DragObject implements Editable {
 	    int t = getDumpType();
 	    String out;
 	    if (t >= 200)
-		out = t + " 0";
+		out = t + " " + flags;
 	    else
-		out = (char)t + " 0";
+		out = (char)t + " " + flags;
 	    out += " " + materialType;
 	    if (materialType == MT_CONDUCTING)
 		out += " " + potential;
