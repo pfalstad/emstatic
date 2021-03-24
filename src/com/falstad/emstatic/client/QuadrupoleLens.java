@@ -68,9 +68,9 @@ public class QuadrupoleLens extends RectDragObject {
 	boolean hitTestInside(double x, double y) { return false; }
 
 	void draw() {
-	    super.draw();
 	    if (isConductor())
 		drawFullLens(DO_DRAW_CHARGE);
+	    super.draw();
 	}
 
 	@Override void drawSelection() {

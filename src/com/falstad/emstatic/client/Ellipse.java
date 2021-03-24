@@ -61,9 +61,9 @@ public class Ellipse extends RectDragObject {
 	}
 	
 	void draw() {
-	    super.draw();
 	    if (isConductor())
 		drawSolidEllipse((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW_CHARGE);
+	    super.draw();
 	}
 
 	@Override void drawSelection() {

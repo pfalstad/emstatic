@@ -76,9 +76,9 @@ public class HollowEllipse extends RectHollowDragObject {
     }
     
     void draw() {
-	super.draw();
 	if (isConductor())
 	    drawType(DO_DRAW_CHARGE);
+	super.draw();
     }
 
     void calcCharge() {
