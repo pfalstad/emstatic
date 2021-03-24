@@ -37,14 +37,24 @@ public abstract class RectHollowDragObject extends DragObject {
 	
 	RectHollowDragObject(StringTokenizer st) {
 		super(st);
-		topLeft = new DragHandle(this, st);
-		bottomRight = new DragHandle(this, st);
+		int i;
+		// get 4 handles
+		for (i = 0; i != 4; i++) {
+		    DragHandle dh = new DragHandle(this, st);
+		    handles.add(dh);
+		}
+		topLeft =  handles.get(0);
+		bottomRight = handles.get(1);
+		DragHandle h2 = handles.get(2);
+		DragHandle h3 = handles.get(3);
+		
+		// recreate the others from those 4 and insert them into place
 		topRight = new DragHandle(this, bottomRight.x, topLeft.y);
-		bottomLeft = new DragHandle(this, topLeft.x, bottomRight.y);
-		handles.add(topLeft);
-		handles.add(topRight);
-		handles.add(bottomRight);
-		handles.add(bottomLeft);
+		bottomLeft = new DragHandle(this, bottomRight.x, topLeft.y);
+		handles.insertElementAt(topRight, 1);
+		handles.insertElementAt(bottomLeft, 3);
+		handles.insertElementAt(new DragHandle(this, h3.x, h2.y), 5);
+		handles.insertElementAt(new DragHandle(this, h2.x, h3.y), 7);
 		rotation = new Double(st.nextToken()).doubleValue();
 		setTransform();
 	}
@@ -179,7 +189,14 @@ public abstract class RectHollowDragObject extends DragObject {
 	}
 	
 	String dumpHandles() {
-		return " " + topLeft.x + " " + topLeft.y + " " + bottomRight.x + " " + bottomRight.y;
+            String out = "";
+            int i;
+            // just need to dump every other one
+            for (i = 0; i != handles.size(); i += 2) {
+                DragHandle dh = handles.get(i);
+                out += " " + dh.x + " " + dh.y;
+            }
+            return out;
 	}
 
 	String selectText() {
