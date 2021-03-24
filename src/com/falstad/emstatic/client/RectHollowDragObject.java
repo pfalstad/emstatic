@@ -93,6 +93,10 @@ public abstract class RectHollowDragObject extends DragObject {
 	    int baseIndex = handleIndex-base;
 	    int dx = x-handles.get(handleIndex).x;
 	    int dy = y-handles.get(handleIndex).y;
+	    if (mustBeSquare()) {
+		dy = (handleIndex % 2 == 1) ? -dx : dx;
+		pt.y = handles.get(handleIndex).y+dy;
+	    }
 	    	    
 	    // check that rectangle is not backwards
 	    for (i = 0; i != 4; i++) {
