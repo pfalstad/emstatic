@@ -1018,7 +1018,7 @@ console.log("displaying charge from " + renderer.chargeSource);
                             transform[2], transform[5], 0, 1], matx);
 	gl.uniformMatrix4fv(shaderProgramViewCharge.textureMatrixUniform, false, matx);
 
-        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness);
+        gl.uniform1f(shaderProgramViewCharge.brightnessUniform, brightness*2);
         gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
 
         gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
