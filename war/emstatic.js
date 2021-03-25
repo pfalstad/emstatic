@@ -716,6 +716,44 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
+    renderer.drawChargeObject = function (x, y, r, value) {
+        gl.useProgram(shaderProgramDraw);
+        if (value > 0)
+          gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1, 0, 1);
+        else
+          gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0, 0, 1, 1);
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        var cx = -1+2*(x+.5)/windowWidth;
+        var cy = +1-2*(y+.5)/windowHeight;
+        var coords = [cx, cy];
+        r /= windowWidth;
+        var i;
+        for (i = 0; i <= 20; i++) {
+          var ang = Math.PI*i/10;
+          coords.push(cx+r*Math.cos(ang), cy+r*Math.sin(ang));
+        }
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        mat4.identity(pMatrix);
+        setMatrixUniforms(shaderProgramDraw);
+//        gl.lineWidth(renderer.drawingSelection < 0 ? 1 : 2);
+        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+        gl.drawArrays(gl.TRIANGLE_FAN, 0, coords.length/2);
+
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0, 0, 0, 1);
+        const d1 = .025;
+        const d2 = .005;
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([cx-d1, cy-d2, cx+d1, cy-d2, cx-d1, cy+d2, cx+d1, cy+d2]), gl.STATIC_DRAW);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        if (value > 0) {
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([cx-d2, cy-d1, cx+d2, cy-d1, cx-d2, cy+d1, cx+d2, cy+d1]), gl.STATIC_DRAW);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+        
+        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+    }
+
     renderer.drawSelectedHandle = function (x, y) {
        	gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, renderer.drawingSelection, renderer.drawingSelection, 0, 0.5);
 

@@ -59,13 +59,28 @@ public class Charge extends DragObject {
 	}-*/;
 
 
+	final int chargeSize = 15;
+	
 	void draw() {
+	    /*
 		int i;
 		for (i = 0; i != handles.size(); i++) {
 			DragHandle dh = handles.get(i);
 			EMStatic.drawHandle(dh.x,  dh.y);
 		}
 		super.draw();
+		*/
+	    DragHandle dh = handles.get(0);
+	    drawChargeObject(dh.x, dh.y, chargeSize, charge);
+	}
+	
+	native void drawChargeObject(int x, int y, int r, double charge) /*-{
+	    @com.falstad.emstatic.client.EMStatic::renderer.drawChargeObject(x, y, r, charge);	    
+	}-*/;
+	
+	double hitTest(int x, int y) {
+	    DragHandle dh = handles.get(0);
+	    return Math.hypot(x-dh.x, y-dh.y)-chargeSize;
 	}
 	
     public EditInfo getEditInfo(int n) {
