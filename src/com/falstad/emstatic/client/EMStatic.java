@@ -1093,7 +1093,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			obj.setPotential(0);
 		    }
 		}
-		recalculateStep(false);
+		recalculateStep(false, floatingVec.size() == 0);
 		
 		// no floating conductors?  we're done
 		if (floatingVec.size() == 0) {
@@ -1112,7 +1112,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		for (i = 0; i != floatingVec.size(); i++) {
 		    DragObject fo = floatingVec.get(0);
 		    DragObject.currentFloatingConductor = fo;
-		    recalculateStep(true);
+		    recalculateStep(true, false);
 		    int j;
 		    for (j = 0; j != floatingVec.size(); j++)
 			chargeMatrix[i][j] = floatingVec.get(j).conductorCharge;
@@ -1124,13 +1124,13 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    double pot = -baseCharge[0]/chargeMatrix[0][0];
 		    f0.setPotential(pot);
 		    console("fct " + fct + " " + chargeMatrix[0][0] + " " + baseCharge[0] + " " + pot);
-		    recalculateStep(false);
+		    recalculateStep(false, true);
 		    console("fct0 " + f0.conductorCharge);
 		}
 		calcLevel++;
 	    }
 	    
-	    void recalculateStep(boolean suppressCharges) {
+	    void recalculateStep(boolean suppressCharges, boolean finalResult) {
 		int rtnum = getRenderTextureCount();
 		console("Recalc " + calcLevel);
 		int level = debugBar1.getValue();
@@ -1155,7 +1155,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
 		stepCount = 0;		
 
-		if (calcLevel > 0) {
+		if (calcLevel > 0 && finalResult) {
 		    setDestination(rtnum-3);
 		    copyRG(finalSrc);
 		    int src = multigridVCycle(rtnum-3, rtnum-2, rtnum-1);
@@ -1193,9 +1193,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				break;
 		}
 		
-		setDestination(rtnum);
-		copyRGB(src);
-		finalSrc = rtnum;
+		if (finalResult) {
+		    setDestination(rtnum);
+		    copyRGB(src);
+		    finalSrc = rtnum;
+		}
 //		console("setdest " + src + " " + (src % 3));
 		
 		calculateCharge(src);
