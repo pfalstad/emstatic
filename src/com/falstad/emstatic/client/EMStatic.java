@@ -1083,6 +1083,13 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    static int finalSrc = 0;
 	    
 	    void recalculate() {
+		if (calcLevel > 0) {
+		    // if there are floating conductors, we don't bother to recalculate the charges/potentials on them.
+		    recalculateStep(false, true);
+		    calcLevel++;
+		    return;
+		}
+		
 		int i;
 		DragObject.currentFloatingConductor = null;
 		Vector<DragObject> floatingVec = new Vector<DragObject>();
