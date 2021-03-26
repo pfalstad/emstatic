@@ -1128,75 +1128,6 @@ console.log("calculating charge from " + renderer.chargeSource);
 		gl.colorMask(true, true, true, true);
     }
 
-    function drawModes(x, y, x2, y2, a, b, c, d) {
-		var rttFramebuffer = renderTexture1.framebuffer;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-		gl.colorMask(true, true, false, false);
-//		gl.clear(gl.COLOR_BUFFER_BIT);
-        gl.useProgram(shaderProgramMode);
-        var z = 0;
-        var z2 = 0;
-        if (renderer.acoustic) {
-        	z = Math.PI/2;
-        	a += z;
-        	b += z;
-        	if (c || d) {
-        		z2 = z;
-        		c += z;
-        		d += z;
-        	}
-    	}
-
-        var medCoords = [x, y, x, y2, x2, y, x2, y2];
-        var colors = [ z,z,z2,z2, z,b,z2,d, a,z,c,z2, a,b,c,d ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(medCoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramMode.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramMode.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramMode);
-        gl.enableVertexAttribArray(shaderProgramMode.vertexPositionAttribute);
-        gl.enableVertexAttribArray(shaderProgramMode.colorAttribute);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        gl.disableVertexAttribArray(shaderProgramMode.vertexPositionAttribute);
-        gl.disableVertexAttribArray(shaderProgramMode.colorAttribute);
-
-		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
-    
-    renderer.drawTriangle = function (x, y, x2, y2, x3, y3, m) {
-		var rttFramebuffer = renderTexture1.framebuffer;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-		gl.colorMask(false, false, true, false);
-//		gl.clear(gl.COLOR_BUFFER_BIT);
-
-        gl.useProgram(shaderProgramDraw);
-//        console("draw triangle " + m);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, 0.0, m, 1.0);
-
-        var medCoords = [x, y, x2, y2, x3, y3];
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(medCoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 3);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-
-		gl.colorMask(true, true, true, true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    }
-
     renderer.getProbeValue = function (x, y) {
         var pixels = new Float32Array(4*9);
         gl.readPixels(windowOffsetX+x-1, gridSizeY-windowOffsetY-y-2, 3, 3, gl.RGBA, gl.FLOAT, pixels);
@@ -1257,6 +1188,7 @@ console.log("calculating charge from " + renderer.chargeSource);
 
         mvPopMatrix();
 	drawSceneEquip(s, rs, equipMult);
+	drawSceneFieldLines(s);
     }
 
     function drawSceneEquip(s, rs, bright) {
@@ -1311,6 +1243,57 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         mvPopMatrix();
+    }
+
+    function drawSceneFieldLines(s) {
+        renderer.setDestination(s);
+        var pixels = new Float32Array(4*windowWidth*windowHeight);
+        gl.readPixels(windowOffsetX, windowOffsetY, windowWidth, windowHeight, gl.RGBA, gl.FLOAT, pixels);
+        var lines = 0;
+        for (lines = 0; lines != 10; lines++) {
+          var x = (lines+.5)*windowWidth/10;
+          var y = windowHeight/2;
+          var i;
+          var coords = [x, y];
+          for (i = 0; i != 300; i++) {
+            var xi = Math.floor(x);
+            var yi = Math.floor(y);
+            if (xi <= 0 || yi <= 0 || xi >= windowWidth-1 || yi >= windowHeight-1) break;
+            var r0 = pixels[4*(xi+yi*windowWidth)];
+            if (Math.abs(r0) > 80) break;
+            var ru = pixels[4*(xi+(yi-1)*windowWidth)];
+            var rd = pixels[4*(xi+(yi+1)*windowWidth)];
+            var rl = pixels[4*(xi-1+yi*windowWidth)];
+            var rr = pixels[4*(xi+1+yi*windowWidth)];
+            var dx = rr-rl;
+            var dy = rd-ru;
+            var dl = Math.hypot(dx, dy);
+            if (dl == 0) break;
+            x += dx/dl;
+            y += dy/dl;
+            coords.push(x, y);
+          }
+//console.log("dsfl i " + i);
+  
+          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+          gl.useProgram(shaderProgramDraw);
+          gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1, 1, 1);
+  
+          gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+          gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+  
+      	  mat4.identity(pMatrix);
+          pMatrix[0] = +2/windowWidth;
+          pMatrix[5] = +2/windowHeight;
+          pMatrix[12] = -1 + .5*pMatrix[0];
+          pMatrix[13] = -1 + .5*pMatrix[5];
+          setMatrixUniforms(shaderProgramDraw);
+          gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+          gl.drawArrays(gl.LINE_STRIP, 0, coords.length/2);
+          gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+       }
     }
 
     function drawSceneField(s, rs, bright, equipMult) {
