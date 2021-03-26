@@ -89,6 +89,18 @@ public class Ellipse extends RectDragObject {
         	renderer.drawFocus(x, y);
 	}-*/;
 
+	void drawFieldLines() {
+	    int i;
+	    DragHandle dh = handles.get(0);
+	    double rx = (topRight.x-topLeft.x)/2+1;
+	    double ry = (bottomLeft.y-topLeft.y)/2+1;
+	    double cx = (topRight.x+topLeft.x)/2;
+	    double cy = (bottomRight.y+topRight.y)/2;
+	    for (i = 0; i != 16; i++) {
+		double ang = Math.PI*i/8;
+		sim.drawFieldLine(cx+rx*Math.cos(ang), cy+ry*Math.sin(ang), potential > 0 ? -1 : 1);
+	    }
+	}
 
 	int getDumpType() { return 'e'; }
 

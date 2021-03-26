@@ -100,12 +100,8 @@ public class Charge extends DragObject {
 	    DragHandle dh = handles.get(0);
 	    for (i = 0; i != 16; i++) {
 		double ang = Math.PI*i/8;
-		drawFieldLine(dh.x+2*Math.cos(ang), dh.y+2*Math.sin(ang), charge > 0 ? -1 : 1);
+		sim.drawFieldLine(dh.x+2*Math.cos(ang), dh.y+2*Math.sin(ang), charge > 0 ? -1 : 1);
 	    }
 	}
-	
-	native void drawFieldLine(double x, double y, int dir) /*-{
-	    @com.falstad.emstatic.client.EMStatic::renderer.drawFieldLine(x, y, dir);	    
-	}-*/;
-	
+		
 	}

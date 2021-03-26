@@ -324,6 +324,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.freePotentialPixels();
 	}-*/;
 
+	static native void drawFieldLine(double x, double y, int dir) /*-{
+	    @com.falstad.emstatic.client.EMStatic::renderer.drawFieldLine(x, y, dir);	    
+	}-*/;
+
 	static native void setDestination(int d) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.setDestination(d);
 	}-*/;
