@@ -150,6 +150,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int DISP_FIELD = 0;
 	static final int DISP_POT = 1;
 	static final int DISP_3D = 2;
+	static final int DISP_LINES = 3;
 	int dragX, dragY, dragStartX = -1, dragStartY;
 	int selectedSource = -1;
 	int sourceIndex;
@@ -315,6 +316,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.display(src, rs, bright, equipMult, disp);
 	}-*/;
 
+	static native void fetchPotentialPixels(int src) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.fetchPotentialPixels(src);
+	}-*/;
+
+	static native void freePotentialPixels() /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.freePotentialPixels();
+	}-*/;
+
 	static native void setDestination(int d) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.setDestination(d);
 	}-*/;
@@ -473,6 +482,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		displayChooser.add("Display Electric Field");
 		displayChooser.add("Display Potential");
 		displayChooser.add("Display Potential in 3-D");
+		displayChooser.add("Display Field Lines");
 		displayChooser.addChangeHandler(this);
 		displayChooser.addStyleName("topSpace");
 
@@ -1279,6 +1289,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			    equipMult = 0;
 			int i;
 			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
+			if (displayChooser.getSelectedIndex() == DISP_LINES) {
+			    fetchPotentialPixels(src);
+			    for (i = 0; i != dragObjects.size(); i++) {
+				DragObject obj = dragObjects.get(i);
+				obj.drawFieldLines();
+			    }
+			    freePotentialPixels();
+			}
 			if (displayChooser.getSelectedIndex() != DISP_3D)
 				for (i = 0; i != dragObjects.size(); i++) {
 					DragObject obj = dragObjects.get(i);

@@ -1188,7 +1188,6 @@ console.log("calculating charge from " + renderer.chargeSource);
 
         mvPopMatrix();
 	drawSceneEquip(s, rs, equipMult);
-	drawSceneFieldLines(s);
     }
 
     function drawSceneEquip(s, rs, bright) {
@@ -1245,55 +1244,58 @@ console.log("calculating charge from " + renderer.chargeSource);
         mvPopMatrix();
     }
 
-    function drawSceneFieldLines(s) {
+    renderer.fetchPotentialPixels = function(s) {
         renderer.setDestination(s);
-        var pixels = new Float32Array(4*windowWidth*windowHeight);
-        gl.readPixels(windowOffsetX, windowOffsetY, windowWidth, windowHeight, gl.RGBA, gl.FLOAT, pixels);
-        var lines = 0;
-        for (lines = 0; lines != 10; lines++) {
-          var x = (lines+.5)*windowWidth/10;
-          var y = windowHeight/2;
-          var i;
-          var coords = [x, y];
-          for (i = 0; i != 300; i++) {
+        potPixels = new Float32Array(4*windowWidth*windowHeight);
+        gl.readPixels(windowOffsetX, windowOffsetY, windowWidth, windowHeight, gl.RGBA, gl.FLOAT, potPixels);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+    }
+
+    renderer.freePotentialPixels = function() {
+        potPixels = null;
+    }
+
+    renderer.drawFieldLine = function (x, y, dir) {
+        var i;
+        y = windowHeight-1-y;
+        x += .5; y += .5;
+        var coords = [x, y];
+        for (i = 0; i != 300; i++) {
             var xi = Math.floor(x);
             var yi = Math.floor(y);
             if (xi <= 0 || yi <= 0 || xi >= windowWidth-1 || yi >= windowHeight-1) break;
-            var r0 = pixels[4*(xi+yi*windowWidth)];
-            if (Math.abs(r0) > 80) break;
-            var ru = pixels[4*(xi+(yi-1)*windowWidth)];
-            var rd = pixels[4*(xi+(yi+1)*windowWidth)];
-            var rl = pixels[4*(xi-1+yi*windowWidth)];
-            var rr = pixels[4*(xi+1+yi*windowWidth)];
+            var r0 = potPixels[4*(xi+yi*windowWidth)];
+            //if (Math.abs(r0) > 80) break;
+            var ru = potPixels[4*(xi+(yi-1)*windowWidth)];
+            var rd = potPixels[4*(xi+(yi+1)*windowWidth)];
+            var rl = potPixels[4*(xi-1+yi*windowWidth)];
+            var rr = potPixels[4*(xi+1+yi*windowWidth)];
             var dx = rr-rl;
             var dy = rd-ru;
-            var dl = Math.hypot(dx, dy);
+            var dl = Math.hypot(dx, dy)*dir;
             if (dl == 0) break;
             x += dx/dl;
             y += dy/dl;
             coords.push(x, y);
-          }
-//console.log("dsfl i " + i);
+        }
   
-          gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-          gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-          gl.useProgram(shaderProgramDraw);
-          gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1, 1, 1);
+        gl.useProgram(shaderProgramDraw);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 1, 1, 1, 1);
   
-          gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-          gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
-          gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
   
-      	  mat4.identity(pMatrix);
-          pMatrix[0] = +2/windowWidth;
-          pMatrix[5] = +2/windowHeight;
-          pMatrix[12] = -1 + .5*pMatrix[0];
-          pMatrix[13] = -1 + .5*pMatrix[5];
-          setMatrixUniforms(shaderProgramDraw);
-          gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-          gl.drawArrays(gl.LINE_STRIP, 0, coords.length/2);
-          gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-       }
+      	mat4.identity(pMatrix);
+        pMatrix[0] = +2/windowWidth;
+        pMatrix[5] = +2/windowHeight;
+        pMatrix[12] = -1 + .5*pMatrix[0];
+        pMatrix[13] = -1 + .5*pMatrix[5];
+        setMatrixUniforms(shaderProgramDraw);
+        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
+        gl.drawArrays(gl.LINE_STRIP, 0, coords.length/2);
+        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
     function drawSceneField(s, rs, bright, equipMult) {

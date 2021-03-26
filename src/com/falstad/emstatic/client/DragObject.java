@@ -351,6 +351,8 @@ public abstract class DragObject implements Editable {
 	    return "length = " + sim.getLengthText(length());
 	}
 
+	void drawFieldLines() {}
+	
 	double length() {
 	    DragHandle dh1 = handles.get(0);
 	    DragHandle dh2 = handles.get(1);
