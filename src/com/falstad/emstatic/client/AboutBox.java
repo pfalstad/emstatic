@@ -1,20 +1,20 @@
 /*    
     Copyright (C) 2017 by Paul Falstad
     
-    This file is part of RippleGL.
+    This file is part of EMStatic.
 
-    RippleGL is free software: you can redistribute it and/or modify
+    EMStatic is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    RippleGL is distributed in the hope that it will be useful,
+    EMStatic is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with RippleGL.  If not, see <http://www.gnu.org/licenses/>.
+    along with EMStatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package com.falstad.emstatic.client;
@@ -60,7 +60,7 @@ public class AboutBox extends PopupPanel {
 		"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the "+
 		"GNU General Public License for more details.</p>"+
 		"<p style=\"font-size:9px\">For details of licensing see <A href=\"http://www.gnu.org/licenses/\" target=\"_blank\">http://www.gnu.org/licenses/</A>.</p>"+
-		"<p style=\"font-size:9px\">Source code:<A href=\"https://github.com/pfalstad/ripplegl\" target=\"_blank\">https://github.com/pfalstad/ripplegl</A></p>"));
+		"<p style=\"font-size:9px\">Source code:<A href=\"https://github.com/pfalstad/emstatic\" target=\"_blank\">https://github.com/pfalstad/emstatic</A></p>"));
 		
 		
 		vp.add(okButton = new Button("OK"));

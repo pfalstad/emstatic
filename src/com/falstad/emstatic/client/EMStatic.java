@@ -1,20 +1,20 @@
 /*
     Copyright (C) 2017 by Paul Falstad
 
-    This file is part of RippleGL.
+    This file is part of EMStatic.
 
-    RippleGL is free software: you can redistribute it and/or modify
+    EMStatic is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
 
-    RippleGL is distributed in the hope that it will be useful,
+    EMStatic is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with RippleGL.  If not, see <http://www.gnu.org/licenses/>.
+    along with EMStatic.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 package com.falstad.emstatic.client;
@@ -108,10 +108,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	int windowRight = 0;
 	public static final int sourceRadius = 17;
 	public static final double freqMult = .0233333 * 5;
-
-	public String getAppletInfo() {
-		return "Ripple by Paul Falstad";
-	}
 
 	// Container main;
 	Button blankButton;
@@ -246,7 +242,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	final Timer timer = new Timer() {
 		public void run() {
 			
-			updateRipple();
+			update();
 		}
 	};
 	final int FASTTIMER = 33; // 16;
@@ -1086,7 +1082,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	            needsRepaint = true;
 	            Scheduler.get().scheduleFixedDelay(new Scheduler.RepeatingCommand() {
 	                public boolean execute() {
-	                      updateRipple();
+	                      update();
 	                      needsRepaint = false;
 	                      return false;
 	                  }
@@ -1272,7 +1268,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setChargeSource(src);
 	    }
 	    
-	public void updateRipple() {
+	public void update() {
 			/*if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
@@ -2214,14 +2210,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         Storage stor = Storage.getLocalStorageIfSupported();
         if (stor == null)
                 return;
-        stor.setItem("rippleClipboard", clipboard);
+        stor.setItem("emstaticClipboard", clipboard);
     }
     
     void readClipboardFromStorage() {
         Storage stor = Storage.getLocalStorageIfSupported();
         if (stor == null)
                 return;
-        clipboard = stor.getItem("rippleClipboard");
+        clipboard = stor.getItem("emstaticClipboard");
     }
 
     void doDelete() {
