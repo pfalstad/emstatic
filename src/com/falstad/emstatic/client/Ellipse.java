@@ -20,6 +20,7 @@
 package com.falstad.emstatic.client;
 
 import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArray;
 
 public class Ellipse extends RectDragObject {
 	Ellipse(boolean square) {
@@ -31,7 +32,7 @@ public class Ellipse extends RectDragObject {
 	    super(st);
 	}
 	
-	static native void drawSolidEllipse(double cx, double cy, double xr, double yr, int type) /*-{
+	static native JsArray getSolidEllipse(double cx, double cy, double xr, double yr, int type) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = []; // cx, cy];
         	var i;
@@ -41,15 +42,15 @@ public class Ellipse extends RectDragObject {
                     coords.push(cx+i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
         	for (i = -xr; i <= xr; i++)
                     coords.push(cx-i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-                renderer.drawObject([coords], type);
+                return [coords];
 	}-*/;
 
-	void drawMaterials() {
-		drawSolidEllipse(
+	JsArray getBoundary() {
+	    return getSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW);
 	}
-
+	
 //	boolean hitTestInside(double x, double y) { return false; }
 
 	@Override double hitTest(int x, int y) {
@@ -63,7 +64,7 @@ public class Ellipse extends RectDragObject {
 	
 	void draw() {
 	    if (isConductor())
-		drawSolidEllipse((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW_CHARGE);
+		drawChargeWithBoundary(getBoundary());
 	    super.draw();
 	}
 
@@ -79,10 +80,6 @@ public class Ellipse extends RectDragObject {
 		fc = 0;
 	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
 	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
-	}
-	
-	void calcCharge() {
-	    drawSolidEllipse((topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2, (topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_CALC_CHARGE);
 	}
 	
         static native void drawFocus(JavaScriptObject renderer, int x, int y) /*-{

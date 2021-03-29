@@ -1375,6 +1375,32 @@ console.log("calculating charge from " + renderer.chargeSource);
         drawSceneField(s, rs, bright, equipMult);
     }
 
+    renderer.checkIntersection = function (bounds1, bounds2) {
+      var i;
+      // use tesselator to calculate intersection.  calculate union.
+      // if it's a single shape, the polygons intersect
+      var res = Tess2.tesselate({
+          contours: [bounds1, bounds2],
+          elementType: Tess2.BOUNDARY_CONTOURS,
+          windingRule: Tess2.WINDING_POSITIVE
+      });
+      return res.elementCount == 1;
+    }
+
+    renderer.transformBoundary = function (bounds) {
+      var i;
+      var j;
+      for (j = 0; j != bounds.length; j++) {
+        var arr = bounds[j];
+        for (i = 0; i < arr.length; i += 2) {
+          var x = arr[i];
+          var y = arr[i+1];
+          arr[i]   = transform[0]*x + transform[1]*y + transform[2];
+          arr[i+1] = transform[3]*x + transform[4]*y + transform[5];
+        }
+      }
+    }
+
     function drawScene3D(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgram3D);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);

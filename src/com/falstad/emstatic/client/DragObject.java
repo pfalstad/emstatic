@@ -21,6 +21,8 @@ package com.falstad.emstatic.client;
 
 import java.util.Vector;
 
+import com.google.gwt.core.client.JsArray;
+
 public abstract class DragObject implements Editable {
 	Vector<DragHandle> handles;
 	boolean selected;
@@ -73,7 +75,6 @@ public abstract class DragObject implements Editable {
 	void prepare() {}
 	void setSelected(boolean s) { selected = s; }
 	boolean isSelected() { return selected; }
-	void drawMaterials() {}
 	void delete() {}
 	void setTransform() {
 	    if (transform == null) {
@@ -144,7 +145,6 @@ public abstract class DragObject implements Editable {
 
 	void drawSelection() {
 	}
-	void calcCharge() {}
 
 	void rotate(double ang) {
 	    rotation += ang;
@@ -351,6 +351,46 @@ public abstract class DragObject implements Editable {
 	    return "length = " + sim.getLengthText(length());
 	}
 
+	JsArray getBoundary() { return null; }
+	
+	native boolean intersects(DragObject obj) /*-{
+	   var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	    var bounds1 = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
+	    if (!bounds1)
+	    	return false;
+	    renderer.transformBoundary(bounds1);
+	    var bounds2 = obj .@com.falstad.emstatic.client.DragObject::getBoundary()();
+	    if (!bounds2)
+	    	return false;
+	    renderer.transformBoundary(bounds2);
+	   return renderer.checkIntersection(bounds1[0], bounds2[0]);
+	}-*/;
+	
+	void loadTransform() {
+	    double xform[] = transform;
+	    sim.setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
+	}
+	
+	native void drawMaterials() /*-{
+	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	    var bounds = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
+	    if (bounds)
+	    	renderer.drawObject(bounds, 0);
+	}-*/;
+
+	native void drawChargeWithBoundary(JsArray bounds) /*-{
+	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	    renderer.drawObject(bounds, 1);
+	}-*/;
+
+
+	native void calcCharge() /*-{
+	    	var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	        var bounds = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
+	        if (bounds)
+	    	    renderer.drawObject(bounds, 2);
+	    }-*/;
+
 	void drawFieldLines() {}
 	
 	double length() {
@@ -361,8 +401,10 @@ public abstract class DragObject implements Editable {
 	}
 	int getMaterialType() { return materialType; }
 	boolean isConductor() { return materialType == MT_CONDUCTING || materialType == MT_FLOATING; }
+	boolean isFixedConductor() { return materialType == MT_CONDUCTING; }
 	boolean isFloating() { return materialType == MT_FLOATING; }
 	boolean isCharged() { return materialType == MT_CHARGED; }
 	void setPotential(double x) { potential = x; }
 	void setConductorCharge(double c) { conductorCharge = c; }
+	void updateFloatingCharge() { totalChargeFloating = conductorCharge; }
 }

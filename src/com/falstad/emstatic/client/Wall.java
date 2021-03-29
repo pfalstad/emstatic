@@ -19,6 +19,8 @@
 
 package com.falstad.emstatic.client;
 
+import com.google.gwt.core.client.JsArray;
+
 public class Wall extends DragObject {
 
 	Wall() {
@@ -53,25 +55,17 @@ public class Wall extends DragObject {
 	    EMStatic.setTransform(xf0, xf1, cx, -xf1, xf0, cy);
 	}
 
-	void drawMaterials() {
-	    drawWall(DO_DRAW);
-	}
-	
-	void drawWall(int type) {
+	JsArray getBoundary() {
 	    setWallTransform();
 	    int len2 = (int) (wallLen/2);
-	    Box.drawBox(-2, -len2, 2, -len2, -2, len2, 2, len2, type); 
-	}
-	
-	void draw() {
-	    super.draw();
-	    drawWall(DO_DRAW_CHARGE);
-	}
-	
-	void calcCharge() {
-	    drawWall(DO_CALC_CHARGE);
+	    return Box.getBox(-2, -len2, 2, -len2, -2, len2, 2, len2); 
 	}
 	    
+	void draw() {
+	    super.draw();
+	    drawChargeWithBoundary(getBoundary());
+	}
+	
 	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
 	
 	public EditInfo getEditInfo(int n) {

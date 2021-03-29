@@ -1092,6 +1092,20 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 	    static int finalSrc = 0;
 	    
+	    // check if floater is touching fixed conductor
+	    boolean touchingFixedObject(DragObject obj) {
+		int j;
+		for (j = 0; j != dragObjects.size(); j++) {
+		    DragObject obj2 = dragObjects.get(j);
+		    if (obj2 == obj)
+			continue;
+		    if (obj2.isFixedConductor() && obj.intersects(obj2)) {
+			obj.setPotential(obj2.potential);
+			return true;
+		    }
+		}
+		return false;
+	    }
 	    void recalculate() {
 		if (calcLevel > 0) {
 		    // if there are floating conductors, we don't bother to recalculate the charges/potentials on them.
@@ -1103,14 +1117,27 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int i;
 		DragObject.currentFloatingConductor = null;
 		Vector<DragObject> floatingVec = new Vector<DragObject>();
+		Vector<DragObject> touchingVec = new Vector<DragObject>();
 		for (i = 0; i != dragObjects.size(); i++) {
+		    // check for floating conductors, see if they are touching fixed conductors or really floating
 		    DragObject obj = dragObjects.get(i);
-		    if (obj.isFloating()) {
+		    if (!obj.isFloating())
+			continue;
+		    if (touchingFixedObject(obj))
+			touchingVec.add(obj);
+		    else {
 			floatingVec.add(obj);
 			obj.setPotential(0);
 		    }
 		}
+		
 		recalculateStep(false, floatingVec.size() == 0);
+		
+		// update charge for floaters touching conductors
+		for (i = 0; i != touchingVec.size(); i++) {
+		    DragObject obj = touchingVec.get(i);
+		    obj.updateFloatingCharge();
+		}
 		
 		// no floating conductors?  we're done
 		if (floatingVec.size() == 0) {
@@ -1138,7 +1165,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		if (fct == 1) {
 		    DragObject f0 = floatingVec.get(0);
-		    double pot = -baseCharge[0]/chargeMatrix[0][0];
+		    double pot = (f0.totalChargeFloating-baseCharge[0])/chargeMatrix[0][0];
 		    f0.setPotential(pot);
 		    console("fct " + fct + " " + chargeMatrix[0][0] + " " + baseCharge[0] + " " + pot);
 		    recalculateStep(false, true);
