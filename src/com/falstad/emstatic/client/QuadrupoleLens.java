@@ -58,7 +58,7 @@ public class QuadrupoleLens extends RectDragObject {
 	    drawLens(cx, cy, xr, yr, 0, -1, type);
 	}
 
-	void drawMaterials() { drawFullLens(DO_DRAW); }
+	void writeMaterials() { drawFullLens(DO_DRAW); }
 	
 	static native void flipPotential() /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
@@ -67,10 +67,10 @@ public class QuadrupoleLens extends RectDragObject {
 	
 	boolean hitTestInside(double x, double y) { return false; }
 
-	void draw() {
+	void display() {
 	    if (isConductor())
 		drawFullLens(DO_DRAW_CHARGE);
-	    super.draw();
+	    super.display();
 	}
 
 	@Override void drawSelection() {

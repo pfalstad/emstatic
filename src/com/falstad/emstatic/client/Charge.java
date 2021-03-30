@@ -49,19 +49,19 @@ public class Charge extends DragObject {
 		return super.dump() + " " + charge;
 	}
 	
-	void drawCharge() {
+	void writeCharge() {
 		DragHandle dh = handles.get(0);
-		drawChargeAt(sim.renderer, dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/sim.e0);
+		writeChargeAt(sim.renderer, dh.x, dh.y, charge*sim.gridSizeX*sim.gridSizeX/sim.e0);
 	}
 
-	static native void drawChargeAt(JavaScriptObject renderer, int x, int y, double value) /*-{
-		renderer.drawCharge(x, y, value);
+	static native void writeChargeAt(JavaScriptObject renderer, int x, int y, double value) /*-{
+		renderer.writeCharge(x, y, value);
 	}-*/;
 
 
 	final int chargeSize = 15;
 	
-	void draw() {
+	void display() {
 	    /*
 		int i;
 		for (i = 0; i != handles.size(); i++) {

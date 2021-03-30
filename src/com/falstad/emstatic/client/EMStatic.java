@@ -376,20 +376,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.drawHandle(x, y);
 	}-*/;
 
-	static native void drawLineSource(int x1, int y1, int x2, int y2, double value) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawLineSource(x1, y1, x2, y2, value);
-	}-*/;
-
 	static native void drawWall(int x1, int y1, int x2, int y2, double pot) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawWall(x1, y1, x2, y2, pot);
-	}-*/;
-
-	static native void clearWall(int x1, int y1, int x2, int y2) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.clearWall(x1, y1, x2, y2);
-	}-*/;
-
-	static native void drawLens(int x1, int y1, int w, int h, double med) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawLens(x1, y1, w, h, med);
 	}-*/;
 
 	static native void setDrawingSelection(double ds) /*-{
@@ -1044,7 +1032,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // draw charged object into scratch texture
 		    setDestination(scratch1);
 		    clearDestination();
-		    dragObjects.get(j).drawCharge();
+		    dragObjects.get(j).writeCharge();
 		    
 		    // add scratch texture to destination
 		    setDestination(scratch2);
@@ -1065,7 +1053,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    obj.useMaterial();
 		    double xform[] = obj.transform;
 		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-		    obj.drawMaterials();
+		    obj.writeMaterials();
 		}
 		setTransform(1, 0, 0, 0, 1, 0);
 	}
@@ -1333,7 +1321,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 						setDrawingSelection(1);
 					double xform[] = obj.transform;
 					setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-					obj.draw();
+					obj.display();
 				}
 			setTransform(1, 0, 0, 0, 1, 0);
 			setDrawingSelection(-1);

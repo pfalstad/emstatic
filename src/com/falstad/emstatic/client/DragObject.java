@@ -118,11 +118,11 @@ public abstract class DragObject implements Editable {
 	    return true;
 	}
 
-	void draw() {
+	void display() {
 	    if (isConductor()) {
 		JsArray bounds = getBoundary();
 		if (bounds != null)
-		    drawChargeWithBoundary(bounds);
+		    displayChargeWithBoundary(bounds);
 	    }
 	    if (selected) {
 		int i;
@@ -319,10 +319,10 @@ public abstract class DragObject implements Editable {
 	    }
 	}
 
-	void drawCharge() {
+	void writeCharge() {
 	    if (materialType == MT_CHARGED) {
 		useMaterialType(MT_CHARGED, 0, chargeDensity, false);
-		drawMaterials();
+		writeMaterials();
 	    }
 	}
 	
@@ -376,14 +376,14 @@ public abstract class DragObject implements Editable {
 	    sim.setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
 	}
 	
-	native void drawMaterials() /*-{
+	native void writeMaterials() /*-{
 	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	    var bounds = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
 	    if (bounds)
 	    	renderer.drawObject(bounds, 0);
 	}-*/;
 
-	native void drawChargeWithBoundary(JsArray bounds) /*-{
+	native void displayChargeWithBoundary(JsArray bounds) /*-{
 	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	    renderer.drawObject(bounds, 1);
 	}-*/;

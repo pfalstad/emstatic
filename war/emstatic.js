@@ -661,7 +661,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    renderer.drawCharge = function (x, y, f) {
+    renderer.writeCharge = function (x, y, f) {
         gl.useProgram(shaderProgramDraw);
         gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
 
@@ -716,6 +716,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
+    // display draggable charge
     renderer.drawChargeObject = function (x, y, r, value) {
         gl.useProgram(shaderProgramDraw);
         if (value > 0)
