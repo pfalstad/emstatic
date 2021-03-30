@@ -19,6 +19,8 @@
 
 package com.falstad.emstatic.client;
 
+import com.google.gwt.core.client.JsArray;
+
 public class HollowEllipse extends RectHollowDragObject {
 
     HollowEllipse(boolean square) {
@@ -30,7 +32,7 @@ public class HollowEllipse extends RectHollowDragObject {
 	super(st);
     }
 
-    static native void drawEllipse(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int type) /*-{
+    static native JsArray getEllipse(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
         var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
         if (x2-x1 < renderer.getMinFeatureWidth())
             x2 = x1+renderer.getMinFeatureWidth();
@@ -63,27 +65,13 @@ public class HollowEllipse extends RectHollowDragObject {
             coords2.push(cx-i, cy-yr*Math.sqrt(1-i*i/(xr*xr)));
        	for (i = -xr; i <= xr; i++)
             coords2.push(cx+i, cy+yr*Math.sqrt(1-i*i/(xr*xr)));
-        renderer.drawObject([coords, coords2], type);
+        return [coords, coords2]; 
     }-*/;
 
-    void drawMaterials() {
-	drawType(DO_DRAW);
-    }
-
-    void drawType(int type) {
+    JsArray getBoundary() {
 	DragHandle itl = handles.get(4);
 	DragHandle ibr = handles.get(6);
-	drawEllipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y, type);
-    }
-    
-    void draw() {
-	if (isConductor())
-	    drawType(DO_DRAW_CHARGE);
-	super.draw();
-    }
-
-    void calcCharge() {
-	drawType(DO_CALC_CHARGE);
+	return getEllipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y);
     }
     
     String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }

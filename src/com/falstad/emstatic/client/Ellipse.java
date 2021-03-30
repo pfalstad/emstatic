@@ -46,6 +46,7 @@ public class Ellipse extends RectDragObject {
 	}-*/;
 
 	JsArray getBoundary() {
+	    loadTransform();
 	    return getSolidEllipse(
 			(topLeft.x+topRight.x)/2, (topLeft.y+bottomLeft.y)/2,
 			(topRight.x-topLeft.x)/2, (bottomLeft.y-topLeft.y)/2, DO_DRAW);
@@ -62,12 +63,6 @@ public class Ellipse extends RectDragObject {
 		return ht;
 	}
 	
-	void draw() {
-	    if (isConductor())
-		drawChargeWithBoundary(getBoundary());
-	    super.draw();
-	}
-
 	@Override void drawSelection() {
 	    //		drawMaterials(false);
 	    double a = (topRight.x-topLeft.x)/2;

@@ -19,6 +19,8 @@
 
 package com.falstad.emstatic.client;
 
+import com.google.gwt.core.client.JsArray;
+
 public class HollowBox extends RectHollowDragObject {
 
     HollowBox() {
@@ -29,7 +31,7 @@ public class HollowBox extends RectHollowDragObject {
 	super(st);
     }
 
-    static native void drawBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int type) /*-{
+    static native JsArray getBox(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4) /*-{
         var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
         if (x2-x1 < renderer.getMinFeatureWidth())
             x2 = x1+renderer.getMinFeatureWidth();
@@ -46,28 +48,15 @@ public class HollowBox extends RectHollowDragObject {
         var medCoords = [[x1, y1, x2, y1, x2, y2, x1, y2]];
         if (!(x4 < x3 || y4 < y3))
             medCoords.push([x3, y3, x3, y4, x4, y4, x4, y3]);
-//        console.log("medcoords " + medCoords + " " + renderer.getMinFeatureWidth());
-        renderer.drawObject(medCoords, type);
+        return medCoords;
     }-*/;
 
-    void drawMaterials() {
-	drawType(DO_DRAW);
-    }
-
-    void drawType(int type) {
+    
+    JsArray getBoundary() {
+	loadTransform();
 	DragHandle itl = handles.get(4);
 	DragHandle ibr = handles.get(6);
-	drawBox(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y, type);
-    }
-    
-    void draw() {
-	if (isConductor())
-	    drawType(DO_DRAW_CHARGE);
-	super.draw();
-    }
-
-    void calcCharge() {
-	drawType(DO_CALC_CHARGE);
+	return getBox(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y);
     }
     
     String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
