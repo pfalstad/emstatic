@@ -396,7 +396,20 @@ public abstract class DragObject implements Editable {
 	    	    renderer.drawObject(bounds, 2);
 	    }-*/;
 
-	void drawFieldLines() {}
+        native void drawFieldLinesObj(JsArray bound) /*-{
+        	var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+        	renderer.drawFieldLinesObj(bound);
+    	}-*/;
+    
+        void drawFieldLines() {
+            if (isConductor()) {
+        	JsArray bounds = getBoundary();
+        	if (bounds != null)
+        	    drawFieldLinesObj(bounds);
+            }
+        }
+
+
 	
 	double length() {
 	    DragHandle dh1 = handles.get(0);

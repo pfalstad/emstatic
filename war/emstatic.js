@@ -1299,6 +1299,30 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
+    renderer.drawFieldLinesObj = function (bounds) {
+        var i = 0;
+        var poly = bounds[0];
+        var sep = 15;
+        var dist = 0;
+        while (true) {
+          var x = poly[i];
+          var y = poly[i+1];
+          var dx = poly[(i+2) % poly.length]-x;
+          var dy = poly[(i+3) % poly.length]-y;
+          var dl = Math.hypot(dx, dy);
+          if (dist > dl) {
+            dist -= dl;
+            i += 2;
+            if (i == poly.length)
+              break;
+            continue;
+          }
+          renderer.drawFieldLine(x+dx*dist/dl, y+dy*dist/dl, 1);
+          renderer.drawFieldLine(x+dx*dist/dl, y+dy*dist/dl, -1);
+          dist += sep;
+        }
+    }
+
     function drawSceneField(s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramField);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
