@@ -1251,6 +1251,9 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.readPixels(windowOffsetX, windowOffsetY, windowWidth, windowHeight, gl.RGBA, gl.FLOAT, potPixels);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        var i; 
+        for (i = 3; i < potPixels.length; i += 4)
+          potPixels[i] = 0;
     }
 
     renderer.freePotentialPixels = function() {
@@ -1258,20 +1261,34 @@ console.log("calculating charge from " + renderer.chargeSource);
     }
 
     renderer.drawFieldLine = function (x, y, dir) {
-        var i;
+        var i, j;
         y = windowHeight-1-y;
         x += .5; y += .5;
         var coords = [x, y];
-        for (i = 0; i != 300; i++) {
-            var xi = Math.floor(x);
-            var yi = Math.floor(y);
+        var xi = Math.floor(x);
+        var yi = Math.floor(y);
+        // check to see if we already drew a field line nearby
+        for (i = -2; i <= 2; i++)
+          for (j = -2; j <= 2; j++) {
+            if (i*i+j*j > 4)
+              continue;
+            if (potPixels[4*(xi+i+(yi+j)*windowWidth)+3] > 0)
+              return;
+          }
+        for (i = 0; i != 800; i++) {
+            xi = Math.floor(x);
+            yi = Math.floor(y);
             if (xi <= 0 || yi <= 0 || xi >= windowWidth-1 || yi >= windowHeight-1) break;
-            var r0 = potPixels[4*(xi+yi*windowWidth)];
+            var ind = 4*(xi+yi*windowWidth);
+            var r0 = potPixels[ind];
+            // mark where we've drawn field lines already.  but avoid marking for field lines that are just stubs.
+            if (i > 5)
+              potPixels[ind+3] = 1;
             //if (Math.abs(r0) > 80) break;
-            var ru = potPixels[4*(xi+(yi-1)*windowWidth)];
-            var rd = potPixels[4*(xi+(yi+1)*windowWidth)];
-            var rl = potPixels[4*(xi-1+yi*windowWidth)];
-            var rr = potPixels[4*(xi+1+yi*windowWidth)];
+            var ru = potPixels[ind-windowWidth*4];
+            var rd = potPixels[ind+windowWidth*4];
+            var rl = potPixels[ind-4];
+            var rr = potPixels[ind+4];
             var dx = rr-rl;
             var dy = rd-ru;
             var dl = Math.hypot(dx, dy)*dir;
@@ -1301,6 +1318,7 @@ console.log("calculating charge from " + renderer.chargeSource);
 
     renderer.drawFieldLinesObj = function (bounds) {
         var i = 0;
+        // only do outside
         var poly = bounds[0];
         var sep = 15;
         var dist = 0;
