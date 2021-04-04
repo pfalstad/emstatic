@@ -1626,68 +1626,77 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int p;
 		int x = 0;
 		int srci = 0;
+		int storedWidth = windowWidth;
 //		setupChooser.select(0);
 //		setup = (Setup) setupList.elementAt(0);
 		for (p = 0; p < len;) {
-			int l;
-            int linelen = len-p; // IES - changed to allow the last line to not end with a delim.
-			for (l = 0; l != len - p; l++)
-				if (b[l + p] == '\n' || b[l + p] == '\r') {
-					linelen = l++;
-					if (l + p < b.length && b[l + p] == '\n')
-						l++;
-					break;
-				}
-			String line = new String(b, p, linelen);
-            StringTokenizer st = new StringTokenizer(line, " +\t\n\r\f");
-			while (st.hasMoreTokens()) {
-				String type = st.nextToken();
-				int tint = type.charAt(0);
-				try {
-					if (tint == '$') {
-						int flags = new Integer(st.nextToken()).intValue();
-						if ((flags & 1) == 0)
-							return;
-
-//						dump = "$ 1 " + windowWidth + " " + windowOffsetX + " " +
-//								fixedEndsCheck.getState() + " " + brightnessBar.getValue() + "\n";
-
-						int ww = Integer.parseInt(st.nextToken());
-						int wo = Integer.parseInt(st.nextToken());
-						setResolution(ww, wo);
-						reinit(false);
-
-						dampingBar.setValue(Integer.parseInt(st.nextToken()));
-						st.nextToken();
-//						displayChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
-						brightnessBar.setValue(new Integer(st.nextToken())
-								.intValue());
-						lengthScale = Double.parseDouble(st.nextToken());
-						try {
-						    equipotentialBar.setValue(Integer.parseInt(st.nextToken()));
-						} catch (Exception e) {}
-						break;
-					}
-                    if (tint >= '0' && tint <= '9')
-                        tint = new Integer(type).intValue();
-                    DragObject newobj = createObj(tint, st);
-                    if (newobj==null) {
-                    	console("unrecognized dump type: " + type);
-                    	break;
-                    }
-                    if (newobj.getDumpType() != tint)
-                    	console("dump type mismatch for " + tint);
-                    dragObjects.add(newobj);
-				} catch (Exception ee) {
-					console("got exception when reading setup");
-					ee.printStackTrace();
-					break;
-				}
-				break;
+		    int l;
+		    int linelen = len-p; // IES - changed to allow the last line to not end with a delim.
+		    for (l = 0; l != len - p; l++)
+			if (b[l + p] == '\n' || b[l + p] == '\r') {
+			    linelen = l++;
+			    if (l + p < b.length && b[l + p] == '\n')
+				l++;
+			    break;
 			}
-			p += l;
+		    String line = new String(b, p, linelen);
+		    StringTokenizer st = new StringTokenizer(line, " +\t\n\r\f");
+		    while (st.hasMoreTokens()) {
+			String type = st.nextToken();
+			int tint = type.charAt(0);
+			try {
+			    if (tint == '$') {
+				int flags = new Integer(st.nextToken()).intValue();
+				if ((flags & 1) == 0)
+				    return;
+
+				//						dump = "$ 1 " + windowWidth + " " + windowOffsetX + " " +
+				//								fixedEndsCheck.getState() + " " + brightnessBar.getValue() + "\n";
+
+				int ww = Integer.parseInt(st.nextToken());
+				int wo = Integer.parseInt(st.nextToken());
+				storedWidth = ww;
+				setResolution(ww, wo);
+				reinit(false);
+
+				dampingBar.setValue(Integer.parseInt(st.nextToken()));
+				st.nextToken();
+				//						displayChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
+				brightnessBar.setValue(new Integer(st.nextToken())
+					.intValue());
+				lengthScale = Double.parseDouble(st.nextToken());
+				try {
+				    equipotentialBar.setValue(Integer.parseInt(st.nextToken()));
+				} catch (Exception e) {}
+				break;
+			    }
+			    if (tint >= '0' && tint <= '9')
+				tint = new Integer(type).intValue();
+			    DragObject newobj = createObj(tint, st);
+			    if (newobj==null) {
+				console("unrecognized dump type: " + type);
+				break;
+			    }
+			    if (newobj.getDumpType() != tint)
+				console("dump type mismatch for " + tint);
+			    dragObjects.add(newobj);
+			} catch (Exception ee) {
+			    console("got exception when reading setup");
+			    ee.printStackTrace();
+			    break;
+			}
+			break;
+		    }
+		    p += l;
 
 		}
+		
+                int i;
+                for (i = 0; i != dragObjects.size(); i++) {
+                        DragObject obj = dragObjects.get(i);
+                        obj.rescale(windowWidth/(double)storedWidth);
+                }
+
 		setDamping();
 		wallsChanged();
 		enableDisableUI();
