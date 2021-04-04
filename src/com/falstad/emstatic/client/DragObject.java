@@ -380,12 +380,12 @@ public abstract class DragObject implements Editable {
 	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	    var bounds = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
 	    if (bounds)
-	    	renderer.drawObject(bounds, 0);
+	    	renderer.writeShape(bounds);
 	}-*/;
 
 	native void displayChargeWithBoundary(JsArray bounds) /*-{
 	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-	    renderer.drawObject(bounds, 1);
+	    renderer.displayCharge(bounds);
 	}-*/;
 
 
@@ -393,19 +393,19 @@ public abstract class DragObject implements Editable {
 	    	var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var bounds = this.@com.falstad.emstatic.client.DragObject::getBoundary()();
 	        if (bounds)
-	    	    renderer.drawObject(bounds, 2);
+	    	    renderer.calcCharge(bounds);
 	    }-*/;
 
-        native void drawFieldLinesObj(JsArray bound) /*-{
+        native void drawFieldLinesShape(JsArray bound) /*-{
         	var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-        	renderer.drawFieldLinesObj(bound);
+        	renderer.drawFieldLinesShape(bound);
     	}-*/;
     
         void drawFieldLines() {
             if (isConductor() || isCharged()) {
         	JsArray bounds = getBoundary();
         	if (bounds != null)
-        	    drawFieldLinesObj(bounds);
+        	    drawFieldLinesShape(bounds);
             }
         }
 

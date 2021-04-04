@@ -20,6 +20,7 @@
 package com.falstad.emstatic.client;
 
 import com.google.gwt.core.client.JavaScriptObject;
+import com.google.gwt.core.client.JsArray;
 
 public class QuadrupoleLens extends RectDragObject {
 	QuadrupoleLens() {
@@ -30,7 +31,8 @@ public class QuadrupoleLens extends RectDragObject {
 	    super(st);
 	}
 	
-	static native void drawLens(double cx, double cy, double xr, double yr, double dirx, double diry, int type) /*-{
+	@SuppressWarnings("rawtypes")
+	static native JsArray getLensPiece(double cx, double cy, double xr, double yr, double dirx, double diry) /*-{
 		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	        var coords = [];
         	var i;
@@ -43,35 +45,60 @@ public class QuadrupoleLens extends RectDragObject {
         	    	continue;
                     coords.push(cx+i*dirx+yd*diry, cy+yd*dirx+i*diry); //, cx+i*dirx+yr*diry, cy+yr*dirx+i*diry);
         	}
-                renderer.drawObject([coords], type);
+        	return coords;
 	}-*/;
 
-	void drawFullLens(int type) {
+	@SuppressWarnings("rawtypes")
+	static native void writeLensPieces(JsArray arr1, JsArray arr2, boolean flip) /*-{
+	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	    if (flip)
+	    	renderer.potential = -renderer.potential;
+	    renderer.writeShape([arr1, arr2]);
+	}-*/;
+	
+	@SuppressWarnings("rawtypes")
+	void writeMaterials() {
 	    int cx = (topLeft.x+topRight.x)/2;
 	    int cy = (topLeft.y+bottomLeft.y)/2;
 	    int xr = (topRight.x-topLeft.x)/2;
 	    int yr = (bottomLeft.y-topLeft.y)/2;
-	    drawLens(cx, cy, xr, yr, 1, 0, type);
-	    drawLens(cx, cy, xr, yr, -1, 0, type);
-	    flipPotential();
-	    drawLens(cx, cy, xr, yr, 0, 1, type);
-	    drawLens(cx, cy, xr, yr, 0, -1, type);
+	    JsArray arr1 = getLensPiece(cx, cy, xr, yr, 1, 0);
+	    JsArray arr2 = getLensPiece(cx, cy, xr, yr, -1, 0);
+	    JsArray arr3 = getLensPiece(cx, cy, xr, yr, 0, 1);
+	    JsArray arr4 = getLensPiece(cx, cy, xr, yr, 0, -1);
+	    writeLensPieces(arr1, arr2, false);
+	    writeLensPieces(arr3, arr4, true);
 	}
 
-	void writeMaterials() { drawFullLens(DO_DRAW); }
-	
-	static native void flipPotential() /*-{
-		var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
-		renderer.potential = -renderer.potential;
+	@SuppressWarnings("rawtypes")
+	static native JsArray getFullLens(JsArray arr1, JsArray arr2, JsArray arr3, JsArray arr4) /*-{
+	    return [arr1, arr2, arr3, arr4];
 	}-*/;
+
+        native void drawFieldLinesShape(JsArray bound) /*-{
+	    var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
+	    renderer.drawFieldLinesShape([bound[0]]);
+	    renderer.drawFieldLinesShape([bound[1]]);
+	    renderer.drawFieldLinesShape([bound[2]]);
+	    renderer.drawFieldLinesShape([bound[3]]);
+	}-*/;
+
+	
+	@SuppressWarnings("rawtypes")
+	JsArray getBoundary() {
+	    loadTransform();
+	    int cx = (topLeft.x+topRight.x)/2;
+	    int cy = (topLeft.y+bottomLeft.y)/2;
+	    int xr = (topRight.x-topLeft.x)/2;
+	    int yr = (bottomLeft.y-topLeft.y)/2;
+	    JsArray arr1 = getLensPiece(cx, cy, xr, yr, 1, 0);
+	    JsArray arr2 = getLensPiece(cx, cy, xr, yr, -1, 0);
+	    JsArray arr3 = getLensPiece(cx, cy, xr, yr, 0, 1);
+	    JsArray arr4 = getLensPiece(cx, cy, xr, yr, 0, -1);
+	    return getFullLens(arr1, arr2, arr3, arr4);
+	}
 	
 	boolean hitTestInside(double x, double y) { return false; }
-
-	void display() {
-	    if (isConductor())
-		drawFullLens(DO_DRAW_CHARGE);
-	    super.display();
-	}
 
 	@Override void drawSelection() {
 	    //		drawMaterials(false);
@@ -85,10 +112,6 @@ public class QuadrupoleLens extends RectDragObject {
 		fc = 0;
 	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2-fc, (topLeft.y+bottomLeft.y)/2-fd);
 	    drawFocus(sim.renderer, (topLeft.x+topRight.x)/2+fc, (topLeft.y+bottomLeft.y)/2+fd);
-	}
-	
-	void calcCharge() {
-	    drawFullLens(DO_CALC_CHARGE);
 	}
 	
 	boolean mustBeSquare() { return true; }

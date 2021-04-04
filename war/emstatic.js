@@ -951,21 +951,12 @@ function isPowerOf2(value) {
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
     
-    renderer.drawObject = function (contours, type) {
-      var res = Tess2.tesselate({
-          contours: contours,
-          polySize: 3 // output triangles
-      });
+    renderer.writeShape = function (contours) {
+        var tess = Tess2.tesselate({
+           contours: contours,
+           polySize: 3 // output triangles
+        });
 
-      if (type == 0)
-        renderer.drawSolid(res);
-      else if (type == 1)
-        renderer.displayCharge(res);
-      else if (type == 2)
-        renderer.calcCharge(res);
-    }
-
-    renderer.drawSolid = function (tess) {
         var med = renderer.permittivity;
         var pot = renderer.residual ? 0 : renderer.potential;
         if (med == undefined) {
@@ -993,7 +984,12 @@ function isPowerOf2(value) {
         gl.colorMask(true, true, true, true);
     }
 
-    renderer.displayCharge = function (tess) {
+    renderer.displayCharge = function (contours) {
+        var tess = Tess2.tesselate({
+           contours: contours,
+           polySize: 3 // output triangles
+        });
+
         gl.useProgram(shaderProgramViewCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramViewCharge);
@@ -1028,7 +1024,12 @@ console.log("displaying charge from " + renderer.chargeSource);
         gl.disableVertexAttribArray(shaderProgramViewCharge.vertexPositionAttribute);
     }
 
-    renderer.calcCharge = function (tess) {
+    renderer.calcCharge = function (contours) {
+        var tess = Tess2.tesselate({
+           contours: contours,
+           polySize: 3 // output triangles
+        });
+
         gl.useProgram(shaderProgramCalcCharge);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramCalcCharge);
@@ -1281,7 +1282,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
     }
 
-    renderer.drawFieldLinesObj = function (bounds) {
+    renderer.drawFieldLinesShape = function (bounds) {
         var i = 0;
         // only do outside
         var poly = bounds[0];
