@@ -1381,7 +1381,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (newWidth == oldWidth && border == 0)
 			return;
 		if (border == 0) {
-			border = newWidth / 8;
+			border = newWidth / 4;
 			if (border < 20)
 				border = 20;
 		}
@@ -1397,7 +1397,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		windowBottom = windowOffsetY + windowHeight - 1;
 		windowRight = windowOffsetX + windowWidth - 1;
 		setResolutionGL(gridSizeX, gridSizeY, windowOffsetX, windowOffsetY);
-		console("res " + gridSizeX + " " + speedBar.getValue());
+		console("res " + gridSizeX + " " + windowOffsetX);
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
