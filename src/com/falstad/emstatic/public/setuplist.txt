@@ -1,7 +1,13 @@
 ### setuplist.txt first line must be a comment
 charge-single.txt Single Charge
 chargetest.txt chargetest
+charge-double.txt Double Charge
 charge-dipole.txt Dipole Charge
+charge-quad.txt Quadrupole Charge
+charge-plane.txt Charge + Plane
+dipole-field.txt Dipole + Uniform Field
+conducting-planes.txt Conducting Planes
+charged-planes.txt Charged Planes
 conductor.txt Conductor
 conductor-charge.txt Conductor and Charge
 dielec.txt Dielectric
