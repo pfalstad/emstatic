@@ -321,7 +321,7 @@ public abstract class DragObject implements Editable {
 
 	void writeCharge() {
 	    if (materialType == MT_CHARGED) {
-		useMaterialType(MT_CHARGED, 0, chargeDensity, false);
+		useMaterialType(MT_CHARGED, 0, chargeDensity*sim.gridSizeX*sim.gridSizeY*sim.lengthScale*sim.lengthScale/sim.e0, false);
 		writeMaterials();
 	    }
 	}
