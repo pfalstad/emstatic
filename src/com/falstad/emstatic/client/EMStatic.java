@@ -392,14 +392,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.drawTriangle(x1, y1, x2, y2, x3, y3, med);
 	}-*/;
 
-	static native void doBlank() /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.doBlank();
-	}-*/;
-
-	static native void doBlankWalls() /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.doBlankWalls();
-	}-*/;
-
 	static native void setResidualFlag(boolean res) /*-{
 	   var renderer = @com.falstad.emstatic.client.EMStatic::renderer;
 	   renderer.residual = res;
@@ -1429,7 +1421,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	void deleteAllObjects() {
 		dragObjects.removeAllElements();
 		selectedObject = null;
-		doBlankWalls();
 	}
 
 	void resetTime() {
@@ -1443,7 +1434,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		resetTime();
 		if (resBar.getValue() < 32)
 			setResolution(32);
-		doBlank();
 		deleteAllObjects();
 		dampingBar.setValue(10);
 		setFreqBar(5);
@@ -1627,7 +1617,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	void readImport(String s, boolean retain) {
 		if (!retain) {
-			doBlank();
 			resetTime();
 			deleteAllObjects();
 		}
@@ -2130,11 +2119,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	public void onClick(ClickEvent event) {
 //		event.preventDefault();
 		repaint();
-		if (event.getSource() == blankButton) {
-			doBlank();
-			resetTime();
-		}
-		
 		if (event.getSource() == resBar) {
 		    setResolution();
 //		    reinit();

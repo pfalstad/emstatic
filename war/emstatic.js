@@ -238,7 +238,6 @@ function isPowerOf2(value) {
 
 
 
-    var renderTexture1, renderTexture2;
     var fbType;
 
     function initTextureFramebuffer(sz) {
@@ -813,40 +812,6 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         gl.drawArrays(gl.LINES, 0, 2);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-    }
-
-    renderer.drawPhasedArray = function (x, y, x2, y2, f1, f2) {
-        var rttFramebuffer = renderTexture1.framebuffer;
-        gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-        gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-        gl.colorMask(true, true, false, false);
-        gl.useProgram(shaderProgramMode);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        srcCoords[0] = x;
-        srcCoords[1] = y;
-        srcCoords[2] = x2;
-        srcCoords[3] = y2;
-        var colors = [f1, Math.PI/2, 0, 0, f2, Math.PI/2, 0, 0];
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramMode.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramMode.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramMode);
-        gl.enableVertexAttribArray(shaderProgramMode.vertexPositionAttribute);
-        gl.enableVertexAttribArray(shaderProgramMode.colorAttribute);
-        gl.drawArrays(gl.LINES, 0, 2);
-        gl.disableVertexAttribArray(shaderProgramMode.vertexPositionAttribute);
-        gl.disableVertexAttribArray(shaderProgramMode.colorAttribute);
-
-        gl.colorMask(true, true, true, true);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-        //mvPopMatrix();
     }
 
     function loadMatrix(mtx) {
@@ -1515,7 +1480,7 @@ console.log("calculating charge from " + renderer.chargeSource);
 //    	gridSizeX = gridSizeY = 1024;
 //    	windowOffsetX = windowOffsetY = 40;
     	fbType = 0;
-    	renderTexture2 = initTextureFramebuffer(64);
+    	var renderTexture2 = initTextureFramebuffer(64);
     	if (!renderTexture2) {
     		// float didn't work, try half float
     		fbType = 1;
@@ -1562,8 +1527,6 @@ console.log("calculating charge from " + renderer.chargeSource);
     			sz *= 2;
     		}
     		renderTextures.push(initTextureFramebuffer(sz));
-    		renderTexture1 = renderTextures[renderTextures.length-2];
-    		renderTexture2 = renderTextures[renderTextures.length-1];
     		initBuffers();
     	}
     	renderer.getRenderTextureCount = function () { return renderTextures.length-1; }
@@ -1578,26 +1541,6 @@ console.log("calculating charge from " + renderer.chargeSource);
         	gl.clearColor(0.0, 0.0, 1.0, 1.0);
     		gl.clear(gl.COLOR_BUFFER_BIT);
     	}
-    	renderer.doBlank = function () {
-    		var rttFramebuffer = renderTexture1.framebuffer;
-    		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-    		gl.colorMask(true, true, false, false);	
-        	gl.clearColor(0.0, 0.0, 1.0, 1.0);
-    		gl.clear(gl.COLOR_BUFFER_BIT);
-    		gl.colorMask(true, true, true, true);
-    		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    	}
-    	renderer.doBlankWalls = function () {
-    		var rttFramebuffer = renderTexture1.framebuffer;
-    		gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    		gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
-    		gl.colorMask(false, false, true, false);
-        	gl.clearColor(0.0, 0.0, 1.0, 1.0);
-    		gl.clear(gl.COLOR_BUFFER_BIT);
-    		gl.colorMask(true, true, true, true);
-    		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	}
     	renderer.set3dViewAngle = function (x, y) {
     	    var mtemp = mat4.create();
     	    mat4.identity(mtemp);
