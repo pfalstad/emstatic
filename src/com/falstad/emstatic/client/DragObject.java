@@ -402,7 +402,7 @@ public abstract class DragObject implements Editable {
     	}-*/;
     
         void drawFieldLines() {
-            if (isConductor()) {
+            if (isConductor() || isCharged()) {
         	JsArray bounds = getBoundary();
         	if (bounds != null)
         	    drawFieldLinesObj(bounds);
