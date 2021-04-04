@@ -727,7 +727,7 @@ function isPowerOf2(value) {
         var cx = -1+2*(x+.5)/windowWidth;
         var cy = +1-2*(y+.5)/windowHeight;
         var coords = [cx, cy];
-        r /= windowWidth;
+        r *= 2/windowWidth;
         var i;
         for (i = 0; i <= 20; i++) {
           var ang = Math.PI*i/10;

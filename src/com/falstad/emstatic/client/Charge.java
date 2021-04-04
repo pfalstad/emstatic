@@ -59,7 +59,7 @@ public class Charge extends DragObject {
 	}-*/;
 
 
-	final int chargeSize = 15;
+	final int chargeSize = 8;
 	
 	void display() {
 	    /*
