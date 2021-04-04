@@ -1286,6 +1286,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         var i = 0;
         // only do outside
         var poly = bounds[0];
+        renderer.transformBoundary([poly]);
         var sep = 15;
         var dist = 0;
         while (true) {
