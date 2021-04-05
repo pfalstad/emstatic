@@ -678,7 +678,6 @@ function isPowerOf2(value) {
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
 		gl.colorMask(true, false, false, false);
-        console.log("pre " + gl.getError());
         gl.drawArrays(gl.LINES, 0, 2);
 		gl.colorMask(true, true, true, true);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
