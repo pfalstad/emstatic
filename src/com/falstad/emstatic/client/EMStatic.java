@@ -1292,9 +1292,15 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			// etc.
 			double brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
 			double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
+			equipMult *= brightMult/.9;
 			if (!equipCheck.getState())
 			    equipMult = 0;
 			int i;
+			console("brightmult " + brightMult);
+			switch (displayChooser.getSelectedIndex()) {
+			case DISP_POT: brightMult *= .02666; break;
+			case DISP_3D:  brightMult *= .05333; break;
+			}
 			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 			if (displayChooser.getSelectedIndex() == DISP_LINES) {
 			    fetchPotentialPixels(src);
