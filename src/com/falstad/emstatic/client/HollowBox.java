@@ -37,13 +37,13 @@ public class HollowBox extends RectHollowDragObject {
             x2 = x1+renderer.getMinFeatureWidth();
         if (y2-y1 < renderer.getMinFeatureWidth())
             y2 = y1+renderer.getMinFeatureWidth();
-        if (x3-x1 < renderer.getMinFeatureWidth())
+        if (x1 != x3 && x3-x1 < renderer.getMinFeatureWidth())
             x3 = x1+renderer.getMinFeatureWidth();
-        if (x2-x4 < renderer.getMinFeatureWidth())
+        if (x2 != x4 && x2-x4 < renderer.getMinFeatureWidth())
             x4 = x2-renderer.getMinFeatureWidth();
-        if (y3-y1 < renderer.getMinFeatureWidth())
-            y3 = x1+renderer.getMinFeatureWidth();
-        if (y2-y4 < renderer.getMinFeatureWidth())
+        if (y1 != y3 && y3-y1 < renderer.getMinFeatureWidth())
+            y3 = y1+renderer.getMinFeatureWidth();
+        if (y2 != y4 && y2-y4 < renderer.getMinFeatureWidth())
             y4 = y2-renderer.getMinFeatureWidth();
         var medCoords = [[x1, y1, x2, y1, x2, y2, x1, y2]];
         if (!(x4 < x3 || y4 < y3))
