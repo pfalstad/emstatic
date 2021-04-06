@@ -8,9 +8,28 @@ charge-plane.txt Charge + Plane
 dipole-field.txt Dipole + Uniform Field
 conducting-planes.txt Conducting Planes
 charged-planes.txt Charged Planes
+cyl.txt Conducting Cylinder
+cyl-field.txt Grounded Cyl + Field
+cyl-charge.txt Grounded Cyl + Charge
+cyl-charged.txt Charged Cylinder
+charged-hollow-cyl1.txt Charged Hollow Cyl 1
+charged-hollow-cyl2.txt Charged Hollow Cyl 2
+floating-cyl-charge.txt Floating Cyl + Charge
+floating-cyl-plates.txt Floating Cyl + Plates
+sharp-point.txt Sharp Point
+corner.txt Corner
+45-deg.txt 45 Degrees
+135-deg.txt 135 Degrees
+conducting-box.txt Conducting Box
 conductor.txt Conductor
 conductor-charge.txt Conductor and Charge
-dielec.txt Dielectric
+dielec.txt Dielectric 1
+dielec2.txt Dielectric 2
+dielec-dipole.txt Dielectric + Dipole
 charged-cyl.txt Charged Cylinder
 qlens.txt Quadrupole Lens
 dcyl.txt Dielectric Cylinder in Field
+planes-gap.txt Conducting Planes w/ Gap
+slotted-plane.txt Slotted Conducting Plane
+shielding1.txt Shielding 1
+shielding2.txt Shielding 2
