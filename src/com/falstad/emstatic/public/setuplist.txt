@@ -26,6 +26,7 @@ conductor-charge.txt Conductor and Charge
 dielec.txt Dielectric 1
 dielec2.txt Dielectric 2
 dielec-dipole.txt Dielectric + Dipole
+dielec-cap.txt Dielectric Capacitor
 charged-cyl.txt Charged Cylinder
 qlens.txt Quadrupole Lens
 dcyl.txt Dielectric Cylinder in Field
@@ -33,3 +34,4 @@ planes-gap.txt Conducting Planes w/ Gap
 slotted-plane.txt Slotted Conducting Plane
 shielding1.txt Shielding 1
 shielding2.txt Shielding 2
+one-live-side.txt Box w/ One Live Side
