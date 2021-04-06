@@ -267,6 +267,8 @@ public abstract class DragObject implements Editable {
 		out += " " + permittivity;
 	    else if (materialType == MT_CHARGED)
 		out += " " + chargeDensity;
+	    else if (materialType == MT_FLOATING)
+		out += " " + totalChargeFloating;
 	    out += dumpHandles();
 	    return out;
 	}

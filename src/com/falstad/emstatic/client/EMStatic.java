@@ -1296,7 +1296,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			if (!equipCheck.getState())
 			    equipMult = 0;
 			int i;
-			console("brightmult " + brightMult);
+//			console("brightmult " + brightMult);
 			switch (displayChooser.getSelectedIndex()) {
 			case DISP_POT: brightMult *= .02666; break;
 			case DISP_3D:  brightMult *= .05333; break;
