@@ -234,6 +234,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
     static AboutBox aboutBox;
     static JavaScriptObject renderer;
     static final double e0 = 8.854e-12;
+    long calcStart;
 
 	static final int MENUBARHEIGHT = 30;
 	static final int MAXVERTICALPANELWIDTH = 166;
@@ -342,6 +343,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 	static native void copyRGB(int src) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.copyRGB(src);
+	}-*/;
+
+	static native double calcDifference(int src1, int src2) /*-{
+		return @com.falstad.emstatic.client.EMStatic::renderer.calcDifference(src1, src2);
 	}-*/;
 
 	static native void sum(int src) /*-{
@@ -1060,16 +1065,20 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    void repaint() {
 	        if (!needsRepaint) {
 	            needsRepaint = true;
-	            Scheduler.get().scheduleFixedDelay(new Scheduler.RepeatingCommand() {
-	                public boolean execute() {
-	                      update();
-	                      needsRepaint = false;
-	                      return false;
-	                  }
-	            }, FASTTIMER);
+	            forceRepaint();
 	        }
 	    }
 
+	    void forceRepaint() {
+		Scheduler.get().scheduleFixedDelay(new Scheduler.RepeatingCommand() {
+		    public boolean execute() {
+			update();
+			needsRepaint = false;
+			return false;
+		    }
+		}, FASTTIMER);
+	    }
+	    
 	    static int finalSrc = 0;
 	    
 	    // check if floater is touching fixed conductor
@@ -1183,6 +1192,12 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    setDestination(rtnum-3);
 		    copyRG(finalSrc);
 		    int src = multigridVCycle(rtnum-3, rtnum-2, rtnum-1);
+		    
+		    setDestination(rtnum-3);
+//		    console("calc difference " + finalSrc + " " + src + " dest " + (rtnum-3));
+		    if (calcDifference(finalSrc, src) < 25)
+			calcLevel = 5000;
+		    
 		    setDestination(finalSrc);
 		    copyRG(src);
 		    calculateCharge(src);
@@ -1275,58 +1290,70 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setChargeSource(src);
 	    }
 	    
-	public void update() {
-			/*if (changedWalls) {
+	    public void update() {
+		/*if (changedWalls) {
 				prepareObjects();
 				changedWalls = false;
 			}*/
-	    int rtnum = getRenderTextureCount();
-	    if (calcLevel < 2000)
-		recalculate();
-	    
-	    int src = finalSrc; // getRenderTextureCount()-2;
-	    
-//			console("result = " + src);
-			// render textures 0-2 are size 16
-			// render textures 3-5 are size 32
-			// etc.
-			double brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
-			double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
-			equipMult *= brightMult/.9;
-			if (!equipCheck.getState())
-			    equipMult = 0;
-			int i;
-//			console("brightmult " + brightMult);
-			switch (displayChooser.getSelectedIndex()) {
-			case DISP_POT: brightMult *= .02666; break;
-			case DISP_3D:  brightMult *= .05333; break;
-			}
-			displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
-			if (displayChooser.getSelectedIndex() == DISP_LINES) {
-			    fetchPotentialPixels(src);
-			    for (i = 0; i != dragObjects.size(); i++) {
-				DragObject obj = dragObjects.get(i);
-				obj.drawFieldLines();
-			    }
-			    freePotentialPixels();
-			}
-			if (displayChooser.getSelectedIndex() != DISP_3D)
-				for (i = 0; i != dragObjects.size(); i++) {
-					DragObject obj = dragObjects.get(i);
-					if (obj.selected)
-						setDrawingSelection(.6+.4*Math.sin(t*.2));
-					else
-						setDrawingSelection(1);
-					double xform[] = obj.transform;
-					setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-					obj.display();
-				}
-			setTransform(1, 0, 0, 0, 1, 0);
-			setDrawingSelection(-1);
-			doCoordsLabel();
-	}
+		if (calcLevel == 0)
+		    calcStart = System.currentTimeMillis(); 
+		int rtnum = getRenderTextureCount();
+		if (calcLevel < 2000) {
+		    recalculate();
+		    if (calcLevel < 2000)
+			forceRepaint();
+		    else
+			console("calc time: " + (System.currentTimeMillis() - calcStart));
+		}
+
+		int src = finalSrc; // getRenderTextureCount()-2;
+
+		//			console("result = " + src);
+		// render textures 0-2 are size 16
+		// render textures 3-5 are size 32
+		// etc.
+		double brightMult = Math.exp(brightnessBar.getValue() / 100. - 5.);
+		double equipMult = Math.exp(equipotentialBar.getValue() / 100. - 5.);
+		equipMult *= brightMult/.9;
+		if (!equipCheck.getState())
+		    equipMult = 0;
+		int i;
+		//			console("brightmult " + brightMult);
+		switch (displayChooser.getSelectedIndex()) {
+		case DISP_POT: brightMult *= .02666; break;
+		case DISP_3D:  brightMult *= .05333; break;
+		}
+		displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
+		if (displayChooser.getSelectedIndex() == DISP_LINES) {
+		    fetchPotentialPixels(src);
+		    for (i = 0; i != dragObjects.size(); i++) {
+			DragObject obj = dragObjects.get(i);
+			obj.drawFieldLines();
+		    }
+		    freePotentialPixels();
+		}
+		if (displayChooser.getSelectedIndex() != DISP_3D)
+		    for (i = 0; i != dragObjects.size(); i++) {
+			DragObject obj = dragObjects.get(i);
+			if (obj.selected)
+			    setDrawingSelection(.6+.4*Math.sin(t*.2));
+			else
+			    setDrawingSelection(1);
+			double xform[] = obj.transform;
+			setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
+			obj.display();
+		    }
+		setTransform(1, 0, 0, 0, 1, 0);
+		setDrawingSelection(-1);
+		doCoordsLabel();
+	    }
 
 	void doCoordsLabel() {
+	    if (calcLevel < 2000) {
+		coordsLabel.setText("Calculating...");
+		coordsLabel.setVisible(true);
+		return;
+	    }
 		if (mouseLocation == null) {
 			coordsLabel.setVisible(false);
 			return;

@@ -115,6 +115,7 @@ const MT_DIELECTRIC = 3;
     	shaderProgramSum.stepSizeYUniform = gl.getUniformLocation(shaderProgramSum, "stepSizeY");
 
     	shaderProgramAdd = initShader("shader-add-fs", "shader-vs", null);
+    	shaderProgramSubtract = initShader("shader-subtract-fs", "shader-vs", null);
     	shaderProgramCopyRG = initShader("shader-copy-rg-fs", "shader-vs", null);
     	shaderProgramCopyRGB = initShader("shader-copy-rgb-fs", "shader-vs", null);
 
@@ -620,6 +621,63 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
+    }
+
+    renderer.calcDifference = function (src1, src2) {
+    	var sourceRT = renderTextures[src1];
+    	var rightSideRT = renderTextures[src2];
+        var prog = shaderProgramSubtract;
+        gl.useProgram(prog);
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+
+    	simPosition = [];
+    	simTextureCoord = [];
+
+    	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexPositionBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simPosition), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.vertexPositionAttribute, simVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexTextureCoordBuffer);
+    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
+        gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.enableVertexAttribArray(prog.dampingAttribute);
+        gl.enableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.enableVertexAttribArray(prog.textureCoordAttribute);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
+        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(prog.sourceTextureUniform, 0);
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, rightSideRT.texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.uniform1i(prog.rightSideTextureUniform, 1);
+ 
+        setMatrixUniforms(prog);
+        gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
+        gl.disableVertexAttribArray(prog.dampingAttribute);
+        gl.disableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.disableVertexAttribArray(prog.textureCoordAttribute);
+
+        var pixels = new Float32Array(4*destHeight*destHeight);
+        gl.readPixels(0, 0, destHeight, destHeight, gl.RGBA, gl.FLOAT, pixels);
+        var i;
+        var tot = 0;
+        for (i = 0; i != pixels.length; i += 4)
+            tot += Math.abs(pixels[i]);
+        console.log("total diff = " + tot);
+        return tot;
     }
 
     renderer.sum = function (srcnum) {

@@ -427,6 +427,25 @@ void main()
 
 </script>
 
+<script id="shader-subtract-fs" type="x-shader/x-fragment">
+    precision mediump float;
+
+    varying vec2 vTextureCoord;
+    varying vec4 vPosition;
+    varying float vDamping;
+
+    uniform sampler2D uSourceTexture;
+    uniform sampler2D uRightSideTexture;
+
+void main()
+{
+        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+        highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
+        gl_FragColor = vec4(pv.r-rv.r, pv.g, pv.b, 1.0);
+}
+
+</script>
+
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
     attribute vec2 aTextureCoord;
