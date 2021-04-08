@@ -720,7 +720,7 @@ function isPowerOf2(value) {
 
     renderer.writeCharge = function (x, y, f) {
         gl.useProgram(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, f, 0.0, 1.0, 1.0);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, f, 1.0, 1.0);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         srcCoords[0] = srcCoords[2] = x;
@@ -735,9 +735,9 @@ function isPowerOf2(value) {
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-		gl.colorMask(true, false, false, false);
+	gl.colorMask(false, true, false, false);
         gl.drawArrays(gl.LINES, 0, 2);
-		gl.colorMask(true, true, true, true);
+	gl.colorMask(true, true, true, true);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
         //mvPopMatrix();
@@ -903,7 +903,7 @@ function isPowerOf2(value) {
     		//gl.viewport(0, 0, rttFramebuffer.width, rttFramebuffer.height);
             
             // blue channel used for walls and media
-    		gl.colorMask(true, false, true, false);
+    		gl.colorMask(false, true, true, false);
     		gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, 0.0, v, 1.0);
     	}
     }
@@ -1017,10 +1017,10 @@ function isPowerOf2(value) {
         var med = renderer.permittivity;
         var pot = renderer.residual ? 0 : renderer.potential;
         if (med == undefined) {
-            gl.colorMask(true, false, false, false);
+            gl.colorMask(false, true, false, false);
             med = 0;
         } else
-            gl.colorMask(med == 0, false, true, false);
+            gl.colorMask(false, med == 0, true, false);
         gl.useProgram(shaderProgramDraw);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
@@ -1034,7 +1034,7 @@ function isPowerOf2(value) {
 
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, pot, 0.0, med, 1.0);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, pot, med, 1.0);
         gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 
@@ -1117,39 +1117,6 @@ console.log("calculating charge from " + renderer.chargeSource);
 
         gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramCalcCharge.vertexPositionAttribute);
-    }
-
-    renderer.drawChargedBox = function (x, y, x2, y2, x3, y3, x4, y4, chg) {
-	gl.colorMask(true, false, false, false);
-        gl.useProgram(shaderProgramDraw);
-
-        if (x2-x < renderer.minFeatureWidth)
-		x2 = x4 = x+renderer.minFeatureWidth;
-	if (y3-y < renderer.minFeatureWidth)
-		y3 = y4 = y+renderer.minFeatureWidth;
-        var medCoords = [x, y, x2, y2, x3, y3, x4, y4];
-        //var colors = [ pot,0,m1,1, pot,0,m1,1, pot,0,m1,1, pot,0,m1,1 ];
-        gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(medCoords), gl.STATIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        //gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-        //gl.vertexAttribPointer(shaderProgramDraw.colorAttribute, colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        
-        loadMatrix(pMatrix);
-        setMatrixUniforms(shaderProgramDraw);
-        gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        //gl.enableVertexAttribArray(shaderProgramDraw.colorAttribute);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, chg, 0.0, 0.0, 1.0);
-        //gl.enable(gl.BLEND);
-	//gl.blendFunc(gl.ONE, gl.ONE);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-        //gl.disable(gl.BLEND);
-        gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
-        //gl.disableVertexAttribArray(shaderProgramDraw.colorAttribute);
-
-		gl.colorMask(true, true, true, true);
     }
 
     renderer.getProbeValue = function (x, y) {
