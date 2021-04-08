@@ -25,9 +25,9 @@ public class EditOptions implements Editable {
     EditInfo offsetEditInfo;
     public EditInfo getEditInfo(int n) {
         if (n == 0)
-            return new EditInfo("Grid size", sim.windowWidth, 0, 0).setDimensionless();
+            return new EditInfo("Grid size", sim.gridSizeX, 0, 0).setDimensionless();
         if (n == 1)
-            return offsetEditInfo = new EditInfo("Absorbing area width", sim.windowOffsetX, 0, 0).setDimensionless();
+            return offsetEditInfo = new EditInfo("Offscreen boundary width", sim.windowOffsetX, 0, 0).setDimensionless();
         if (n == 2)
         	return new EditInfo("Screen width scale (m)", sim.lengthScale*sim.windowWidth, 0, 0);
         return null;
@@ -39,7 +39,7 @@ public class EditOptions implements Editable {
         	EditDialog.theEditDialog.updateValue(offsetEditInfo);
         }
         if (n == 1 && ei.value > 0)
-        	sim.setResolution(sim.windowWidth, (int)ei.value);
+        	sim.setResolution(sim.gridSizeX, (int)ei.value);
         if (n == 2)
         	sim.lengthScale = ei.value/sim.windowWidth;
     }

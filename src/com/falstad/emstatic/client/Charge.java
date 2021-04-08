@@ -59,7 +59,7 @@ public class Charge extends DragObject {
 	}-*/;
 
 
-	final int chargeSize = 8;
+	int chargeSize = 8;
 	
 	void display() {
 	    /*
@@ -70,6 +70,7 @@ public class Charge extends DragObject {
 		}
 		super.draw();
 		*/
+	    chargeSize = 8*sim.windowWidth/256;
 	    DragHandle dh = handles.get(0);
 	    drawChargeObject(dh.x, dh.y, chargeSize, charge);
 	}

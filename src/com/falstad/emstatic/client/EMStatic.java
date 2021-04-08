@@ -1098,8 +1098,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    void recalculate() {
 		if (calcLevel > 0) {
 		    // if there are floating conductors, we don't bother to recalculate the charges/potentials on them.
-		    recalculateStep(false, true);
-		    calcLevel++;
+		    int i;
+		    for (i = 0; i != 2; i++) {
+			recalculateStep(false, true);
+			calcLevel++;
+		    }
 		    return;
 		}
 		
@@ -1407,30 +1410,26 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		setResolution(newWidth, 0);
 	}
 
-	void setResolution(int newWidth, int border) {
-		newWidth = 512;
-		border = 0;
+	void setResolution(int ns, int border) {
+		int newSize = 1;
+		while (newSize < ns)
+		    newSize *= 2;
 		int oldWidth = windowWidth;
-		if (newWidth == oldWidth && border == 0)
+		if (newSize == gridSizeX && border == 0)
 			return;
 		if (border == 0) {
-			border = newWidth / 4;
+			border = newSize / 4;
 			if (border < 20)
 				border = 20;
 		}
 //		border = 0;
-		newWidth -= border*2; // we want gridSizeX to be a power of 2
-		if (resBar.getValue() != newWidth)
-			resBar.setValue(newWidth);
-		windowWidth = windowHeight = newWidth;
+		gridSizeX = gridSizeY = newSize;
+		windowWidth = windowHeight = newSize-border*2;
 		windowOffsetX = windowOffsetY = border;
-		System.out.println(windowWidth + "," + windowHeight);
-		gridSizeX = windowWidth + windowOffsetX * 2;
-		gridSizeY = windowHeight + windowOffsetY * 2;
 		windowBottom = windowOffsetY + windowHeight - 1;
 		windowRight = windowOffsetX + windowWidth - 1;
 		setResolutionGL(gridSizeX, gridSizeY, windowOffsetX, windowOffsetY);
-		console("res " + gridSizeX + " " + windowOffsetX);
+		console("res gs=" + gridSizeX + " ww=" + windowWidth + " wo=" + windowOffsetX + " "+ ns);
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
@@ -1689,7 +1688,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				int ww = Integer.parseInt(st.nextToken());
 				int wo = Integer.parseInt(st.nextToken());
 				storedWidth = ww;
-				setResolution(ww, wo);
+				setResolution(ww+wo*2, wo);
 				reinit(false);
 
 				dampingBar.setValue(Integer.parseInt(st.nextToken()));
