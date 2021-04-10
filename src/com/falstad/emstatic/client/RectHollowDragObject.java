@@ -50,7 +50,7 @@ public abstract class RectHollowDragObject extends DragObject {
 		
 		// recreate the others from those 4 and insert them into place
 		topRight = new DragHandle(this, bottomRight.x, topLeft.y);
-		bottomLeft = new DragHandle(this, bottomRight.x, topLeft.y);
+		bottomLeft = new DragHandle(this, topLeft.x, bottomRight.y);
 		handles.insertElementAt(topRight, 1);
 		handles.insertElementAt(bottomLeft, 3);
 		handles.insertElementAt(new DragHandle(this, h3.x, h2.y), 5);
