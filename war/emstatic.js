@@ -1457,8 +1457,6 @@ console.log("calculating charge from " + renderer.chargeSource);
     	var half_float_texture_ext = gl.getExtension('OES_texture_half_float');
 	gl.getExtension('EXT_float_blend');
 
-//    	gridSizeX = gridSizeY = 1024;
-//    	windowOffsetX = windowOffsetY = 40;
     	fbType = 0;
     	var renderTexture2 = initTextureFramebuffer(64);
     	if (!renderTexture2) {
@@ -1471,15 +1469,10 @@ console.log("calculating charge from " + renderer.chargeSource);
         	}
     	}
     	deleteRenderTexture(renderTexture2);
-//    	renderTexture1 = initTextureFramebuffer();
     	initShaders();
-//    	initBuffers();
     	initTextures();
         mat4.identity(matrix3d);
 	mat4.rotateX(matrix3d, -Math.PI/3);
-    	//loadLaptop();
-
-//    	drawWalls(renderTexture1);
 
     	gl.clearColor(0.0, 0.0, 1.0, 1.0);
 
@@ -1497,6 +1490,8 @@ console.log("calculating charge from " + renderer.chargeSource);
     			deleteRenderTexture(renderTextures[i]);
     		renderTextures = [];
     		var sz = 8;
+
+                // create 3 of each size, doubling each time
     		while (1) {
     			console.log("creating buffers size " + sz + " at " + renderTextures.length);
     			renderTextures.push(initTextureFramebuffer(sz));
@@ -1506,6 +1501,8 @@ console.log("calculating charge from " + renderer.chargeSource);
     				break;
     			sz *= 2;
     		}
+
+    		// create an extra one full size to store result
     		renderTextures.push(initTextureFramebuffer(sz));
     		initBuffers();
     	}
