@@ -213,6 +213,7 @@
         highp vec4 td = texture2D(uSourceTexture, vTextureCoordDown);
         highp vec4 tl = texture2D(uSourceTexture, vTextureCoordLeft);
         highp vec4 tr = texture2D(uSourceTexture, vTextureCoordRight);
+        // charge is (proportional to) difference in potential (r) times rel. permittivity (b)
         gl_FragColor = vec4((t0.r-tu.r)*tu.b+(t0.r-td.r)*td.b+(t0.r-tl.r)*tl.b+(t0.r-tr.r)*tr.b, 0.0, 0.0, 1.0);
     }
 </script>
@@ -242,18 +243,6 @@
     }
 </script>
 
-<script id="shader-mode-fs" type="x-shader/x-fragment">
-    precision mediump float;
-
-    varying vec4 vPosition;
-	varying vec4 vColor;
-
-    void main(void) {
-		// used to paint mode boxes
-        gl_FragColor = vec4(sin(vColor.r)*sin(vColor.g)+sin(vColor.b)*sin(vColor.a), 0., 0., 0.);
-    }
-</script>
-
 <script id="shader-copy-rg-fs" type="x-shader/x-fragment">
     precision mediump float;
 
@@ -262,8 +251,8 @@
 
 void main()
 {
-        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
-        gl_FragColor = vec4(pv.rg, 1., 1.);
+     highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+     gl_FragColor = vec4(pv.rg, 1., 1.);
 }
 
 </script>
@@ -276,14 +265,14 @@ void main()
 
 void main()
 {
-        highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
-        gl_FragColor = vec4(pv.rgb, 1.);
+    highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
+    gl_FragColor = vec4(pv.rgb, 1.);
 }
 
 </script>
 
-<script id="shader-simulate-fs" type="x-shader/x-fragment">
-	// shader for running simulation
+<script id="shader-relax-fs" type="x-shader/x-fragment">
+    // perform one iteration of relaxation
     precision mediump float;
 
     varying vec2 vTextureCoord;
@@ -294,7 +283,7 @@ void main()
     uniform float stepSizeX;
     uniform float stepSizeY;
 
-highp vec4 getSquare(highp vec2 offset)
+highp vec4 getAdjacentCell(highp vec2 offset)
 {
         highp vec2 x = offset+vTextureCoord;
 	highp vec4 q = texture2D(uSourceTexture, x);
@@ -309,12 +298,13 @@ void main()
         highp vec4 sv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
-          highp vec4 mid0 = getSquare(vec2(0., 0.));
-          highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
-          highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
-          highp vec4 mid3 = getSquare(vec2(-stepSizeX, 0.));
-          highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
-          highp vec4 mid5 = getSquare(vec2(-stepSizeX, -stepSizeY));
+          highp vec4 mid0 = getAdjacentCell(vec2(0., 0.));
+          highp vec4 mid1 = getAdjacentCell(vec2(stepSizeX, 0.));
+          highp vec4 mid2 = getAdjacentCell(vec2(0., stepSizeY));
+          highp vec4 mid3 = getAdjacentCell(vec2(-stepSizeX, 0.));
+          highp vec4 mid4 = getAdjacentCell(vec2(0., -stepSizeY));
+          highp vec4 mid5 = getAdjacentCell(vec2(-stepSizeX, -stepSizeY));
+          // https://my.ece.utah.edu/~ece6340/LECTURES/Feb1/Nagel%202012%20-%20Solving%20the%20Generalized%20Poisson%20Equation%20using%20FDM.pdf
           highp float a0 = mid0.b + mid3.b + mid4.b + mid5.b;
           highp float a1 = .5*(mid0.b+mid4.b);
           highp float a2 = .5*(mid3.b+mid0.b);
@@ -322,13 +312,14 @@ void main()
           highp float a4 = .5*(mid4.b+mid5.b);
           newpot = (a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r + rv.g*stepSizeX*stepSizeY)/a0;
         } else
-	  newpot = rv.g;
+	  newpot = rv.g;  // conductor
         gl_FragColor = vec4(newpot, 0., sv.b, 1.);
 }
 
 </script>
 
 <script id="shader-residual-fs" type="x-shader/x-fragment">
+    // calculate residual
     precision mediump float;
 
     varying vec2 vTextureCoord;
@@ -339,7 +330,7 @@ void main()
     uniform float stepSizeX;
     uniform float stepSizeY;
 
-highp vec4 getSquare(highp vec2 offset)
+highp vec4 getAdjacentCell(highp vec2 offset)
 {
         highp vec2 x = offset+vTextureCoord;
 	highp vec4 q = texture2D(uSourceTexture, x);
@@ -355,12 +346,12 @@ void main()
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         if (rv.b > 0.0) {
           highp float pos = pv.r;
-          highp vec4 mid0 = getSquare(vec2(0., 0.));
-          highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
-          highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
-          highp vec4 mid3 = getSquare(vec2(-stepSizeX, 0.));
-          highp vec4 mid4 = getSquare(vec2(0., -stepSizeY));
-          highp vec4 mid5 = getSquare(vec2(-stepSizeX, -stepSizeY));
+          highp vec4 mid0 = getAdjacentCell(vec2(0., 0.));
+          highp vec4 mid1 = getAdjacentCell(vec2(stepSizeX, 0.));
+          highp vec4 mid2 = getAdjacentCell(vec2(0., stepSizeY));
+          highp vec4 mid3 = getAdjacentCell(vec2(-stepSizeX, 0.));
+          highp vec4 mid4 = getAdjacentCell(vec2(0., -stepSizeY));
+          highp vec4 mid5 = getAdjacentCell(vec2(-stepSizeX, -stepSizeY));
           highp float a0 = mid0.b + mid3.b + mid4.b + mid5.b;
           highp float a1 = .5*(mid0.b+mid4.b);
           highp float a2 = .5*(mid3.b+mid0.b);
@@ -383,7 +374,7 @@ void main()
     uniform float stepSizeX;
     uniform float stepSizeY;
 
-highp vec4 getSquare(highp vec2 offset)
+highp vec4 getAdjacentCell(highp vec2 offset)
 {
         highp vec2 x = offset+vTextureCoord;
 	return texture2D(uSourceTexture, x);
@@ -393,9 +384,9 @@ void main()
 {
     	highp float newpos = 0.;
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
-        highp vec4 mid1 = getSquare(vec2(stepSizeX, 0.));
-        highp vec4 mid2 = getSquare(vec2(0., stepSizeY));
-        highp vec4 mid3 = getSquare(vec2(stepSizeX, stepSizeY));
+        highp vec4 mid1 = getAdjacentCell(vec2(stepSizeX, 0.));
+        highp vec4 mid2 = getAdjacentCell(vec2(0., stepSizeY));
+        highp vec4 mid3 = getAdjacentCell(vec2(stepSizeX, stepSizeY));
         gl_FragColor = vec4(pv.r + mid1.r + mid2.r + mid3.r, 0.0, 1., 1.);
 }
 
@@ -544,7 +535,7 @@ void main()
     }
 </script>
 
-<script id="shader-field-vs" type="x-shader/x-vertex">
+<script id="shader-field-vector-vs" type="x-shader/x-vertex">
 
 attribute highp vec2 aVertexPosition;
 uniform sampler2D uSampler;
@@ -555,15 +546,15 @@ uniform float brightness;
 varying mat2 vMatrix;
 uniform mat3 uTextureMatrix;
 
-highp vec4 getSquare(highp vec2 coords, highp float offsetX, highp float offsetY) {
+highp vec4 getAdjacentCell(highp vec2 coords, highp float offsetX, highp float offsetY) {
   return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1.0)).xy);
 }
 
 void main() {
-  highp vec4 pa = getSquare(aVertexPosition,  stepSizeX, 0.);
-  highp vec4 pb = getSquare(aVertexPosition, -stepSizeX, 0.);
-  highp vec4 pc = getSquare(aVertexPosition, 0.,  stepSizeY);
-  highp vec4 pd = getSquare(aVertexPosition, 0., -stepSizeY);
+  highp vec4 pa = getAdjacentCell(aVertexPosition,  stepSizeX, 0.);
+  highp vec4 pb = getAdjacentCell(aVertexPosition, -stepSizeX, 0.);
+  highp vec4 pc = getAdjacentCell(aVertexPosition, 0.,  stepSizeY);
+  highp vec4 pd = getAdjacentCell(aVertexPosition, 0., -stepSizeY);
   vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
   float len = length(grad);
   float col = len*brightness*10.0;
@@ -576,7 +567,7 @@ void main() {
 
 </script>
 
-<script id="shader-field-fs" type="x-shader/x-fragment">
+<script id="shader-field-vector-fs" type="x-shader/x-fragment">
 
 varying highp vec3 vColor;
 varying highp mat2 vMatrix;

@@ -50,13 +50,12 @@ const MT_DIELECTRIC = 3;
     }
 
 
-    var shaderProgramMain, shaderProgramFixed, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
+    var shaderProgramMain, shaderProgramRelax, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
     var shaderProgramCopyRG, shaderProgramResidual, shaderProgramViewCharge, shaderProgramCalcCharge, shaderProgramSum;
     var shaderProgramCopyRGB;
 
     function initShader(fs, vs, prefix) {
         var fragmentShader = getShader(gl, fs, prefix);
-//        var vs = (fs == "shader-draw-fs" || fs == "shader-mode-fs") ? "shader-draw-vs" : "shader-vs";
         var vertexShader = getShader(gl, vs, prefix);
 
         var shaderProgram = gl.createProgram();
@@ -101,9 +100,9 @@ const MT_DIELECTRIC = 3;
     	shaderProgram3D.stepSizeYUniform = gl.getUniformLocation(shaderProgram3D, "stepSizeY");
         shaderProgram3D.rightSideTextureUniform = gl.getUniformLocation(shaderProgram3D, "uRightSideTexture");
 
-    	shaderProgramFixed = initShader("shader-simulate-fs", "shader-vs", null);
-    	shaderProgramFixed.stepSizeXUniform = gl.getUniformLocation(shaderProgramFixed, "stepSizeX");
-    	shaderProgramFixed.stepSizeYUniform = gl.getUniformLocation(shaderProgramFixed, "stepSizeY");
+    	shaderProgramRelax = initShader("shader-relax-fs", "shader-vs", null);
+    	shaderProgramRelax.stepSizeXUniform = gl.getUniformLocation(shaderProgramRelax, "stepSizeX");
+    	shaderProgramRelax.stepSizeYUniform = gl.getUniformLocation(shaderProgramRelax, "stepSizeY");
 
     	shaderProgramResidual = initShader("shader-residual-fs", "shader-vs", null);
     	shaderProgramResidual.stepSizeXUniform = gl.getUniformLocation(shaderProgramResidual, "stepSizeX");
@@ -119,7 +118,6 @@ const MT_DIELECTRIC = 3;
     	shaderProgramCopyRGB = initShader("shader-copy-rgb-fs", "shader-vs", null);
 
     	shaderProgramDraw = initShader("shader-draw-fs", "shader-draw-vs");
-    	shaderProgramMode = initShader("shader-mode-fs", "shader-draw-vs");
 
     	shaderProgramViewCharge = initShader("shader-view-charge-fs", "shader-view-charge-vs");
     	shaderProgramViewCharge.brightnessUniform = gl.getUniformLocation(shaderProgramViewCharge, "brightness");
@@ -134,12 +132,12 @@ const MT_DIELECTRIC = 3;
     	shaderProgramEquip.brightnessUniform = gl.getUniformLocation(shaderProgramEquip, "brightness");
         shaderProgramEquip.rightSideTextureUniform = gl.getUniformLocation(shaderProgramEquip, "uRightSideTexture");
 
-    	shaderProgramField = initShader("shader-field-fs", "shader-field-vs", null);
-    	shaderProgramField.stepSizeXUniform = gl.getUniformLocation(shaderProgramField, "stepSizeX");
-    	shaderProgramField.stepSizeYUniform = gl.getUniformLocation(shaderProgramField, "stepSizeY");
-    	shaderProgramField.brightnessUniform = gl.getUniformLocation(shaderProgramField, "brightness");
-    	shaderProgramField.arrowTextureUniform = gl.getUniformLocation(shaderProgramField, "uArrowTexture");
-    	shaderProgramField.textureMatrixUniform = gl.getUniformLocation(shaderProgramField, "uTextureMatrix");
+    	shaderProgramFieldVector = initShader("shader-field-vector-fs", "shader-field-vector-vs", null);
+    	shaderProgramFieldVector.stepSizeXUniform = gl.getUniformLocation(shaderProgramFieldVector, "stepSizeX");
+    	shaderProgramFieldVector.stepSizeYUniform = gl.getUniformLocation(shaderProgramFieldVector, "stepSizeY");
+    	shaderProgramFieldVector.brightnessUniform = gl.getUniformLocation(shaderProgramFieldVector, "brightness");
+    	shaderProgramFieldVector.arrowTextureUniform = gl.getUniformLocation(shaderProgramFieldVector, "uArrowTexture");
+    	shaderProgramFieldVector.textureMatrixUniform = gl.getUniformLocation(shaderProgramFieldVector, "uTextureMatrix");
     }
 
     var arrowTexture;
@@ -427,7 +425,7 @@ function isPowerOf2(value) {
     renderer.runRelax = function (srcnum, rsnum, resid) {
     	var sourceRT = renderTextures[srcnum];
     	var rightSideRT = renderTextures[rsnum];
-        var prog = resid ? shaderProgramResidual : shaderProgramFixed;
+        var prog = resid ? shaderProgramResidual : shaderProgramRelax;
         gl.useProgram(prog);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -1289,7 +1287,7 @@ console.log("calculating charge from " + renderer.chargeSource);
     }
 
     function drawSceneField(s, rs, bright, equipMult) {
-        gl.useProgram(shaderProgramField);
+        gl.useProgram(shaderProgramFieldVector);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
         gl.viewportWidth = canvas.width;
@@ -1307,7 +1305,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         //gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         
         //gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
-        //gl.vertexAttribPointer(shaderProgramField.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.vertexAttribPointer(shaderProgramFieldVector.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
@@ -1330,18 +1328,18 @@ console.log("calculating charge from " + renderer.chargeSource);
           }
         gl.bindBuffer(gl.ARRAY_BUFFER, sourceBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coords), gl.DYNAMIC_DRAW);
-        gl.vertexAttribPointer(shaderProgramField.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shaderProgramFieldVector.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
 
-        gl.uniform1i(shaderProgramField.samplerUniform, 0);
-        gl.uniform1i(shaderProgramField.arrowTextureUniform, 1);
-        gl.uniform1i(shaderProgramField.rightSideTextureUniform, 2);
-        gl.uniform1f(shaderProgramField.brightnessUniform, bright);
-        gl.uniform1f(shaderProgramField.stepSizeXUniform, .5/gl.viewportWidth);
-        gl.uniform1f(shaderProgramField.stepSizeYUniform, .5/gl.viewportHeight);
+        gl.uniform1i(shaderProgramFieldVector.samplerUniform, 0);
+        gl.uniform1i(shaderProgramFieldVector.arrowTextureUniform, 1);
+        gl.uniform1i(shaderProgramFieldVector.rightSideTextureUniform, 2);
+        gl.uniform1f(shaderProgramFieldVector.brightnessUniform, bright);
+        gl.uniform1f(shaderProgramFieldVector.stepSizeXUniform, .5/gl.viewportWidth);
+        gl.uniform1f(shaderProgramFieldVector.stepSizeYUniform, .5/gl.viewportHeight);
         var matx = [.5*(gridSizeX-windowOffsetX*2)/gridSizeX, 0, 0, 0, .5*(gridSizeY-windowOffsetY*2)/gridSizeY, 0, 0, 0, 1];
         matx[6] = windowOffsetX/gridSizeX + matx[0];
         matx[7] = windowOffsetY/gridSizeY + matx[4];
-	gl.uniformMatrix3fv(shaderProgramField.textureMatrixUniform, false, matx);
+	gl.uniformMatrix3fv(shaderProgramFieldVector.textureMatrixUniform, false, matx);
         //gl.uniform3fv(shaderProgramEquip.colorsUniform, colors);
 
         //setMatrixUniforms(shaderProgramEquip);
