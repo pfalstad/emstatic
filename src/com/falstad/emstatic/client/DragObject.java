@@ -296,11 +296,11 @@ public abstract class DragObject implements Editable {
 		return ei;
 	    }
 	    if (n == 1 && materialType == MT_CHARGED)
-		return new EditInfo("Charge Density", chargeDensity, 0, 1);
+		return new EditInfo("Charge Density (C/m^2)", chargeDensity, 0, 1);
 	    if (n == 1 && materialType == MT_DIELECTRIC)
 		return new EditInfo("Relative Permittivity", permittivity, 0, 1);
 	    if (n == 1 && materialType == MT_CONDUCTING)
-		return new EditInfo("Potential", potential, 0, 1);
+		return new EditInfo("Potential (V)", potential, 0, 1);
 	    return null;
 	}
 
@@ -411,7 +411,12 @@ public abstract class DragObject implements Editable {
             }
         }
 
-
+        // conductorCharge should be the same as totalChargeFloating but it's not, because of calculation error
+        double getDisplayedCharge() {
+            if (isFloating())
+        	return totalChargeFloating;
+            return conductorCharge;
+        }
 	
 	double length() {
 	    DragHandle dh1 = handles.get(0);

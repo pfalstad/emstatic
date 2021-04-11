@@ -46,8 +46,6 @@ public class Box extends RectDragObject {
 	return getBox(topLeft.x, topLeft.y, topRight.x, topRight.y, bottomLeft.x, bottomLeft.y, bottomRight.x, bottomRight.y);
     }
     
-    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
-    
     int getDumpType() {
 	return 'b';
     }

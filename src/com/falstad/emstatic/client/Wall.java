@@ -61,8 +61,6 @@ public class Wall extends DragObject {
 	    return Box.getBox(-2, -len2, 2, -len2, -2, len2, 2, len2); 
 	}
 	    
-	String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
-	
 	public EditInfo getEditInfo(int n) {
 	    return super.getEditInfo(n+1);
 	}

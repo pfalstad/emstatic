@@ -95,6 +95,11 @@ public class Charge extends DragObject {
     	    charge = ei.value;
     }
     
+    @Override
+    String selectText() {
+	return "q = " + sim.getUnitText(charge, "C");
+    }
+    
 	int getDumpType() { return 'c'; }
 	void drawFieldLines() {
 	    int i;

@@ -74,8 +74,6 @@ public class HollowEllipse extends RectHollowDragObject {
 	return getEllipse(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y);
     }
     
-    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
-    
     int getDumpType() {
 	return 'E';
     }

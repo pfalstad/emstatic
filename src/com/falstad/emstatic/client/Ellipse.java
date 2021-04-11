@@ -82,8 +82,4 @@ public class Ellipse extends RectDragObject {
 	}-*/;
         
 	int getDumpType() { return 'e'; }
-
-	String selectText() {
-	    return super.selectText() + " " + sim.getUnitText(conductorCharge, "C");
-	}
 }

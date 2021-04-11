@@ -59,8 +59,6 @@ public class HollowBox extends RectHollowDragObject {
 	return getBox(topLeft.x, topLeft.y, bottomRight.x, bottomRight.y, itl.x, itl.y, ibr.x, ibr.y);
     }
     
-    String selectText() { return super.selectText() + " " + sim.getUnitText(conductorCharge, "C"); }
-    
     int getDumpType() {
 	return 'B';
     }

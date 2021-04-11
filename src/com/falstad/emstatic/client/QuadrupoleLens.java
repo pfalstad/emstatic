@@ -123,10 +123,6 @@ public class QuadrupoleLens extends RectDragObject {
 
 	int getDumpType() { return 'q'; }
 
-	String selectText() {
-	    return super.selectText() + " " + sim.getUnitText(conductorCharge, "C");
-	}
-	
 	public EditInfo getEditInfo(int n) {
 	    return super.getEditInfo(n+1);
 	}
