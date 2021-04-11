@@ -337,11 +337,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.runRelax(src, b, residual);
 	}-*/;
 
-	static native void copyRG(int src) /*-{
+	static native void copyTextureRG(int src) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.copyRG(src);
 	}-*/;
 
-	static native void copyRGB(int src) /*-{
+	static native void copyTextureRGB(int src) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.copyRGB(src);
 	}-*/;
 
@@ -349,11 +349,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		return @com.falstad.emstatic.client.EMStatic::renderer.calcDifference(src1, src2);
 	}-*/;
 
-	static native void sum(int src) /*-{
+	static native void sumTexture(int src) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.sum(src);
 	}-*/;
 	
-	static native void add(int src, int src2) /*-{
+	static native void addTextures(int src, int src2) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.add(src, src2);
 	}-*/;
 	
@@ -964,7 +964,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// restrict residual to coarser grid
 		int coarseResidual = rsGrid-3;
 		setDestination(coarseResidual);
-		copyRG(dest);
+		copyTextureRG(dest);
 		
 		// draw materials on coarse grid (should draw all conductors as 0 potentials)
 		setResidualFlag(true);
@@ -988,7 +988,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// set destination to a fine grid and add result of last step
 		// to the fine grid solution we got earlier.
 		setDestination(dest);
-		add(correction, src);
+		addTextures(correction, src);
 		{ int q = dest; dest = src; src = q; }
 
 		if (++stepCount == maxSteps) {
@@ -1033,11 +1033,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    
 		    // add scratch texture to destination
 		    setDestination(scratch2);
-		    add(scratch1, dest);
+		    addTextures(scratch1, dest);
 		    
 		    // copy to destination
 		    setDestination(dest);
-		    copyRG(scratch2);
+		    copyTextureRG(scratch2);
 		}
 	}
 	
@@ -1184,7 +1184,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		for (i = rtnum-1-3; i > 0; i -= 3) {
 			setDestination(i);
-			copyRG(i+3);
+			copyTextureRG(i+3);
 			drawMaterials();
 		}
 		
@@ -1193,7 +1193,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		if (calcLevel > 0 && finalResult) {
 		    setDestination(rtnum-3);
-		    copyRG(finalSrc);
+		    copyTextureRG(finalSrc);
 		    int src = multigridVCycle(rtnum-3, rtnum-2, rtnum-1);
 		    
 		    setDestination(rtnum-3);
@@ -1202,7 +1202,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			calcLevel = 5000;
 		    
 		    setDestination(finalSrc);
-		    copyRG(src);
+		    copyTextureRG(src);
 		    calculateCharge(src);
 		    return;
 		}
@@ -1228,7 +1228,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			
 			// interpolate to finer grid
 			setDestination(i);
-			copyRG(src);
+			copyTextureRG(src);
 			
 			src = multigridVCycle(i, i+1, i+2);
 			if (stepCount >= maxSteps)
@@ -1237,7 +1237,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		if (finalResult) {
 		    setDestination(rtnum);
-		    copyRGB(src);
+		    copyTextureRGB(src);
 		    finalSrc = rtnum;
 		}
 //		console("setdest " + src + " " + (src % 3));
@@ -1270,7 +1270,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    while (src >= 3) {
 			setDestination(src-3);
 			clearDestination();
-			sum(src);
+			sumTexture(src);
 			src = src-3;
 		    }
 		    // don't know where sqrt(2) comes from
