@@ -74,7 +74,6 @@ const MT_DIELECTRIC = 3;
 
         shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
         shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-        shaderProgram.dampingAttribute = gl.getAttribLocation(shaderProgram, "aDamping");
         shaderProgram.colorAttribute = gl.getAttribLocation(shaderProgram, "aColor");
 
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
@@ -305,11 +304,9 @@ function isPowerOf2(value) {
     var simVertexPositionBuffer;
     var simVertexTextureCoordBuffer;
     var simVertexBuffer;
-    var simVertexDampingBuffer;
     
     var simPosition = [];
     var simTextureCoord = [];
-    var simDamping = [];
     var srcCoords = [
                      -.26, 0, -.25, 0
                      ];
@@ -371,7 +368,6 @@ function isPowerOf2(value) {
     	screen3DTextureBuffer.numItems = texture3D.length / 2;
     	
     	simPosition = [];
-    	simDamping = [];
     	simTextureCoord = [];
     	
     	setPosRect(1, 1, gridSizeX-2, gridSizeY-2, gridSizeX);
@@ -390,18 +386,10 @@ function isPowerOf2(value) {
     	simVertexTextureCoordBuffer.itemSize = 2;
     	simVertexTextureCoordBuffer.numItems = simPosition.length/2;
 
-    	if (!simVertexDampingBuffer)
-    		simVertexDampingBuffer = gl.createBuffer();
-    	gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-    	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simDamping), gl.STATIC_DRAW);
-    	simVertexDampingBuffer.itemSize = 1;
-    	simVertexDampingBuffer.numItems = simDamping.length;
-
     	indexBuffer = gl.createBuffer();
     }
 
-    // create coordinates for a rectangular portion of the grid, making sure to set the damping attribute
-    // appropriately (1 for visible area, slightly less for offscreen area used to avoid reflections at edges)
+    // create coordinates for a rectangular portion of the grid
     function setPosRect(x1, y1, x2, y2, gx) {
     	var points = [ x2, y1, x1, y1, x2, y2, x1, y1, x2, y2, x1, y2 ];
     	var i;
@@ -410,10 +398,6 @@ function isPowerOf2(value) {
     		var yi = points[i*2+1];
     		simPosition.push(-1+2*xi/gx, -1+2*yi/gx);
     		simTextureCoord.push(xi/gx, yi/gx);
-    		var damp = 1;
-    		if (xi == 1 || yi == 1 || xi == gx-2 || yi == gx-2)
-    			damp = .999-8*.01; // was 20
-    			simDamping.push(damp);
     	}
     }
 
@@ -451,7 +435,6 @@ function isPowerOf2(value) {
         mat4.identity(mvMatrix);
 
     	simPosition = [];
-    	simDamping = [];
     	simTextureCoord = [];
 
     	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
@@ -463,13 +446,9 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
         gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.enableVertexAttribArray(prog.dampingAttribute);
         gl.enableVertexAttribArray(prog.vertexPositionAttribute);
         gl.enableVertexAttribArray(prog.textureCoordAttribute);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -486,7 +465,6 @@ function isPowerOf2(value) {
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
-        gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
@@ -501,7 +479,6 @@ function isPowerOf2(value) {
         mat4.identity(mvMatrix);
 
     	simPosition = [];
-    	simDamping = [];
     	simTextureCoord = [];
 
     	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
@@ -513,13 +490,9 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
         gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.enableVertexAttribArray(prog.dampingAttribute);
         gl.enableVertexAttribArray(prog.vertexPositionAttribute);
         gl.enableVertexAttribArray(prog.textureCoordAttribute);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -528,7 +501,6 @@ function isPowerOf2(value) {
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
-        gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
@@ -543,7 +515,6 @@ function isPowerOf2(value) {
         mat4.identity(mvMatrix);
 
     	simPosition = [];
-    	simDamping = [];
     	simTextureCoord = [];
 
     	setPosRect(1, 1, destHeight-1, destHeight-1, destHeight);
@@ -555,13 +526,9 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
         gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.enableVertexAttribArray(prog.dampingAttribute);
         gl.enableVertexAttribArray(prog.vertexPositionAttribute);
         gl.enableVertexAttribArray(prog.textureCoordAttribute);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -570,7 +537,6 @@ function isPowerOf2(value) {
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
-        gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
@@ -597,13 +563,9 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
         gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.enableVertexAttribArray(prog.dampingAttribute);
         gl.enableVertexAttribArray(prog.vertexPositionAttribute);
         gl.enableVertexAttribArray(prog.textureCoordAttribute);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -618,7 +580,6 @@ function isPowerOf2(value) {
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
-        gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
@@ -645,13 +606,9 @@ function isPowerOf2(value) {
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(simTextureCoord), gl.STATIC_DRAW);
         gl.vertexAttribPointer(prog.textureCoordAttribute, simVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.enableVertexAttribArray(prog.dampingAttribute);
         gl.enableVertexAttribArray(prog.vertexPositionAttribute);
         gl.enableVertexAttribArray(prog.textureCoordAttribute);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, simVertexDampingBuffer);
-        gl.vertexAttribPointer(prog.dampingAttribute, simVertexDampingBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -666,7 +623,6 @@ function isPowerOf2(value) {
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
-        gl.disableVertexAttribArray(prog.dampingAttribute);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
 
