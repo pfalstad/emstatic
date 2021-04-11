@@ -20,19 +20,14 @@
 package com.falstad.emstatic.client;
 
 import java.util.Vector;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.gargoylesoftware.htmlunit.javascript.host.Console;
-import com.gargoylesoftware.htmlunit.javascript.host.Navigator;
 import com.google.gwt.canvas.client.Canvas;
 import com.google.gwt.canvas.dom.client.CanvasPixelArray;
 import com.google.gwt.canvas.dom.client.Context2d;
 import com.google.gwt.canvas.dom.client.ImageData;
-import com.google.gwt.core.client.Duration;
 import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.core.client.JsArray;
 import com.google.gwt.core.client.JsArrayNumber;
 import com.google.gwt.core.client.Scheduler;
 import com.google.gwt.dom.client.CanvasElement;
@@ -72,11 +67,9 @@ import com.google.gwt.user.client.Random;
 import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.ui.AbsolutePanel;
 import com.google.gwt.user.client.ui.Button;
-import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.DockLayoutPanel;
 import com.google.gwt.user.client.ui.Frame;
-import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.MenuBar;
@@ -84,7 +77,6 @@ import com.google.gwt.user.client.ui.MenuItem;
 import com.google.gwt.user.client.ui.PopupPanel;
 import com.google.gwt.user.client.ui.RootLayoutPanel;
 import com.google.gwt.user.client.ui.RootPanel;
-import com.google.gwt.user.client.ui.TextArea;
 import com.google.gwt.user.client.ui.VerticalPanel;
 
 public class EMStatic implements MouseDownHandler, MouseMoveHandler,
@@ -116,7 +108,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Button boxButton;
 	Button exportButton;
 	Checkbox stoppedCheck;
-	Checkbox debugCheck1, debugCheck2;
+//	Checkbox debugCheck1, debugCheck2;
 	Checkbox equipCheck;
 	Choice setupChooser;
 	Choice colorChooser;
@@ -325,7 +317,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    @com.falstad.emstatic.client.EMStatic::renderer.drawFieldLine(x, y, dir);	    
 	}-*/;
 
-	static native void setDestination(int d) /*-{
+	static native void setDestinationRenderTexture(int d) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.setDestination(d);
 	}-*/;
 
@@ -333,8 +325,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.clearDestination();
 	}-*/;
 
-	static native void runRelax(int src, int b, boolean residual) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.runRelax(src, b, residual);
+	static native void runRelax(int src, int rsnum, boolean residual) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.runRelax(src, rsnum, residual);
 	}-*/;
 
 	static native void copyTextureRG(int src) /*-{
@@ -484,8 +476,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanel.add(equipCheck = new Checkbox("Show Equipotentials", true));
 		equipCheck.addClickHandler(this);
 
-		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
-		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
+//		verticalPanel.add(debugCheck1 = new Checkbox("Limit V-Cycles"));
+//		verticalPanel.add(debugCheck2 = new Checkbox("Limit Steps"));
 
         if (LoadFile.isSupported())
             verticalPanel.add(loadFileInput = new LoadFile(this));
@@ -905,154 +897,115 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	}
 
 	String lastLog = "";
-	int stepCount, maxSteps;
-	
+
+	// solve poisson equation exactly by relaxation, start with src, use dest as scratch, rs = right side
 	int solveExactly(int src, int dest, int rs) {
-//		console("solve exactly " + src + " " + dest + " " + rs);
-		// iterate a bunch of times to solve
-		int i;
-		for (i = 0; i != 50; i++) {
-//			console("solving " + dest + " " + src + " " + rs);
-			setDestination(dest);
-			runRelax(src, rs, false);
-			int q = dest;
-			dest = src;
-			src = q;
-		}
-		lastDest = dest; lastSrc = src; lastRsGrid = rs;
-//		console("iterated " + i + " times, rsgrid = " + rs);
-		
-		if (++stepCount == maxSteps) {
-			console("exact solution " + stepCount);
-			return src;
-		}
-		
-		return src;
+	    int i;
+	    for (i = 0; i != 50; i++) {
+		setDestinationRenderTexture(dest);
+		runRelax(src, rs, false);
+		// swap dest and src
+		int q = dest;
+		dest = src;
+		src = q;
+	    }
+
+	    // return last destination (which is src because of swap)
+	    return src;
 	}
 	
 	// calculate improved solution given an initial guess, and the right side.
+	// src = initial guess, dest = render texture to use as scratch, rsGrid = right side.  returns result texture
 	int multigridVCycle(int src, int dest, int rsGrid) {
-		if (src < 3)
-			return solveExactly(src, dest, rsGrid);
-		
-		// iterate a few times on fine grid
-		// iterate more times for higher accuracy on second try
-		int iterCount = (calcLevel == 0) ? 9 : 20; // (calcLevel == 0) ? 9 : 100;
-		int i;
-		for (i = 0; i != iterCount; i++) {
-			setDestination(dest);
-			runRelax(src, rsGrid, false);
-			int q = dest; dest = src; src = q;
-		}
-		
-//		if (calcLevel > 0) return src; // when refining solution only use relaxation (debug)
-		
-		if (++stepCount == maxSteps) {
-			console("vcycle after iterating a few times " + stepCount);
-			return src;
-		}
-		
-		// calculate residual
-		setDestination(dest);
-		runRelax(src, rsGrid, true);
-		
-		if (++stepCount == maxSteps) {
-			console("vcycle residual " + stepCount);
-			return dest;
-		}
+	    if (src < 3)
+		return solveExactly(src, dest, rsGrid);
 
-		// restrict residual to coarser grid
-		int coarseResidual = rsGrid-3;
-		setDestination(coarseResidual);
-		copyTextureRG(dest);
-		
-		// draw materials on coarse grid (should draw all conductors as 0 potentials)
-		setResidualFlag(true);
-		drawMaterials();
+	    // iterate a few times on fine grid
+	    // iterate more times for higher accuracy on second try
+	    int iterCount = (calcLevel == 0) ? 9 : 20;
+	    int i;
+	    for (i = 0; i != iterCount; i++) {
+		setDestinationRenderTexture(dest);
+		runRelax(src, rsGrid, false);
+		int q = dest; dest = src; src = q;
+	    }
 
-		if (++stepCount == maxSteps) {
-			console("vcycle residual coarse " + stepCount);
-			return coarseResidual;
-		}
-		
-		// start with zeroes as initial guess
-		setDestination(src-3);
-		clearDestination();
-		
-		// solve coarser problem recursively
-		int correction = multigridVCycle(src-3, dest-3, coarseResidual);
+	    // calculate residual
+	    setDestinationRenderTexture(dest);
+	    runRelax(src, rsGrid, true);
 
-		if (stepCount >= maxSteps)
-			return correction;
-		
-		// set destination to a fine grid and add result of last step
-		// to the fine grid solution we got earlier.
-		setDestination(dest);
-		addTextures(correction, src);
-		{ int q = dest; dest = src; src = q; }
+	    // restrict residual to coarser grid
+	    int coarseResidual = rsGrid-3;
+	    setDestinationRenderTexture(coarseResidual);
+	    copyTextureRG(dest);
 
-		if (++stepCount == maxSteps) {
-			console("vcycle added correction " + stepCount + " grid " + src);
-			return src;
-		}
+	    // draw materials on coarse grid (should draw all conductors as 0 potentials)
+	    setResidualFlag(true);
+	    writeMaterials();
 
-		// iterate some more on fine grid
-		for (i = 0; i != iterCount; i++) {
-			setDestination(dest);
-			runRelax(src, rsGrid, false);
-			int q = dest; dest = src; src = q;
-			lastRsGrid = rsGrid; lastSrc = src; lastDest = dest;
-		}
+	    // start with zeroes as initial guess
+	    setDestinationRenderTexture(src-3);
+	    clearDestination();
 
-		if (++stepCount == maxSteps) {
-			console("vcycle final iterations " + stepCount + " grid " + src);
-			return src;
-		}
-		
-		return src;
+	    // solve coarser problem recursively
+	    int correction = multigridVCycle(src-3, dest-3, coarseResidual);
+
+	    // set destination to a fine grid and add result of last step
+	    // to the fine grid solution we got earlier.
+	    setDestinationRenderTexture(dest);
+	    addTextures(correction, src);
+	    { int q = dest; dest = src; src = q; }
+
+	    // iterate some more on fine grid
+	    for (i = 0; i != iterCount; i++) {
+		setDestinationRenderTexture(dest);
+		runRelax(src, rsGrid, false);
+		int q = dest; dest = src; src = q;
+	    }
+
+	    return src;
 	}
 	
-	int lastRsGrid, lastSrc, lastDest;
-
 	void createEmptyRightSide(int dest) {
-		setDestination(dest);
-		clearDestination();
+	    setDestinationRenderTexture(dest);
+	    clearDestination();
 	}
-	
+
 	void createRightSide(int dest, int scratch1, int scratch2) {
-		int j;
-		setDestination(dest);
+	    int j;
+	    setDestinationRenderTexture(dest);
+	    clearDestination();
+
+	    // alpha isn't well supported for floating point textures so we need to do extra work to handle overlapping charges
+	    for (j = 0; j != dragObjects.size(); j++) {
+		// draw charged object into scratch texture
+		setDestinationRenderTexture(scratch1);
 		clearDestination();
-		
-		// alpha isn't well supported for floating point textures so we need to do extra work to handle overlapping charges
-		for (j = 0; j != dragObjects.size(); j++) {
-		    // draw charged object into scratch texture
-		    setDestination(scratch1);
-		    clearDestination();
-		    dragObjects.get(j).writeCharge();
-		    
-		    // add scratch texture to destination
-		    setDestination(scratch2);
-		    addTextures(scratch1, dest);
-		    
-		    // copy to destination
-		    setDestination(dest);
-		    copyTextureRG(scratch2);
-		}
+		dragObjects.get(j).writeCharge();
+
+		// add scratch texture to destination
+		setDestinationRenderTexture(scratch2);
+		addTextures(scratch1, dest);
+
+		// copy to destination
+		setDestinationRenderTexture(dest);
+		copyTextureRG(scratch2);
+	    }
 	}
 	
-	void drawMaterials() {
-		int i;
-		for (i = 0; i != dragObjects.size(); i++) {
-		    DragObject obj = dragObjects.get(i);
-		    if (obj.isCharged())
-			continue;
-		    obj.useMaterial();
-		    double xform[] = obj.transform;
-		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
-		    obj.writeMaterials();
-		}
-		setTransform(1, 0, 0, 0, 1, 0);
+	// write materials (conductors, dielectrics) into render texture
+	void writeMaterials() {
+	    int i;
+	    for (i = 0; i != dragObjects.size(); i++) {
+		DragObject obj = dragObjects.get(i);
+		if (obj.isCharged())
+		    continue;
+		obj.useMaterial();
+		double xform[] = obj.transform;
+		setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
+		obj.writeMaterials();
+	    }
+	    setTransform(1, 0, 0, 0, 1, 0);
 	}
 	
 	    boolean needsRepaint;
@@ -1095,6 +1048,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		return false;
 	    }
+	    
+	    // recalculate potential
 	    void recalculate() {
 		if (calcLevel > 0) {
 		    // if there are floating conductors, we don't bother to recalculate the charges/potentials on them.
@@ -1155,100 +1110,95 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		DragObject.currentFloatingConductor = null;
 		
+		// we only handle case of single floating conductor.
 		if (fct == 1) {
 		    DragObject f0 = floatingVec.get(0);
+		    // calculate potential needed to get charge on floating conductor equal to goal charge
 		    double pot = (f0.totalChargeFloating-baseCharge[0])/chargeMatrix[0][0];
 		    f0.setPotential(pot);
-		    console("fct " + fct + " " + chargeMatrix[0][0] + " " + baseCharge[0] + " " + pot);
 		    recalculateStep(false, true);
-		    console("fct0 " + f0.conductorCharge);
 		}
 		calcLevel++;
 	    }
 	    
+	    // recalculate potential, assuming all floating conductors have fixed potentials.
+	    // suppressCharges = true when leaving out charges (for floating calculation)
+	    // finalResult = false if we're doing intermediate calculation for handling floaters.
+	    // finalResult = true if no floaters or if we have the floating potentials.  it doesn't mean we can't refine the result.
 	    void recalculateStep(boolean suppressCharges, boolean finalResult) {
+		// get render texture count.  there are 3 of each size, each group of 3 having twice the width and height of the last group.
+		// there is also an extra one not included in the count.
 		int rtnum = getRenderTextureCount();
+		
 		console("Recalc " + calcLevel);
-		int level = debugBar1.getValue();
 		if (stoppedCheck.getState())
 			return;
-//			iterCount = 0;
 		int i;
 
 		setResidualFlag(false);
+		
+		// create right side using largest render texture
 		if (suppressCharges)
 		    createEmptyRightSide(rtnum-1);
 		else
 		    createRightSide(rtnum-1, rtnum-2, rtnum-3);
-		drawMaterials();
+		writeMaterials();
 		
+		// create right side for smaller render textures
 		for (i = rtnum-1-3; i > 0; i -= 3) {
-			setDestination(i);
-			copyTextureRG(i+3);
-			drawMaterials();
+		    setDestinationRenderTexture(i);
+		    // scale down charges from larger texture
+		    copyTextureRG(i+3);
+		    // create materials (this seems to give better results than scaling down)
+		    writeMaterials();
 		}
 		
-		maxSteps = (debugCheck2.getState()) ? debugBar2.getValue() : 10000;
-		stepCount = 0;		
-
 		if (calcLevel > 0 && finalResult) {
-		    setDestination(rtnum-3);
+		    // refining result?  just do a v-cycle
+		    setDestinationRenderTexture(rtnum-3);
 		    copyTextureRG(finalSrc);
 		    int src = multigridVCycle(rtnum-3, rtnum-2, rtnum-1);
 		    
-		    setDestination(rtnum-3);
-//		    console("calc difference " + finalSrc + " " + src + " dest " + (rtnum-3));
+		    setDestinationRenderTexture(rtnum-3);
+		    // calc difference from last result, and if it's small enough, declare it done
 		    if (calcDifference(finalSrc, src) < 25)
 			calcLevel = 5000;
 		    
-		    setDestination(finalSrc);
+		    setDestinationRenderTexture(finalSrc);
 		    copyTextureRG(src);
 		    calculateCharge(src);
 		    return;
 		}
 		
-		// start with 0
-		setDestination(0);
+		// start with zeroes on smallest grid
+		setDestinationRenderTexture(0);
 		clearDestination();
+		
+		// solve exactly
 		solveExactly(0, 1, 2);
 
 		int src = 1;
 		for (i = 3; i < rtnum; i += 3) {
-			if (i >= level && debugCheck1.getState()) {
-				int j;
-				int dest = lastDest;
-				for (j = 0; j < speedBar.getValue(); j++) {
-					setDestination(dest);
-					runRelax(src, lastRsGrid, false);
-					int q = dest; dest = src; src = q;
-				}
-				console("iterated another " + j + " times, rsgrid = " + lastRsGrid);
-				break;
-			}
-			
-			// interpolate to finer grid
-			setDestination(i);
-			copyTextureRG(src);
-			
-			src = multigridVCycle(i, i+1, i+2);
-			if (stepCount >= maxSteps)
-				break;
+		    // interpolate to finer grid
+		    setDestinationRenderTexture(i);
+		    copyTextureRG(src);
+
+		    // do a v-cycle
+		    src = multigridVCycle(i, i+1, i+2);
 		}
 		
 		if (finalResult) {
-		    setDestination(rtnum);
+		    // copy to result render texture (not included in rtnum)
+		    setDestinationRenderTexture(rtnum);
 		    copyTextureRGB(src);
 		    finalSrc = rtnum;
 		}
-//		console("setdest " + src + " " + (src % 3));
 		
 		calculateCharge(src);
-		if (maxSteps == 10000)
-		    console("steps = " + stepCount);
 	    }
 	    
 	    void calculateCharge(int csrc) {
-		// calculate charge
+		// calculate charge on conductors given potential calculation in csrc
 		setChargeSource(csrc);
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
@@ -1257,7 +1207,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    if (!obj.isConductor())
 			continue;
 		    
-		    setDestination(src);
+		    // calculate charge on each conductor one at a time
+		    setDestinationRenderTexture(src);
 		    clearDestination();
 		    double xform[] = obj.transform;
 		    setTransform(xform[0], xform[1], xform[2], xform[3], xform[4], xform[5]);
@@ -1268,7 +1219,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // it turns out it's so fast to count the large bitmap that we don't really need this,
 		    // but I wrote it before I discovered that
 		    while (src >= 3) {
-			setDestination(src-3);
+			setDestinationRenderTexture(src-3);
 			clearDestination();
 			sumTexture(src);
 			src = src-3;
@@ -1280,7 +1231,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		
 		// now do it again to get one map with all charges
 		int src = csrc-1;
-		setDestination(src);
+		setDestinationRenderTexture(src);
 		clearDestination();
 		for (i = 0; i != dragObjects.size(); i++) {
 		    DragObject obj = dragObjects.get(i);
@@ -1294,10 +1245,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    }
 	    
 	    public void update() {
-		/*if (changedWalls) {
-				prepareObjects();
-				changedWalls = false;
-			}*/
 		if (calcLevel == 0)
 		    calcStart = System.currentTimeMillis(); 
 		int rtnum = getRenderTextureCount();
@@ -1309,9 +1256,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			console("calc time: " + (System.currentTimeMillis() - calcStart));
 		}
 
-		int src = finalSrc; // getRenderTextureCount()-2;
+		int src = finalSrc;
 
-		//			console("result = " + src);
 		// render textures 0-2 are size 16
 		// render textures 3-5 are size 32
 		// etc.
@@ -1321,7 +1267,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (!equipCheck.getState())
 		    equipMult = 0;
 		int i;
-		//			console("brightmult " + brightMult);
+		// tweak brightness for potential display or 3D
 		switch (displayChooser.getSelectedIndex()) {
 		case DISP_POT: brightMult *= .02666; break;
 		case DISP_3D:  brightMult *= .05333; break;
@@ -1361,7 +1307,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			coordsLabel.setVisible(false);
 			return;
 		}
-		setDestination(finalSrc); // for getProbeValue()
+		setDestinationRenderTexture(finalSrc); // for getProbeValue()
 		Point pt = mouseLocation;
 		JsArrayNumber probe = getProbeValue(pt.x, pt.y);
 		String txt = "V = " + getUnitText(probe.get(0), "V") + ", E = (" +
