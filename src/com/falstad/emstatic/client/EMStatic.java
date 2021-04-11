@@ -2391,7 +2391,14 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         loadFileInput=newlf;
     }
 
-    boolean useFreqTimeZero() {
-        return true;
+    boolean canMakeFloating(DragObject obj) {
+	int ct = 0;
+	int i;
+	for (i = 0; i != dragObjects.size(); i++) {
+	    DragObject ce = dragObjects.get(i);
+	    if (ce.isFloating() && obj != ce)
+		ct++;
+	}
+	return ct == 0;
     }
 }

@@ -22,6 +22,7 @@ package com.falstad.emstatic.client;
 import java.util.Vector;
 
 import com.google.gwt.core.client.JsArray;
+import com.google.gwt.user.client.Window;
 
 public abstract class DragObject implements Editable {
 	Vector<DragHandle> handles;
@@ -306,7 +307,15 @@ public abstract class DragObject implements Editable {
 
 	public void setEditValue(int n, EditInfo ei) {
 	    if (n == 0 && materialType != MT_OTHER) {
-		materialType = ei.choice.getSelectedIndex() + MT_CHARGED;
+		int type = ei.choice.getSelectedIndex() + MT_CHARGED;
+		if (type == MT_FLOATING && !sim.canMakeFloating(this)) {
+		    // we'd need to solve a matrix equation to support this.  Not hard, but not worth the effort.
+		    // It would also be very slow.
+		    Window.alert("Multiple floating conductors isn't supported.");
+		    ei.choice.select(1);
+		    return;
+		}
+		materialType = type;
 		ei.newDialog = true;
 		return;
 	    }
