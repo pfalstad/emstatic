@@ -25,7 +25,7 @@ public class EditOptions implements Editable {
     EditInfo offsetEditInfo;
     public EditInfo getEditInfo(int n) {
         if (n == 0)
-            return new EditInfo("Grid size", sim.gridSizeX, 0, 0).setDimensionless();
+            return new EditInfo("Grid size (including offscreen)", sim.gridSizeX, 0, 0).setDimensionless();
         if (n == 1)
             return offsetEditInfo = new EditInfo("Offscreen boundary width", sim.windowOffsetX, 0, 0).setDimensionless();
         if (n == 2)
