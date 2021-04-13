@@ -300,9 +300,20 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		return $doc.passCanvas(cv);
 	}-*/;
 
-	// call into emstatic.js
-	static native void displayGL(int src, int rs, double bright, double equipMult, int disp) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.display(src, rs, bright, equipMult, disp);
+	static native void displayPotential(int src, int rs, double bright) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.drawScenePotential(src, rs, bright);
+	}-*/;
+
+	static native void displayEquip(int src, int rs, double equipMult) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSceneEquip(src, rs, equipMult);
+	}-*/;
+
+	static native void display3D(int src, int rs, double bright, double equipMult) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.drawScene3D(src, rs, bright, equipMult);
+	}-*/;
+
+	static native void displayField(int src, int rs, double bright) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.drawSceneField(src, rs, bright);
 	}-*/;
 
 	static native void fetchPotentialPixels(int src) /*-{
@@ -1267,12 +1278,22 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (!equipCheck.getState())
 		    equipMult = 0;
 		int i;
+		int rsrc = rtnum-1;
 		// tweak brightness for potential display or 3D
 		switch (displayChooser.getSelectedIndex()) {
-		case DISP_POT: brightMult *= .02666; break;
-		case DISP_3D:  brightMult *= .05333; break;
+		case DISP_POT:
+		    displayPotential(src, rsrc, brightMult*.02666);
+		    displayEquip(src, rsrc, equipMult);
+		    break;
+		case DISP_3D:
+		    display3D(src, rsrc, brightMult*.05333, equipMult);
+		    break;
+		case DISP_FIELD:
+		case DISP_LINES:
+		    displayField(src, rsrc, brightMult);
+		    displayEquip(src, rsrc, equipMult);
+		    break;
 		}
-		displayGL(src, rtnum-1, brightMult, equipMult, displayChooser.getSelectedIndex());
 		if (displayChooser.getSelectedIndex() == DISP_LINES) {
 		    fetchPotentialPixels(src);
 		    for (i = 0; i != dragObjects.size(); i++) {

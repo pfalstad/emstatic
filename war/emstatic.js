@@ -1089,9 +1089,10 @@ console.log("calculating charge from " + renderer.chargeSource);
         return charge;
     }
 
-    function drawScenePotential(s, rs, bright, equipMult) {
+    renderer.drawScenePotential = function (s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        brightness = bright;
 
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
@@ -1132,10 +1133,9 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
 
         mvPopMatrix();
-	drawSceneEquip(s, rs, equipMult);
     }
 
-    function drawSceneEquip(s, rs, bright) {
+    renderer.drawSceneEquip = function(s, rs, bright) {
         if (bright == 0)
           return;
         gl.useProgram(shaderProgramEquip);
@@ -1286,9 +1286,10 @@ console.log("calculating charge from " + renderer.chargeSource);
         }
     }
 
-    function drawSceneField(s, rs, bright, equipMult) {
+    renderer.drawSceneField = function (s, rs, bright, equipMult) {
         gl.useProgram(shaderProgramFieldVector);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        brightness = bright;
 
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
@@ -1349,18 +1350,6 @@ console.log("calculating charge from " + renderer.chargeSource);
         //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
         //mvPopMatrix();
-
-	drawSceneEquip(s, rs, equipMult);
-    }
-
-    renderer.display = function (s, rs, bright, equipMult, type) {
-      brightness = bright;
-      if (type == 2)
-        drawScene3D(s, rs, bright, equipMult);
-      else if (type == 1)
-        drawScenePotential(s, rs, bright, equipMult);
-      else
-        drawSceneField(s, rs, bright, equipMult);
     }
 
     renderer.checkIntersection = function (bounds1, bounds2) {
@@ -1389,9 +1378,10 @@ console.log("calculating charge from " + renderer.chargeSource);
       }
     }
 
-    function drawScene3D(s, rs, bright, equipMult) {
+    renderer.drawScene3D = function (s, rs, bright, equipMult) {
         gl.useProgram(shaderProgram3D);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        brightness = bright;
 
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
