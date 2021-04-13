@@ -73,41 +73,39 @@
 #define TS_COL_SOURCE 7
 #define TS_COL_COUNT  9
 
-    precision mediump float;
+precision mediump float;
 
-    varying vec2 vTextureCoord;
-    varying vec4 vPosition;
+varying vec2 vTextureCoord;
+varying vec4 vPosition;
 
-    uniform sampler2D uSampler;
-    uniform sampler2D uRightSideTexture;
-    uniform float brightness;
-    uniform lowp vec3 colors[TS_COL_COUNT];
+uniform sampler2D uSampler;
+uniform sampler2D uRightSideTexture;
+uniform float brightness;
+uniform lowp vec3 colors[TS_COL_COUNT];
 
-	// shader for displaying potential (not default which is field vectors)
-    void main(void) {
-        float alpha = 1.0;
-        vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-        vec4 rightSideColor = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
+// shader for displaying potential (not default which is field vectors)
+void main(void) {
+    float alpha = 1.0;
+    vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    vec4 rightSideColor = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
 
-		// blue channel used to store walls/media
-		float med = rightSideColor.b;
-		vec3 col;
-		if (med == 0.0)
-			col = colors[TS_COL_WALL];
-		else {
-			// red channel used to store potential
-			float r =  textureColor.r*brightness;
-	        r = clamp(r, -1., 1.);
-            if (r > 0.0)
-            	col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med),
-                			mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
-            else
-                col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med),
-                		    mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
-		}
-//gl_FragColor = vec4(textureColor.rgb * brightness, 1.);
-        gl_FragColor = vec4(col, 1.);
+    // blue channel used to store walls/media
+    float med = rightSideColor.b;
+    vec3 col;
+    if (med == 0.0)
+        col = colors[TS_COL_WALL];
+    else {
+        // red channel used to store potential
+	float r =  textureColor.r*brightness;
+	r = clamp(r, -1., 1.);
+        if (r > 0.0)
+            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
+        else
+            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
     }
+    //gl_FragColor = vec4(textureColor.rgb * brightness, 1.);
+    gl_FragColor = vec4(col, 1.);
+}
 </script>
 
 <script id="shader-equipotential-fs" type="x-shader/x-fragment">
@@ -125,7 +123,7 @@
         float alpha = 1.0;
 	vec4 rs = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
         if (rs.b == 0.0) {
-          gl_FragColor = vec4(.5, .5, .5, 1.);
+          gl_FragColor = vec4(.25, .25, .25, 1.);
         } else {
           vec4 texture0 = texture2D(uSampler, vec2(vTextureCoord.s-stepSizeX, vTextureCoord.t));
           vec4 textureS = texture2D(uSampler, vec2(vTextureCoord.s+stepSizeX, vTextureCoord.t));

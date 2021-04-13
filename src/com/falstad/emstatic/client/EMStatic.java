@@ -1492,7 +1492,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	void addDefaultColorScheme() {
 		String schemes[] = {
 				"#808080 #00ffff #000000 #008080 #0000ff #000000 #000080 #ffffff",
-				"#808080 #00ff00 #ff0000 #000000 #00ffff #ff00ff #0000ff #0000ff",
+				"#404040 #00ff00 #ff0000 #000000 #40ff40 #ff4040 #404040 #0000ff",
 				"#800000 #00ffff #0000ff #000000 #80c8c8 #8080c8 #808080 #ffffff",
 				"#800000 #ffffff #000000 #808080 #0000ff #000000 #000080 #00ff00",
 				"#800000 #ffff00 #0000ff #000000 #ffff80 #8080ff #808080 #ffffff",
