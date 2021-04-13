@@ -316,8 +316,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.drawScene3D(src, rs, bright, equipMult);
 	}-*/;
 
-	static native void displayField(int src, int rs, double bright) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawSceneField(src, rs, bright);
+	static native void displayField(int src, int rs, double bright, double emult, double pmult) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.displayField(src, rs, bright, emult, pmult);
 	}-*/;
 
 	static native void fetchPotentialPixels(int src) /*-{
@@ -1184,7 +1184,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 			calcLevel = 5000;
 		    
 		    setDestinationRenderTexture(finalSrc);
-		    copyTextureRG(src);
+		    copyTextureRGB(src);
 		    calculateCharge(src);
 		    return;
 		}
@@ -1303,8 +1303,15 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    break;
 		case DISP_FIELD:
 		case DISP_LINES:
-		    displayField(src, rsrc, brightMult);
+		    displayField(src, rsrc, brightMult, 1, 0);
 		    displayEquip(src, rsrc, equipMult);
+		    break;
+		case DISP_D:
+		    displayField(src, rsrc, brightMult, 1, 1);
+		    displayEquip(src, rsrc, equipMult);
+		    break;
+		case DISP_P:
+		    displayField(src, rsrc, brightMult, 0, 1);
 		    break;
 		}
 		if (displayChooser.getSelectedIndex() == DISP_LINES) {

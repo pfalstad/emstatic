@@ -138,6 +138,8 @@ const MT_DIELECTRIC = 3;
     	shaderProgramFieldVector.brightnessUniform = gl.getUniformLocation(shaderProgramFieldVector, "brightness");
     	shaderProgramFieldVector.arrowTextureUniform = gl.getUniformLocation(shaderProgramFieldVector, "uArrowTexture");
     	shaderProgramFieldVector.textureMatrixUniform = gl.getUniformLocation(shaderProgramFieldVector, "uTextureMatrix");
+    	shaderProgramFieldVector.eMultUniform = gl.getUniformLocation(shaderProgramFieldVector, "uEMult");
+    	shaderProgramFieldVector.pMultUniform = gl.getUniformLocation(shaderProgramFieldVector, "uPMult");
     }
 
     var arrowTexture;
@@ -1286,7 +1288,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         }
     }
 
-    renderer.drawSceneField = function (s, rs, bright, equipMult) {
+    renderer.displayField = function (s, rs, bright, emult, pmult) {
         gl.useProgram(shaderProgramFieldVector);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         brightness = bright;
@@ -1337,6 +1339,8 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.uniform1f(shaderProgramFieldVector.brightnessUniform, bright);
         gl.uniform1f(shaderProgramFieldVector.stepSizeXUniform, .5/gl.viewportWidth);
         gl.uniform1f(shaderProgramFieldVector.stepSizeYUniform, .5/gl.viewportHeight);
+        gl.uniform1f(shaderProgramFieldVector.eMultUniform, emult);
+        gl.uniform1f(shaderProgramFieldVector.pMultUniform, pmult);
         var matx = [.5*(gridSizeX-windowOffsetX*2)/gridSizeX, 0, 0, 0, .5*(gridSizeY-windowOffsetY*2)/gridSizeY, 0, 0, 0, 1];
         matx[6] = windowOffsetX/gridSizeX + matx[0];
         matx[7] = windowOffsetY/gridSizeY + matx[4];

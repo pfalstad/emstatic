@@ -313,7 +313,7 @@ void main()
           newpot = (a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r + rv.g*stepSizeX*stepSizeY)/a0;
         } else
 	  newpot = rv.g;  // conductor
-        gl_FragColor = vec4(newpot, 0., sv.b, 1.);
+        gl_FragColor = vec4(newpot, 0., rv.b, 1.);
 }
 
 </script>
@@ -359,7 +359,7 @@ void main()
           highp float a4 = .5*(mid4.b+mid5.b);
           newpos = 4./(stepSizeX*stepSizeY) * ((a1*mid1.r+a2*mid2.r+a3*mid3.r+a4*mid4.r + rv.g*stepSizeX*stepSizeY)/a0 - pos);
         }
-        gl_FragColor = vec4(0.0, newpos, 1., 1.);
+        gl_FragColor = vec4(0.0, newpos, rv.b, 1.);
 }
 
 </script>
@@ -405,7 +405,7 @@ void main()
 {
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
-        gl_FragColor = vec4(pv.r+rv.r, pv.g+rv.g, pv.b, 1.0);
+        gl_FragColor = vec4(pv.r+rv.r, pv.g+rv.g, rv.b, 1.0);
 }
 
 </script>
@@ -545,6 +545,7 @@ uniform float stepSizeY;
 uniform float brightness;
 varying mat2 vMatrix;
 uniform mat3 uTextureMatrix;
+uniform float uEMult, uPMult;
 
 highp vec4 getAdjacentCell(highp vec2 coords, highp float offsetX, highp float offsetY) {
   return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1.0)).xy);
@@ -555,11 +556,14 @@ void main() {
   highp vec4 pb = getAdjacentCell(aVertexPosition, -stepSizeX, 0.);
   highp vec4 pc = getAdjacentCell(aVertexPosition, 0.,  stepSizeY);
   highp vec4 pd = getAdjacentCell(aVertexPosition, 0., -stepSizeY);
+  highp vec4 p0 = getAdjacentCell(aVertexPosition, 0., 0.);
   vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
   float len = length(grad);
   float col = len*brightness*10.0;
+  float mult = 1./len;
+  col *= (uEMult+uPMult*(p0.b-1.));
   vColor = col > 1.0 ? vec3(col-1.0, 1.0, col-1.0) : vec3(0.0, col, 0.0);
-  vMatrix = mat2(grad.y/len, grad.x/len, -grad.x/len, grad.y/len);
+  vMatrix = mat2(grad.y*mult, grad.x*mult, -grad.x*mult, grad.y*mult);
   gl_Position = vec4(aVertexPosition.xy, 0.0, 1.0);
   gl_PointSize = 16.0;
   
