@@ -124,7 +124,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Scrollbar resBar;
 	Scrollbar brightnessBar;
 	Scrollbar equipotentialBar;
-	Scrollbar debugBar1, debugBar2;
 	double dampcoef;
 	double freqTimeZero;
 	double movingSourcePos = 0;
@@ -136,9 +135,13 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int MODE_MEDIUM = 2;
 	static final int MODE_FUNCHOLD = 3;
 	static final int DISP_FIELD = 0;
-	static final int DISP_POT = 1;
-	static final int DISP_3D = 2;
-	static final int DISP_LINES = 3;
+	static final int DISP_LINES = 1;
+	static final int DISP_POT = 3;
+	static final int DISP_3D = 4;
+	static final int DISP_CHARGE = 5;
+	static final int DISP_D = 6;
+	static final int DISP_P = 7;
+	static final int DISP_POLARIZATION_CHARGE = 8;
 	int dragX, dragY, dragStartX = -1, dragStartY;
 	int selectedSource = -1;
 	int sourceIndex;
@@ -214,6 +217,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	HandlerRegistration handler;
 	DialogBox dialogBox;
 	int verticalPanelWidth;
+	int chargeSource;
 	String startLayoutText = null;
 	String versionString = "1.0";
     public static NumberFormat showFormat, shortFormat, noCommaFormat;
@@ -467,10 +471,23 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         colorChooser.addStyleName("topSpace");
 
 		displayChooser = new Choice();
-		displayChooser.add("Display Electric Field");
-		displayChooser.add("Display Potential");
-		displayChooser.add("Display Potential in 3-D");
-		displayChooser.add("Display Field Lines");
+		displayChooser.add("Show Electric Field (E)");
+		displayChooser.add("Show Field Lines");
+		displayChooser.add("Show E + lines");
+		displayChooser.add("Show Potential");
+		displayChooser.add("Show Potential in 3-D");
+		displayChooser.add("Show Charge (rho)");
+		displayChooser.add("Show Displacement (D)");
+		displayChooser.add("Show Polarization (P)");
+		displayChooser.add("Show Polarization Charge");
+		displayChooser.add("Show E/rho");
+		displayChooser.add("Show E lines/rho");
+		displayChooser.add("Show E/Potential");
+		displayChooser.add("Show E lines/Potential");
+		displayChooser.add("Show Ex");
+		displayChooser.add("Show Ey");
+		displayChooser.add("Show Dx");
+		displayChooser.add("Show Dy");
 		displayChooser.addChangeHandler(this);
 		displayChooser.addStyleName("topSpace");
 
@@ -503,13 +520,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
 		resBar.addClickHandler(this);
 		setResolution();
-		
-		verticalPanel.add(l = new Label("Debug Bar 1"));
-		verticalPanel.add(debugBar1 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100, new Command() { public void execute() { recalcAndRepaint(); }}));
-		debugBar1.addClickHandler(this);
-		verticalPanel.add(l = new Label("Debug Bar 2"));
-		verticalPanel.add(debugBar2 = new Scrollbar(Scrollbar.HORIZONTAL, 1, 10, 1, 100, new Command() { public void execute() { recalcAndRepaint(); }}));
-		debugBar2.addClickHandler(this);
 		
 //		verticalPanel.add(new Label("Damping"));
 //		verticalPanel.add(
@@ -545,8 +555,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		freqBar.setWidth(verticalPanelWidth);
 		brightnessBar.setWidth(verticalPanelWidth);
 		equipotentialBar.setWidth(verticalPanelWidth);
-		debugBar1.setWidth(verticalPanelWidth);
-		debugBar2.setWidth(verticalPanelWidth);
 
 		absolutePanel = new AbsolutePanel();
 		coordsLabel = new Label("(0,0)");
@@ -1253,6 +1261,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    obj.calcCharge();
 		}
 		setChargeSource(src);
+		chargeSource = src;
 	    }
 	    
 	    public void update() {
@@ -1284,6 +1293,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		case DISP_POT:
 		    displayPotential(src, rsrc, brightMult*.02666);
 		    displayEquip(src, rsrc, equipMult);
+		    break;
+		case DISP_CHARGE:
+		    // this only includes calculated charge, need to show charge objects too!
+		    displayPotential(chargeSource, rsrc, brightMult*.02666);
 		    break;
 		case DISP_3D:
 		    display3D(src, rsrc, brightMult*.05333, equipMult);
