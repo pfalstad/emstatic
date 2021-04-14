@@ -298,8 +298,8 @@ function isPowerOf2(value) {
     	gl.deleteFramebuffer(rt.framebuffer);
     }
 
-    var laptopScreenVertexPositionBuffer;
-    var laptopScreenVertexTextureCoordBuffer;
+    var fullScreenVertexPositionBuffer;
+    var fullScreenVertexTextureCoordBuffer;
     var screen3DTextureBuffer;
     var simVertexPositionBuffer;
     var simVertexTextureCoordBuffer;
@@ -314,9 +314,9 @@ function isPowerOf2(value) {
     var gridRange;
 
     function initBuffers() {
-    	if (!laptopScreenVertexPositionBuffer)
-    		laptopScreenVertexPositionBuffer = gl.createBuffer();
-    	gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
+    	if (!fullScreenVertexPositionBuffer)
+    		fullScreenVertexPositionBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
     	vertices = [
     	            -1, +1,
     	            +1, +1,
@@ -324,12 +324,12 @@ function isPowerOf2(value) {
     	            +1, -1,
     	            ];
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-    	laptopScreenVertexPositionBuffer.itemSize = 2;
-    	laptopScreenVertexPositionBuffer.numItems = 4;
+    	fullScreenVertexPositionBuffer.itemSize = 2;
+    	fullScreenVertexPositionBuffer.numItems = 4;
 
-    	if (!laptopScreenVertexTextureCoordBuffer)
-    		laptopScreenVertexTextureCoordBuffer = gl.createBuffer();
-    	gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
+    	if (!fullScreenVertexTextureCoordBuffer)
+    		fullScreenVertexTextureCoordBuffer = gl.createBuffer();
+    	gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
     	var textureCoords = [
     	                     windowOffsetX/gridSizeX, 1-windowOffsetY/gridSizeY,
     	                     1-windowOffsetX/gridSizeX, 1-windowOffsetY/gridSizeY,
@@ -337,8 +337,8 @@ function isPowerOf2(value) {
     	                     1-windowOffsetX/gridSizeX,   windowOffsetY/gridSizeY
     	                     ];
     	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoords), gl.STATIC_DRAW);
-    	laptopScreenVertexTextureCoordBuffer.itemSize = 2;
-    	laptopScreenVertexTextureCoordBuffer.numItems = 4;
+    	fullScreenVertexTextureCoordBuffer.itemSize = 2;
+    	fullScreenVertexTextureCoordBuffer.numItems = 4;
 
     	if (!sourceBuffer)
     		sourceBuffer = gl.createBuffer();
@@ -687,8 +687,8 @@ function isPowerOf2(value) {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(srcCoords), gl.STATIC_DRAW);
         gl.vertexAttribPointer(shaderProgramDraw.vertexPositionAttribute, sourceBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-//        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
-//        gl.vertexAttribPointer(shaderProgramDraw.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+//        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
+//        gl.vertexAttribPointer(shaderProgramDraw.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
         gl.enableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
@@ -1117,11 +1117,11 @@ console.log("calculating charge from " + renderer.chargeSource);
         mvPushMatrix();
 
         // draw result
-        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgramMain.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgramMain.vertexPositionAttribute, fullScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
-        gl.vertexAttribPointer(shaderProgramMain.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgramMain.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
@@ -1144,7 +1144,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         setMatrixUniforms(shaderProgramMain);
         gl.enableVertexAttribArray(shaderProgramMain.vertexPositionAttribute);
         gl.enableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, laptopScreenVertexPositionBuffer.numItems);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, fullScreenVertexPositionBuffer.numItems);
         gl.disableVertexAttribArray(shaderProgramMain.vertexPositionAttribute);
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
 
@@ -1169,11 +1169,11 @@ console.log("calculating charge from " + renderer.chargeSource);
         mvPushMatrix();
 
         // draw result
-        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, fullScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         
-        gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
-        gl.vertexAttribPointer(shaderProgramEquip.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(shaderProgramEquip.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
@@ -1197,7 +1197,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.enableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
         gl.enable(gl.BLEND);
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.drawArrays(gl.TRIANGLE_STRIP, 0, laptopScreenVertexPositionBuffer.numItems);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, fullScreenVertexPositionBuffer.numItems);
         gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
@@ -1318,11 +1318,11 @@ console.log("calculating charge from " + renderer.chargeSource);
         mvPushMatrix();
 
         // draw result
-        //gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexPositionBuffer);
-        //gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, laptopScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
+        //gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, fullScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
         
-        //gl.bindBuffer(gl.ARRAY_BUFFER, laptopScreenVertexTextureCoordBuffer);
-        //gl.vertexAttribPointer(shaderProgramFieldVector.textureCoordAttribute, laptopScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        //gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
+        //gl.vertexAttribPointer(shaderProgramFieldVector.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
