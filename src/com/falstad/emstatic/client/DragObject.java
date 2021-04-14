@@ -120,11 +120,11 @@ public abstract class DragObject implements Editable {
 	}
 
 	void display() {
-	    if (isConductor()) {
+	    /*if (isConductor()) {
 		JsArray bounds = getBoundary();
 		if (bounds != null)
 		    displayChargeWithBoundary(bounds);
-	    }
+	    }*/
 	    if (selected) {
 		int i;
 		for (i = 0; i != handles.size(); i++) {

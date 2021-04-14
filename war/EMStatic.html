@@ -63,15 +63,11 @@
 <script type="text/javascript" src="tess2.js"></script>
 
 <script id="shader-display-fs" type="x-shader/x-fragment">
-#define TS_COL_WALL 0
-#define TS_COL_POS 1
-#define TS_COL_NEG 2
-#define TS_COL_NEUTRAL 3
-#define TS_COL_POS_MED 4
-#define TS_COL_NEG_MED 5
-#define TS_COL_MED 6
-#define TS_COL_SOURCE 7
-#define TS_COL_COUNT  9
+#define TS_COL_NEUTRAL 0
+#define TS_COL_MATERIAL 1
+#define TS_COL_POS 2
+#define TS_COL_NEG 3
+#define TS_COL_COUNT  4
 
 precision mediump float;
 
@@ -91,19 +87,15 @@ void main(void) {
 
     // blue channel used to store walls/media
     float med = rightSideColor.b;
+    vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+    // red channel used to store potential
+    float r =  textureColor.r*brightness;
+    r = clamp(r, -1., 1.);
     vec3 col;
-    if (med == 0.0)
-        col = colors[TS_COL_WALL];
-    else {
-        // red channel used to store potential
-	float r =  textureColor.r*brightness;
-	r = clamp(r, -1., 1.);
-        if (r > 0.0)
-            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
-        else
-            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
-    }
-    //gl_FragColor = vec4(textureColor.rgb * brightness, 1.);
+    if (r > 0.0)
+        col = mix(zerocol, colors[TS_COL_POS], r);
+    else
+        col = mix(zerocol, colors[TS_COL_NEG], -r);
     gl_FragColor = vec4(col, 1.);
 }
 </script>
@@ -123,7 +115,7 @@ void main(void) {
         float alpha = 1.0;
 	vec4 rs = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
         if (rs.b == 0.0) {
-          gl_FragColor = vec4(.25, .25, .25, 1.);
+          gl_FragColor = vec4(.25, .25, .25, 0.);
         } else {
           vec4 texture0 = texture2D(uSampler, vec2(vTextureCoord.s-stepSizeX, vTextureCoord.t));
           vec4 textureS = texture2D(uSampler, vec2(vTextureCoord.s+stepSizeX, vTextureCoord.t));
@@ -445,16 +437,11 @@ void main()
 </script>
 
 <script id="shader-3d-vs" type="x-shader/x-vertex">
-#define TS_COL_WALL 0
-#define TS_COL_POS 1
-#define TS_COL_NEG 2
-
-#define TS_COL_POS_MED 4
-#define TS_COL_NEG_MED 5
-#define TS_COL_MED 6
-#define TS_COL_SOURCE 7
-#define TS_COL_NEUTRAL 8
-#define TS_COL_COUNT 9
+#define TS_COL_NEUTRAL 0
+#define TS_COL_MATERIAL 1
+#define TS_COL_POS 2
+#define TS_COL_NEG 3
+#define TS_COL_COUNT  4
 
     attribute highp vec2 aTextureCoord;
     uniform mat4 uMVMatrix;
@@ -470,33 +457,35 @@ void main()
     uniform lowp vec3 colors[TS_COL_COUNT];
 
     void main(void) {
+        highp float zscale = .1;
 	highp vec2 tc  = vec2(aTextureCoord.x+xOffset, aTextureCoord.y);
         vec4 pv = texture2D(uSampler, tc);
-	float r =  pv.r*brightness*.1;
-        vec4 vPosition = uMVMatrix * vec4(-1.0+2.0*tc.x, -1.0+2.0*tc.y, r, 1.0);
+	float r =  pv.r*brightness;
+        vec4 vPosition = uMVMatrix * vec4(-1.0+2.0*tc.x, -1.0+2.0*tc.y, r*zscale, 1.0);
         gl_Position = uPMatrix * vPosition;
         vTextureCoord = tc;
-	float med = 1.0; // pv.b;
-	vec3 col;
-	if (med == 0.0)
-	  col = colors[TS_COL_WALL];
-	else {
-	  // calculate normal
-	  float qx = texture2D(uSampler, vec2(aTextureCoord.x+xOffset+1./200., aTextureCoord.y)).r-pv.r;
-	  float qy = texture2D(uSampler, vec2(aTextureCoord.x+xOffset, aTextureCoord.y+1./200.)).r-pv.r;
-	  qx *= brightness*20.;  qy *= brightness*20.;
 
-	  // calculate lighting
-	  float normdot = max(dot(uNormalMatrix*vec4(qx, qy, -1., 1.), vec4(1., 0., -1., 0.))/length(vec3(qx, qy, -1.)), 0.0);
+        // blue channel used to store walls/media
+        float med = 1.0; // rightSideColor.b;
+        vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+        // red channel used to store potential
+        r = clamp(r, -1., 1.);
+        vec3 col;
+        if (r > 0.0)
+            col = mix(zerocol, colors[TS_COL_POS], r);
+        else
+            col = mix(zerocol, colors[TS_COL_NEG], -r);
 
-	  r = 10.*clamp(r, -1., 1.);
-          if (r > 0.0)
-            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_POS_MED], colors[TS_COL_POS], med), r);
-          else
-            col = mix(mix(colors[TS_COL_MED], colors[TS_COL_NEUTRAL], med), mix(colors[TS_COL_NEG_MED], colors[TS_COL_NEG], med), -r);
-	  // not sure why we need this clamp here but it doesn't work otherwise
-	  col = clamp(col, 0., 1.) + vec3(1., 1., 1.)*normdot*.6;
-	}
+	// calculate normal
+	float qx = texture2D(uSampler, vec2(aTextureCoord.x+xOffset+1./200., aTextureCoord.y)).r-pv.r;
+	float qy = texture2D(uSampler, vec2(aTextureCoord.x+xOffset, aTextureCoord.y+1./200.)).r-pv.r;
+	qx *= brightness*2./zscale;  qy *= brightness*2./zscale;
+
+	// calculate lighting
+	float normdot = max(dot(uNormalMatrix*vec4(qx, qy, -1., 1.), vec4(1., 0., -1., 0.))/length(vec3(qx, qy, -1.)), 0.0);
+
+	// not sure why we need this clamp here but it doesn't work otherwise
+	col = clamp(col, 0., 1.) + vec3(1., 1., 1.)*normdot*.6;
         vColor = vec4(col, 1.);
     }
 </script>
@@ -537,7 +526,7 @@ void main()
 
 attribute highp vec2 aVertexPosition;
 uniform sampler2D uSampler;
-varying vec3 vColor;
+varying vec4 vColor;
 uniform float stepSizeX;
 uniform float stepSizeY;
 uniform float brightness;
@@ -557,10 +546,13 @@ void main() {
   highp vec4 p0 = getAdjacentCell(aVertexPosition, 0., 0.);
   vec2 grad = -vec2(pb.r-pa.r, pc.r-pd.r);
   float len = length(grad);
+  if (len < 1e-8) {
+    grad = vec2(1.0, 0.0);
+  }
   float col = len*brightness*10.0;
   float mult = 1./len;
   col *= (uEMult+uPMult*(p0.b-1.));
-  vColor = col > 1.0 ? vec3(col-1.0, 1.0, col-1.0) : vec3(0.0, col, 0.0);
+  vColor = col > 1.0 ? vec4(col-1.0, 1.0, col-1.0, 1.0) : vec4(0.0, 1.0, 0.0, col);
   vMatrix = mat2(grad.y*mult, grad.x*mult, -grad.x*mult, grad.y*mult);
   gl_Position = vec4(aVertexPosition.xy, 0.0, 1.0);
   gl_PointSize = 16.0;
@@ -571,14 +563,15 @@ void main() {
 
 <script id="shader-field-vector-fs" type="x-shader/x-fragment">
 
-varying highp vec3 vColor;
+varying highp vec4 vColor;
 varying highp mat2 vMatrix;
 uniform sampler2D uArrowTexture;
 
 void main() {
   highp vec2 pc = gl_PointCoord;
   pc = vMatrix*(pc-vec2(0.5, 0.5)) + vec2(0.5, 0.5);
-  gl_FragColor = vec4(texture2D(uArrowTexture, pc).rgb * vColor, 1.0);
+  highp vec4 samp = texture2D(uArrowTexture, pc);
+  gl_FragColor = vec4(samp.rgba * vColor);
 }
 
 </script>

@@ -28,6 +28,10 @@ h1 {
   margin: 5px;
 }
 
+canvas {
+        background-color: black;
+}
+
 .serverResponseLabelError {
   color: red;
 }

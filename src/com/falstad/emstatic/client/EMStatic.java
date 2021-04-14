@@ -142,6 +142,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int DISP_D = 6;
 	static final int DISP_P = 7;
 	static final int DISP_POLARIZATION_CHARGE = 8;
+	static final int DISP_E_RHO = 9;
 	int dragX, dragY, dragStartX = -1, dragStartY;
 	int selectedSource = -1;
 	int sourceIndex;
@@ -304,8 +305,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		return $doc.passCanvas(cv);
 	}-*/;
 
-	static native void displayPotential(int src, int rs, double bright) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.drawScenePotential(src, rs, bright);
+	static native void displayScalar(int src, int rs, double bright, boolean potential) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.displayScalar(src, rs, bright, potential);
 	}-*/;
 
 	static native void displayEquip(int src, int rs, double equipMult) /*-{
@@ -340,6 +341,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.clearDestination();
 	}-*/;
 
+	static native void clearDisplay() /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.clearDisplay();
+	}-*/;
+	
 	static native void runRelax(int src, int rsnum, boolean residual) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.runRelax(src, rsnum, residual);
 	}-*/;
@@ -490,6 +495,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		displayChooser.add("Show Dy");
 		displayChooser.addChangeHandler(this);
 		displayChooser.addStyleName("topSpace");
+		displayChooser.select(DISP_E_RHO);
 
 		
 		verticalPanel.add(setupChooser);
@@ -1291,26 +1297,35 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// tweak brightness for potential display or 3D
 		switch (displayChooser.getSelectedIndex()) {
 		case DISP_POT:
-		    displayPotential(src, rsrc, brightMult*.02666);
+		    displayScalar(src, rsrc, brightMult*.02666, true);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_CHARGE:
 		    // this only includes calculated charge, need to show charge objects too!
-		    displayPotential(chargeSource, rsrc, brightMult*.02666);
+		    displayScalar(chargeSource, rsrc, brightMult, false);
+		    break;
+		case DISP_E_RHO:
+		    // this only includes calculated charge, need to show charge objects too!
+		    displayScalar(chargeSource, rsrc, brightMult, false);
+		    displayField(src, rsrc, brightMult, 1, 0);
+		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_3D:
 		    display3D(src, rsrc, brightMult*.05333, equipMult);
 		    break;
 		case DISP_FIELD:
 		case DISP_LINES:
+		    clearDisplay();
 		    displayField(src, rsrc, brightMult, 1, 0);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_D:
+		    clearDisplay();
 		    displayField(src, rsrc, brightMult, 1, 1);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_P:
+		    clearDisplay();
 		    displayField(src, rsrc, brightMult, 0, 1);
 		    break;
 		}
@@ -1492,7 +1507,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	void addDefaultColorScheme() {
 		String schemes[] = {
 				"#808080 #00ffff #000000 #008080 #0000ff #000000 #000080 #ffffff",
-				"#404040 #00ff00 #ff0000 #000000 #40ff40 #ff4040 #404040 #0000ff",
+				"#000000 #404040 #00ff00 #ff0000 #ffff00 #0000ff #404040 #0000ff",
 				"#800000 #00ffff #0000ff #000000 #80c8c8 #8080c8 #808080 #ffffff",
 				"#800000 #ffffff #000000 #808080 #0000ff #000000 #000080 #00ff00",
 				"#800000 #ffff00 #0000ff #000000 #ffff80 #8080ff #808080 #ffffff",

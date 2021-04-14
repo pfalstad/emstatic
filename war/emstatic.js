@@ -405,6 +405,7 @@ function isPowerOf2(value) {
     var colorBuffer;
     var indexBuffer;
     var colors;
+    var chargeColors;
     var destHeight;
     var minFeatureWidth;
 
@@ -1091,7 +1092,16 @@ console.log("calculating charge from " + renderer.chargeSource);
         return charge;
     }
 
-    renderer.drawScenePotential = function (s, rs, bright, equipMult) {
+    renderer.clearDisplay = function () {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+    }
+
+    renderer.displayScalar = function (s, rs, bright, pot) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
         brightness = bright;
@@ -1099,6 +1109,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.viewportWidth = canvas.width;
         gl.viewportHeight = canvas.height;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         mat4.identity(pMatrix);
@@ -1125,7 +1136,10 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.uniform1i(shaderProgramMain.samplerUniform, 0);
         gl.uniform1i(shaderProgramMain.rightSideTextureUniform, 2);
         gl.uniform1f(shaderProgramMain.brightnessUniform, bright);
-        gl.uniform3fv(shaderProgramMain.colorsUniform, colors);
+        if (pot)
+          gl.uniform3fv(shaderProgramMain.colorsUniform, colors);
+        else
+          gl.uniform3fv(shaderProgramMain.colorsUniform, chargeColors);
 
         setMatrixUniforms(shaderProgramMain);
         gl.enableVertexAttribArray(shaderProgramMain.vertexPositionAttribute);
@@ -1297,7 +1311,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.viewportHeight = canvas.height;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 	gl.clearColor(0, 0, 0, 1);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         mat4.identity(pMatrix);
         mat4.identity(mvMatrix);
@@ -1349,7 +1363,11 @@ console.log("calculating charge from " + renderer.chargeSource);
 
         //setMatrixUniforms(shaderProgramEquip);
         gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
+        gl.enable(gl.BLEND);
+        // canvas background color must be black for this to work (otherwise white may show through)
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         gl.drawArrays(gl.POINTS, 0, coords.length/2);
+        gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
 
@@ -1524,9 +1542,13 @@ console.log("calculating charge from " + renderer.chargeSource);
     	}
 	renderer.setColors = function () {
 		colors = [];
+		chargeColors = [];
 		for(var i = 0; i < arguments.length; i++) {
 			var arg = arguments[i];
-			colors.push(((arg>>16)&0xff)/255, ((arg>>8)&0xff)/255, (arg&0xff)/255);
+                        if (i < 4)
+			    colors.push(((arg>>16)&0xff)/255, ((arg>>8)&0xff)/255, (arg&0xff)/255);
+                        if (i < 2 || i > 3)
+			    chargeColors.push(((arg>>16)&0xff)/255, ((arg>>8)&0xff)/255, (arg&0xff)/255);
 		}
 	}
 	renderer.drawingSelection = -1;
