@@ -1315,17 +1315,17 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    break;
 		case DISP_FIELD:
 		case DISP_LINES:
-		    clearDisplay();
+		    displayScalar(src, rsrc, 0, true);
 		    displayField(src, rsrc, brightMult, 1, 0);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_D:
-		    clearDisplay();
+		    displayScalar(src, rsrc, 0, true);
 		    displayField(src, rsrc, brightMult, 1, 1);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_P:
-		    clearDisplay();
+		    displayScalar(src, rsrc, 0, true);
 		    displayField(src, rsrc, brightMult, 0, 1);
 		    break;
 		}
