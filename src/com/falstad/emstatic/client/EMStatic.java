@@ -136,6 +136,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int MODE_FUNCHOLD = 3;
 	static final int DISP_FIELD = 0;
 	static final int DISP_LINES = 1;
+	static final int DISP_E_LINES = 2;
 	static final int DISP_POT = 3;
 	static final int DISP_3D = 4;
 	static final int DISP_CHARGE = 5;
@@ -143,6 +144,13 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	static final int DISP_P = 7;
 	static final int DISP_POLARIZATION_CHARGE = 8;
 	static final int DISP_E_RHO = 9;
+	static final int DISP_E_LINES_RHO = 10;
+	static final int DISP_E_POT = 11;
+	static final int DISP_E_LINES_POT = 12;
+	static final int DISP_EX = 13;
+	static final int DISP_EY = 14;
+	static final int DISP_DX = 15;
+	static final int DISP_DY = 16;
 	int dragX, dragY, dragStartX = -1, dragStartY;
 	int selectedSource = -1;
 	int sourceIndex;
@@ -1294,6 +1302,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    equipMult = 0;
 		int i;
 		int rsrc = rtnum-1;
+		boolean lines = false;
 		// tweak brightness for potential display or 3D
 		switch (displayChooser.getSelectedIndex()) {
 		case DISP_POT:
@@ -1304,6 +1313,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    // this only includes calculated charge, need to show charge objects too!
 		    displayScalar(chargeSource, rsrc, brightMult, false);
 		    break;
+		case DISP_E_LINES_RHO:
+		    lines = true;
 		case DISP_E_RHO:
 		    // this only includes calculated charge, need to show charge objects too!
 		    displayScalar(chargeSource, rsrc, brightMult, false);
@@ -1313,9 +1324,20 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		case DISP_3D:
 		    display3D(src, rsrc, brightMult*.05333, equipMult);
 		    break;
-		case DISP_FIELD:
 		case DISP_LINES:
+		    lines = true;
+		    break;
+		case DISP_E_LINES:
+		    lines = true;
+		case DISP_FIELD:
 		    displayScalar(src, rsrc, 0, true);
+		    displayField(src, rsrc, brightMult, 1, 0);
+		    displayEquip(src, rsrc, equipMult);
+		    break;
+		case DISP_E_LINES_POT:
+		    lines = true;
+		case DISP_E_POT:
+		    displayScalar(src, rsrc, brightMult*.02666, true);
 		    displayField(src, rsrc, brightMult, 1, 0);
 		    displayEquip(src, rsrc, equipMult);
 		    break;
@@ -1329,7 +1351,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    displayField(src, rsrc, brightMult, 0, 1);
 		    break;
 		}
-		if (displayChooser.getSelectedIndex() == DISP_LINES) {
+		if (lines) {
 		    fetchPotentialPixels(src);
 		    for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
