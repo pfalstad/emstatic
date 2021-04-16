@@ -436,14 +436,14 @@ void main()
 
     uniform sampler2D uSourceTexture;
     uniform sampler2D uRightSideTexture;
-    uniform vec3 mult;
+    uniform vec4 mult;
 
 void main()
 {
         highp vec4 pv = texture2D(uSourceTexture, vTextureCoord);
         highp vec4 rv = texture2D(uRightSideTexture, vTextureCoord);
         //gl_FragColor = vec4(pv.r+rv.r, pv.g+rv.g, rv.b, 1.0);
-        gl_FragColor = vec4(pv.rgb+rv.rgb*mult, 1.0);
+        gl_FragColor = vec4(pv.r+rv.r*mult.r+rv.g*mult.a, pv.g+rv.g*mult.g, pv.b+rv.b*mult.b, 1.0);
 }
 
 </script>

@@ -588,7 +588,7 @@ function isPowerOf2(value) {
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.uniform1i(prog.rightSideTextureUniform, 1);
-        gl.uniform3fv(prog.multUniform, mult);
+        gl.uniform4fv(prog.multUniform, mult);
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
@@ -1003,7 +1003,7 @@ function isPowerOf2(value) {
 
         loadMatrix(pMatrix);
         setMatrixUniforms(shaderProgramDraw);
-        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0.0, pot, med, 1.0);
+        gl.vertexAttrib4f(shaderProgramDraw.colorAttribute, 0, pot, med, 1.0);
         gl.drawElements(gl.TRIANGLES, tess.elements.length, gl.UNSIGNED_SHORT, 0);
         gl.disableVertexAttribArray(shaderProgramDraw.vertexPositionAttribute);
 

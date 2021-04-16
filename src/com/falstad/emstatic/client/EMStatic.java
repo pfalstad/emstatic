@@ -377,8 +377,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.sum(src);
 	}-*/;
 	
-	static native void addTextures(int src, int src2, float rmult, float gmult) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.addMult(src, src2, [rmult, gmult, 0]);
+	static native void addTextures(int src, int src2, float rmult, float gmult, float rgmult) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.addMult(src, src2, [rmult, gmult, 0, rgmult]);
 	}-*/;
 	
 	static native double getCharge() /*-{
@@ -990,7 +990,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    // set destination to a fine grid and add result of last step
 	    // to the fine grid solution we got earlier.
 	    setDestinationRenderTexture(dest);
-	    addTextures(correction, src, 1, 1);
+	    addTextures(correction, src, 1, 1, 0);
 	    { int q = dest; dest = src; src = q; }
 
 	    // iterate some more on fine grid
@@ -1022,7 +1022,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		// add scratch texture to destination
 		setDestinationRenderTexture(scratch2);
-		addTextures(scratch1, dest, 1, 1);
+		addTextures(scratch1, dest, 1, 1, 0);
 
 		// copy to destination
 		setDestinationRenderTexture(dest);
@@ -1203,7 +1203,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    
 		    setDestinationRenderTexture(finalSrc);
 		    copyTextureRGB(src);
-		    calculateCharge(src);
+		    int spare = (src == rtnum-2) ? rtnum-3 : rtnum-2; 
+		    calculateCharge(src, spare);
 		    return;
 		}
 		
@@ -1231,15 +1232,16 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    finalSrc = rtnum;
 		}
 		
-		calculateCharge(src);
+		int spare = (src == rtnum-2) ? rtnum-3 : rtnum-2; 
+		calculateCharge(src, spare);
 	    }
 	    
-	    void calculateCharge(int csrc) {
+	    void calculateCharge(int csrc, int spare) {
 		// calculate charge on conductors given potential calculation in csrc
 		setChargeSource(csrc);
 		int i;
 		for (i = 0; i != dragObjects.size(); i++) {
-		    int src = csrc-1;
+		    int src = spare;
 		    DragObject obj = dragObjects.get(i);
 		    if (!obj.isConductor())
 			continue;
@@ -1267,9 +1269,11 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		
 		// now do it again to get one map with all charges
-		int src = csrc-1;
+		int src = spare;
 		setDestinationRenderTexture(src);
-		clearDestination();
+		int rtnum = getRenderTextureCount();
+		addTextures(rtnum-1, rtnum-1, 0, 0, 1);
+//		clearDestination();
 		for (i = 0; i != dragObjects.size(); i++) {
 		    DragObject obj = dragObjects.get(i);
 		    if (!obj.isConductor())
