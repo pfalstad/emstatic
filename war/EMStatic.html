@@ -100,6 +100,52 @@ void main(void) {
 }
 </script>
 
+<script id="shader-display-scalar-field-fs" type="x-shader/x-fragment">
+// shader for displaying ex, ey, etc
+
+#define TS_COL_NEUTRAL 0
+#define TS_COL_MATERIAL 1
+#define TS_COL_POS 2
+#define TS_COL_NEG 3
+#define TS_COL_COUNT 4
+
+precision mediump float;
+
+varying vec2 vTextureCoord;
+varying vec4 vPosition;
+
+uniform sampler2D uSampler;
+uniform sampler2D uRightSideTexture;
+uniform float stepSizeX, stepSizeY;
+uniform lowp vec3 colors[TS_COL_COUNT];
+uniform float mults[5];
+
+void main(void) {
+  float alpha = 1.0;
+  vec4 p0 = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+  vec4 pa = texture2D(uSampler, vec2(vTextureCoord.s+stepSizeX, vTextureCoord.t));
+  vec4 pb = texture2D(uSampler, vec2(vTextureCoord.s-stepSizeX, vTextureCoord.t));
+  vec4 pc = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t+stepSizeY));
+  vec4 pd = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t-stepSizeY));
+  vec4 rightSideColor = texture2D(uRightSideTexture, vec2(vTextureCoord.s, vTextureCoord.t));
+
+  // blue channel used to store walls/media
+  float med = rightSideColor.b;
+  vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+  // red channel used to store potential
+  float r = (mults[0]*(pb.r-pa.r) + mults[1]*(pc.r-pd.r))*(mults[2]+mults[3]*(med-1.));
+  r += mults[4]*(pb.r*(pb.b-1.)-pa.r*(pa.b-1.)-pc.r*(pc.b-1.)+pd.r*(pd.b-1.));
+  r = clamp(r, -1., 1.);
+  vec3 col;
+  if (r > 0.0)
+    col = mix(zerocol, colors[TS_COL_POS], r);
+  else
+    col = mix(zerocol, colors[TS_COL_NEG], -r);
+  gl_FragColor = vec4(col, 1.);
+}
+
+</script>
+
 <script id="shader-equipotential-fs" type="x-shader/x-fragment">
     precision mediump float;
 

@@ -52,7 +52,7 @@ const MT_DIELECTRIC = 3;
 
     var shaderProgramMain, shaderProgramRelax, shaderProgramAcoustic, shaderProgramDraw, shaderProgramMode;
     var shaderProgramCopyRG, shaderProgramResidual, shaderProgramViewCharge, shaderProgramCalcCharge, shaderProgramSum;
-    var shaderProgramCopyRGB;
+    var shaderProgramCopyRGB, shaderProgramScalarField;
 
     function initShader(fs, vs, prefix) {
         var fragmentShader = getShader(gl, fs, prefix);
@@ -89,6 +89,14 @@ const MT_DIELECTRIC = 3;
     	shaderProgramMain.brightnessUniform = gl.getUniformLocation(shaderProgramMain, "brightness");
     	shaderProgramMain.colorsUniform = gl.getUniformLocation(shaderProgramMain, "colors");
         shaderProgramMain.rightSideTextureUniform = gl.getUniformLocation(shaderProgramMain, "uRightSideTexture");
+
+    	shaderProgramScalarField = initShader("shader-display-scalar-field-fs", "shader-vs", null);
+    	shaderProgramScalarField.brightnessUniform = gl.getUniformLocation(shaderProgramScalarField, "brightness");
+    	shaderProgramScalarField.colorsUniform = gl.getUniformLocation(shaderProgramScalarField, "colors");
+        shaderProgramScalarField.rightSideTextureUniform = gl.getUniformLocation(shaderProgramScalarField, "uRightSideTexture");
+    	shaderProgramScalarField.stepSizeXUniform = gl.getUniformLocation(shaderProgramScalarField, "stepSizeX");
+    	shaderProgramScalarField.stepSizeYUniform = gl.getUniformLocation(shaderProgramScalarField, "stepSizeY");
+    	shaderProgramScalarField.multsUniform = gl.getUniformLocation(shaderProgramScalarField, "mults");
 
     	shaderProgram3D = initShader("shader-3d-fs", "shader-3d-vs", null);
     	shaderProgram3D.brightnessUniform = gl.getUniformLocation(shaderProgram3D, "brightness");
@@ -1147,6 +1155,55 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, fullScreenVertexPositionBuffer.numItems);
         gl.disableVertexAttribArray(shaderProgramMain.vertexPositionAttribute);
         gl.disableVertexAttribArray(shaderProgramMain.textureCoordAttribute);
+
+        mvPopMatrix();
+    }
+
+    renderer.displayScalarField = function (s, rs, mults) {
+        var prog = shaderProgramScalarField;
+        gl.useProgram(prog);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+        gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+	gl.clearColor(0, 0, 0, 1);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+
+        mat4.identity(pMatrix);
+        mat4.identity(mvMatrix);
+        mvPushMatrix();
+
+        // draw result
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
+        gl.vertexAttribPointer(prog.vertexPositionAttribute, fullScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        
+        gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
+        gl.vertexAttribPointer(prog.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, renderTextures[rs].texture);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        gl.uniform1i(prog.samplerUniform, 0);
+        gl.uniform1i(prog.rightSideTextureUniform, 2);
+        gl.uniform1f(prog.stepSizeXUniform, 1/gridSizeX);
+        gl.uniform1f(prog.stepSizeYUniform, 1/gridSizeY);
+        gl.uniform1fv(prog.multsUniform, mults);
+        gl.uniform3fv(prog.colorsUniform, colors);
+
+        setMatrixUniforms(prog);
+        gl.enableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.enableVertexAttribArray(prog.textureCoordAttribute);
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, fullScreenVertexPositionBuffer.numItems);
+        gl.disableVertexAttribArray(prog.vertexPositionAttribute);
+        gl.disableVertexAttribArray(prog.textureCoordAttribute);
 
         mvPopMatrix();
     }

@@ -317,6 +317,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.displayScalar(src, rs, bright, potential);
 	}-*/;
 
+	static native void displayScalarField(int src, int rs, double m1, double m2, double m3, double m4, double m5) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.displayScalarField(src, rs, [m1, m2, m3, m4, m5]);
+	}-*/;
+	
 	static native void displayEquip(int src, int rs, double equipMult) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.drawSceneEquip(src, rs, equipMult);
 	}-*/;
@@ -1349,6 +1353,21 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		case DISP_P:
 		    displayScalar(src, rsrc, 0, true);
 		    displayField(src, rsrc, brightMult, 0, 1);
+		    break;
+		case DISP_POLARIZATION_CHARGE:
+		    displayScalarField(src, rsrc, 0, 0, 0, 0, brightMult);
+		    break;
+		case DISP_EX:
+		    displayScalarField(src, rsrc, 1, 0, brightMult, 0, 0);
+		    break;
+		case DISP_EY:
+		    displayScalarField(src, rsrc, 0, -1, brightMult, 0, 0);
+		    break;
+		case DISP_DX:
+		    displayScalarField(src, rsrc, 1, 0, brightMult, brightMult, 0);
+		    break;
+		case DISP_DY:
+		    displayScalarField(src, rsrc, 0, -1, brightMult, brightMult, 0);
 		    break;
 		}
 		if (lines) {
