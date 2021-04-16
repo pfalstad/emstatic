@@ -120,8 +120,10 @@ const MT_DIELECTRIC = 3;
     	shaderProgramSum.stepSizeXUniform = gl.getUniformLocation(shaderProgramSum, "stepSizeX");
     	shaderProgramSum.stepSizeYUniform = gl.getUniformLocation(shaderProgramSum, "stepSizeY");
 
-    	shaderProgramAdd = initShader("shader-add-fs", "shader-vs", null);
-    	shaderProgramSubtract = initShader("shader-subtract-fs", "shader-vs", null);
+    	shaderProgramAdd = initShader("shader-add-mult-fs", "shader-vs", null);
+    	shaderProgramAdd.multUniform = gl.getUniformLocation(shaderProgramAdd, "mult");
+
+    	//shaderProgramSubtract = initShader("shader-subtract-fs", "shader-vs", null);
     	shaderProgramCopyRG = initShader("shader-copy-rg-fs", "shader-vs", null);
     	shaderProgramCopyRGB = initShader("shader-copy-rgb-fs", "shader-vs", null);
 
@@ -550,7 +552,7 @@ function isPowerOf2(value) {
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
     }
 
-    renderer.add = function (srcnum, rsnum) {
+    renderer.addMult = function (srcnum, rsnum, mult) {
     	var sourceRT = renderTextures[srcnum];
     	var rightSideRT = renderTextures[rsnum];
         var prog = shaderProgramAdd;
@@ -586,6 +588,7 @@ function isPowerOf2(value) {
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         gl.uniform1i(prog.rightSideTextureUniform, 1);
+        gl.uniform3fv(prog.multUniform, mult);
  
         setMatrixUniforms(prog);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
@@ -596,7 +599,7 @@ function isPowerOf2(value) {
     renderer.calcDifference = function (src1, src2) {
     	var sourceRT = renderTextures[src1];
     	var rightSideRT = renderTextures[src2];
-        var prog = shaderProgramSubtract;
+        var prog = shaderProgramAdd;
         gl.useProgram(prog);
         //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
@@ -631,6 +634,7 @@ function isPowerOf2(value) {
         gl.uniform1i(prog.rightSideTextureUniform, 1);
  
         setMatrixUniforms(prog);
+        gl.uniform3f(prog.multUniform, -1, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);

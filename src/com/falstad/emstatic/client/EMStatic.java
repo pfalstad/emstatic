@@ -377,8 +377,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.sum(src);
 	}-*/;
 	
-	static native void addTextures(int src, int src2) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.add(src, src2);
+	static native void addTextures(int src, int src2, float rmult, float gmult) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.addMult(src, src2, [rmult, gmult, 0]);
 	}-*/;
 	
 	static native double getCharge() /*-{
@@ -990,7 +990,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	    // set destination to a fine grid and add result of last step
 	    // to the fine grid solution we got earlier.
 	    setDestinationRenderTexture(dest);
-	    addTextures(correction, src);
+	    addTextures(correction, src, 1, 1);
 	    { int q = dest; dest = src; src = q; }
 
 	    // iterate some more on fine grid
@@ -1022,7 +1022,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		// add scratch texture to destination
 		setDestinationRenderTexture(scratch2);
-		addTextures(scratch1, dest);
+		addTextures(scratch1, dest, 1, 1);
 
 		// copy to destination
 		setDestinationRenderTexture(dest);
