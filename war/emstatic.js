@@ -634,7 +634,7 @@ function isPowerOf2(value) {
         gl.uniform1i(prog.rightSideTextureUniform, 1);
  
         setMatrixUniforms(prog);
-        gl.uniform3f(prog.multUniform, -1, 0, 0);
+        gl.uniform4f(prog.multUniform, -1, 0, 0, 0);
         gl.drawArrays(gl.TRIANGLES, 0, simVertexPositionBuffer.numItems);
         gl.disableVertexAttribArray(prog.vertexPositionAttribute);
         gl.disableVertexAttribArray(prog.textureCoordAttribute);
