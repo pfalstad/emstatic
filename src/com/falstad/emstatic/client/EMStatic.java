@@ -1272,7 +1272,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		int src = spare;
 		setDestinationRenderTexture(src);
 		int rtnum = getRenderTextureCount();
-		addTextures(rtnum-1, rtnum-1, 0, 0, 1);
+		addTextures(rtnum-1, rtnum-1, 0, 0, .05e-4f); // scale factor determined by trial and error
 //		clearDestination();
 		for (i = 0; i != dragObjects.size(); i++) {
 		    DragObject obj = dragObjects.get(i);
