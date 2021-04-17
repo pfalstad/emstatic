@@ -1334,6 +1334,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    break;
 		case DISP_LINES:
 		    lines = true;
+		    displayScalar(src, rsrc, 0, true);
 		    break;
 		case DISP_E_LINES:
 		    lines = true;

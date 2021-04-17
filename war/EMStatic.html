@@ -87,7 +87,8 @@ void main(void) {
 
     // blue channel used to store walls/media
     float med = rightSideColor.b;
-    vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+    float chg = rightSideColor.g;
+    vec3 zerocol = (med != 1.0 || chg != 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
     // red channel used to store potential
     float r =  textureColor.r*brightness;
     r = clamp(r, -1., 1.);
@@ -131,7 +132,8 @@ void main(void) {
 
   // blue channel used to store walls/media
   float med = rightSideColor.b;
-  vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+  float chg = rightSideColor.g;
+  vec3 zerocol = (med != 1.0 || chg != 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
   // red channel used to store potential
   float r = (mults[0]*(pb.r-pa.r) + mults[1]*(pc.r-pd.r))*(mults[2]+mults[3]*(med-1.));
   r += mults[4]*(pb.r*(pb.b-1.)-pa.r*(pa.b-1.)-pc.r*(pc.b-1.)+pd.r*(pd.b-1.));
@@ -496,8 +498,8 @@ void main()
         vTextureCoord = tc;
 
         // blue channel used to store walls/media
-        float med = 1.0; // rightSideColor.b;
-        vec3 zerocol = (med == 0.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
+        float med = 1.0;
+        vec3 zerocol = (med != 1.0) ? colors[TS_COL_MATERIAL] : colors[TS_COL_NEUTRAL];
         // red channel used to store potential
         r = clamp(r, -1., 1.);
         vec3 col;
