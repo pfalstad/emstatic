@@ -102,11 +102,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	public static final double freqMult = .0233333 * 5;
 
 	// Container main;
-	Button blankButton;
-	Button blankWallsButton;
-	Button borderButton;
-	Button boxButton;
-	Button exportButton;
 	Checkbox stoppedCheck;
 //	Checkbox debugCheck1, debugCheck2;
 	Checkbox equipCheck;
@@ -118,10 +113,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	DragObject selectedObject, mouseObject, menuObject;
 	DragHandle draggingHandle;
 	Setup setup;
-	Scrollbar dampingBar;
-	Scrollbar speedBar;
-	Scrollbar freqBar;
-	Scrollbar resBar;
 	Scrollbar brightnessBar;
 	Scrollbar equipotentialBar;
 	double dampcoef;
@@ -271,11 +262,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		verticalPanelWidth = fullwidth-width;
 		if (layoutPanel != null)
 			layoutPanel.setWidgetSize(verticalPanel, verticalPanelWidth);
-		if (resBar != null) {
-			resBar.setWidth(verticalPanelWidth);
-			dampingBar.setWidth(verticalPanelWidth);
-			speedBar.setWidth(verticalPanelWidth);
-			freqBar.setWidth(verticalPanelWidth);
+		if (brightnessBar != null) {
 			brightnessBar.setWidth(verticalPanelWidth);
 			equipotentialBar.setWidth(verticalPanelWidth);
 		}
@@ -514,9 +501,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 //		verticalPanel.add(sourceChooser);
 //		verticalPanel.add(modeChooser);
 		verticalPanel.add(displayChooser);
-		verticalPanel.add(colorChooser);
-		verticalPanel.add(blankButton = new Button("Clear Waves"));
-		blankButton.addClickHandler(this);
+//		verticalPanel.add(colorChooser);
 
 		verticalPanel.add(stoppedCheck = new Checkbox("Stopped"));
 		verticalPanel.add(equipCheck = new Checkbox("Show Equipotentials", true));
@@ -530,27 +515,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		int res = 512;
 		Label l;
-		verticalPanel.add(l = new Label("Simulation Speed"));
-        l.addStyleName("topSpace");
-		verticalPanel.add(speedBar = new Scrollbar(Scrollbar.HORIZONTAL, 4, 1, 1, 220, new Command() { public void execute() { recalcAndRepaint(); }}));
-		verticalPanel.add(l = new Label("Resolution"));
-        l.addStyleName("topSpace");
-		verticalPanel.add(resBar = new Scrollbar(Scrollbar.HORIZONTAL, res, 5, 64, 1024));
-		resBar.addClickHandler(this);
-		setResolution();
-		
-//		verticalPanel.add(new Label("Damping"));
-//		verticalPanel.add(
-				dampingBar = new Scrollbar(Scrollbar.HORIZONTAL, 10, 1, 2, 100);
-//						);
-		dampingBar.addClickHandler(this);
-		verticalPanel.add(l = new Label("Source Frequency"));
-        l.addStyleName("topSpace");
-		verticalPanel.add(freqBar = new Scrollbar(Scrollbar.HORIZONTAL, freqBarValue = 15, 1, 1, 30,
-				new Command() {
-			public void execute() { if (!ignoreFreqBarSetting) setFreq(); }
-		}));
-//		freqBar.addClickHandler(this);
 		verticalPanel.add(l = new Label("Brightness"));
         l.addStyleName("topSpace");
 		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
@@ -567,10 +531,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 
 		
         l.addStyleName("topSpace");
-		resBar.setWidth(verticalPanelWidth);
-		dampingBar.setWidth(verticalPanelWidth);
-		speedBar.setWidth(verticalPanelWidth);
-		freqBar.setWidth(verticalPanelWidth);
 		brightnessBar.setWidth(verticalPanelWidth);
 		equipotentialBar.setWidth(verticalPanelWidth);
 
@@ -1446,20 +1406,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		dampcoef = 1;
 	}
 
-	void setFreqBar(int x) {
-		freqBar.setValue(x);
-		freqBarValue = x;
-		freqTimeZero = 0;
-	}
-
-	void setFreq() {
-	}
-
-	void setResolution() {
-		int newWidth = resBar.getValue();
-		setResolution(newWidth, 0);
-	}
-
 	void setResolution(int ns, int border) {
 		int newSize = 1;
 		while (newSize < ns)
@@ -1514,11 +1460,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (setupList.size() == 0)
 			return;
 		resetTime();
-		if (resBar.getValue() < 32)
-			setResolution(32);
 		deleteAllObjects();
-		dampingBar.setValue(10);
-		setFreqBar(5);
 		setBrightness(10);
 		setup = (Setup) setupList.elementAt(setupChooser.getSelectedIndex());
 		setup.select();
@@ -1682,7 +1624,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		String dump = "";
 
 		int i;
-		dump = "$ 1 " + windowWidth + " " + windowOffsetX + " " + dampingBar.getValue() + " " +
+		dump = "$ 1 " + windowWidth + " " + windowOffsetX + " 0 " +
 				displayChooser.getSelectedIndex() + " " + brightnessBar.getValue() + " " + lengthScale + " " + equipotentialBar.getValue() + "\n";
 /*		for (i = 0; i != sourceCount; i++) {
 			OscSource src = sources[i];
@@ -1741,8 +1683,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 				setResolution(ww+wo*2, wo);
 				reinit(false);
 
-				dampingBar.setValue(Integer.parseInt(st.nextToken()));
+				// ignore old junk
 				st.nextToken();
+				st.nextToken();
+				
 				//						displayChooser.setSelectedIndex(Integer.parseInt(st.nextToken()));
 				brightnessBar.setValue(new Integer(st.nextToken())
 					.intValue());
@@ -2210,15 +2154,6 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	public void onClick(ClickEvent event) {
 //		event.preventDefault();
 		repaint();
-		if (event.getSource() == resBar) {
-		    setResolution();
-//		    reinit();
-		}
-		if (event.getSource() == dampingBar)
-		    setDamping();
-		if (event.getSource() == freqBar) {
-		    setFreq();
-		}
 	}
 
 	@Override
