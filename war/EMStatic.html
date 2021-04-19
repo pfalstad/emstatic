@@ -588,7 +588,7 @@ uniform float stepSizeY;
 uniform float brightness;
 varying mat2 vMatrix;
 uniform mat3 uTextureMatrix;
-uniform float uEMult, uPMult;
+uniform float uEMult, uPMult, pointSize;
 
 highp vec4 getAdjacentCell(highp vec2 coords, highp float offsetX, highp float offsetY) {
   return texture2D(uSampler, (uTextureMatrix * vec3(coords.x+offsetX, coords.y+offsetY, 1.0)).xy);
@@ -611,7 +611,7 @@ void main() {
   vColor = col > 1.0 ? vec4(col-1.0, 1.0, col-1.0, 1.0) : vec4(0.0, 1.0, 0.0, col);
   vMatrix = mat2(grad.y*mult, grad.x*mult, -grad.x*mult, grad.y*mult);
   gl_Position = vec4(aVertexPosition.xy, 0.0, 1.0);
-  gl_PointSize = 16.0;
+  gl_PointSize = pointSize;
   
 }
 

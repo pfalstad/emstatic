@@ -115,6 +115,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	Setup setup;
 	Scrollbar brightnessBar;
 	Scrollbar equipotentialBar;
+	Scrollbar vectorDensityBar;
 	double dampcoef;
 	double freqTimeZero;
 	double movingSourcePos = 0;
@@ -265,6 +266,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (brightnessBar != null) {
 			brightnessBar.setWidth(verticalPanelWidth);
 			equipotentialBar.setWidth(verticalPanelWidth);
+			vectorDensityBar.setWidth(verticalPanelWidth);
 		}
 		if (cv != null) {
 			cv.setWidth(width + "PX");
@@ -316,8 +318,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.drawScene3D(src, rs, bright, equipMult);
 	}-*/;
 
-	static native void displayField(int src, int rs, double bright, double emult, double pmult) /*-{
-		@com.falstad.emstatic.client.EMStatic::renderer.displayField(src, rs, bright, emult, pmult);
+	static native void displayField(int src, int rs, double bright, double emult, double pmult, int vecdensity) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.displayField(src, rs, bright, emult, pmult, vecdensity);
 	}-*/;
 
 	static native void fetchPotentialPixels(int src) /*-{
@@ -513,17 +515,23 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         if (LoadFile.isSupported())
             verticalPanel.add(loadFileInput = new LoadFile(this));
 
-		int res = 512;
-		Label l;
-		verticalPanel.add(l = new Label("Brightness"));
+        int res = 512;
+        Label l;
+        verticalPanel.add(l = new Label("Brightness"));
         l.addStyleName("topSpace");
-		verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
-			new Command() { public void execute() { repaint(); }}));
-		verticalPanel.add(l = new Label("Equipotential Count"));
-	        l.addStyleName("topSpace");
-			verticalPanel.add(equipotentialBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
-				new Command() { public void execute() { repaint(); }}));
+        verticalPanel.add(brightnessBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
+        	new Command() { public void execute() { repaint(); }}));
+
+        verticalPanel.add(l = new Label("Equipotential Count"));
+        l.addStyleName("topSpace");
+        verticalPanel.add(equipotentialBar = new Scrollbar(Scrollbar.HORIZONTAL, 27, 1, 1, 2200,
+        	new Command() { public void execute() { repaint(); }}));
 		
+        verticalPanel.add(l = new Label("Vector Density"));
+        l.addStyleName("topSpace");
+        verticalPanel.add(vectorDensityBar = new Scrollbar(Scrollbar.HORIZONTAL, 60, 1, 20, 200,
+        	new Command() { public void execute() { repaint(); }}));
+
         verticalPanel.add(iFrame = new Frame("iframe.html"));
         iFrame.setWidth(verticalPanelWidth+"px");
         iFrame.setHeight("100 px");
@@ -533,6 +541,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         l.addStyleName("topSpace");
 		brightnessBar.setWidth(verticalPanelWidth);
 		equipotentialBar.setWidth(verticalPanelWidth);
+		vectorDensityBar.setWidth(verticalPanelWidth);
 
 		absolutePanel = new AbsolutePanel();
 		coordsLabel = new Label("(0,0)");
@@ -1285,7 +1294,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		case DISP_E_RHO:
 		    // this only includes calculated charge, need to show charge objects too!
 		    displayScalar(chargeSource, rsrc, brightMult, false);
-		    displayField(src, rsrc, brightMult, 1, 0);
+		    displayField(src, rsrc, brightMult, 1, 0, vectorDensityBar.getValue());
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_3D:
@@ -1299,24 +1308,24 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		    lines = true;
 		case DISP_FIELD:
 		    displayScalar(src, rsrc, 0, true);
-		    displayField(src, rsrc, brightMult, 1, 0);
+		    displayField(src, rsrc, brightMult, 1, 0, vectorDensityBar.getValue());
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_E_LINES_POT:
 		    lines = true;
 		case DISP_E_POT:
 		    displayScalar(src, rsrc, brightMult*.02666, true);
-		    displayField(src, rsrc, brightMult, 1, 0);
+		    displayField(src, rsrc, brightMult, 1, 0, vectorDensityBar.getValue());
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_D:
 		    displayScalar(src, rsrc, 0, true);
-		    displayField(src, rsrc, brightMult, 1, 1);
+		    displayField(src, rsrc, brightMult, 1, 1, vectorDensityBar.getValue());
 		    displayEquip(src, rsrc, equipMult);
 		    break;
 		case DISP_P:
 		    displayScalar(src, rsrc, 0, true);
-		    displayField(src, rsrc, brightMult, 0, 1);
+		    displayField(src, rsrc, brightMult, 0, 1, vectorDensityBar.getValue());
 		    break;
 		case DISP_POLARIZATION_CHARGE:
 		    displayScalarField(src, rsrc, 0, 0, 0, 0, brightMult);
