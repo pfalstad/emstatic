@@ -1031,7 +1031,6 @@ function isPowerOf2(value) {
 
         // grid containing calculated charge
     	var sourceRT = renderTextures[renderer.chargeSource];
-console.log("displaying charge from " + renderer.chargeSource);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -1071,7 +1070,6 @@ console.log("displaying charge from " + renderer.chargeSource);
 
         // potential grid to calculate the charge from
     	var sourceRT = renderTextures[renderer.chargeSource];
-console.log("calculating charge from " + renderer.chargeSource);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, sourceRT.texture);
     	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -1313,8 +1311,10 @@ console.log("calculating charge from " + renderer.chargeSource);
             var rr = potPixels[ind+4];
             var dx = rr-rl;
             var dy = rd-ru;
-            var dl = Math.hypot(dx, dy)*dir;
+            var dl = Math.hypot(dx, dy);
             if (dl == 0) break;
+            if (dl*brightness < .05) break;
+            dl *= dir;
             x += dx/dl;
             y += dy/dl;
             coords.push(x, y);
@@ -1373,18 +1373,10 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.viewportHeight = canvas.height;
         gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
 	gl.clearColor(0, 0, 0, 1);
-        //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         mat4.identity(pMatrix);
         mat4.identity(mvMatrix);
         mvPushMatrix();
-
-        // draw result
-        //gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexPositionBuffer);
-        //gl.vertexAttribPointer(shaderProgramEquip.vertexPositionAttribute, fullScreenVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-        
-        //gl.bindBuffer(gl.ARRAY_BUFFER, fullScreenVertexTextureCoordBuffer);
-        //gl.vertexAttribPointer(shaderProgramFieldVector.textureCoordAttribute, fullScreenVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, renderTextures[s].texture);
@@ -1421,9 +1413,7 @@ console.log("calculating charge from " + renderer.chargeSource);
         matx[6] = windowOffsetX/gridSizeX + matx[0];
         matx[7] = windowOffsetY/gridSizeY + matx[4];
 	gl.uniformMatrix3fv(shaderProgramFieldVector.textureMatrixUniform, false, matx);
-        //gl.uniform3fv(shaderProgramEquip.colorsUniform, colors);
 
-        //setMatrixUniforms(shaderProgramEquip);
         gl.enableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
         gl.enable(gl.BLEND);
         // canvas background color must be black for this to work (otherwise white may show through)
@@ -1431,9 +1421,6 @@ console.log("calculating charge from " + renderer.chargeSource);
         gl.drawArrays(gl.POINTS, 0, coords.length/2);
         gl.disable(gl.BLEND);
         gl.disableVertexAttribArray(shaderProgramEquip.vertexPositionAttribute);
-        //gl.disableVertexAttribArray(shaderProgramEquip.textureCoordAttribute);
-
-        //mvPopMatrix();
     }
 
     renderer.checkIntersection = function (bounds1, bounds2) {
