@@ -1258,6 +1258,8 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		if (calcLevel == 0)
 		    calcStart = System.currentTimeMillis(); 
 		int rtnum = getRenderTextureCount();
+		if (rtnum == 0 || gridSizeX == 0)
+		    return;
 		if (calcLevel < 2000) {
 		    recalculate();
 		    if (calcLevel < 2000)
