@@ -1,6 +1,6 @@
 ### setuplist.txt first line must be a comment
-charge-single.txt Single Charge
 charge-double.txt Double Charge
+charge-single.txt Single Charge
 charge-dipole.txt Dipole Charge
 charge-plane.txt Charge + Plane
 dipole-field.txt Dipole + Uniform Field

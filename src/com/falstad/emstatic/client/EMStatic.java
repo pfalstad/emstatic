@@ -496,7 +496,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		displayChooser.add("Show Dy");
 		displayChooser.addChangeHandler(this);
 		displayChooser.addStyleName("topSpace");
-		displayChooser.select(DISP_E_RHO);
+		displayChooser.select(DISP_E_LINES_RHO);
 
 		
 		verticalPanel.add(setupChooser);
