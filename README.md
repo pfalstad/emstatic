@@ -1,7 +1,7 @@
-# ripplegl
-Ripple Tank, webgl version
+# emstatic
+Electrostatics, webgl version
 
-Source for http://www.falstad.com/ripple/
+Source for http://www.falstad.com/emstatic/
 
 ## License
 
