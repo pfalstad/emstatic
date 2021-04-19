@@ -322,6 +322,10 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		@com.falstad.emstatic.client.EMStatic::renderer.displayField(src, rs, bright, emult, pmult, vecdensity);
 	}-*/;
 
+	static native void setBrightness(double b) /*-{
+		@com.falstad.emstatic.client.EMStatic::renderer.setBrightness(b);
+	}-*/;
+	
 	static native void fetchPotentialPixels(int src) /*-{
 		@com.falstad.emstatic.client.EMStatic::renderer.fetchPotentialPixels(src);
 	}-*/;
@@ -1347,6 +1351,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		}
 		if (lines) {
 		    fetchPotentialPixels(src);
+		    setBrightness(brightMult);
 		    for (i = 0; i != dragObjects.size(); i++) {
 			DragObject obj = dragObjects.get(i);
 			obj.drawFieldLines();

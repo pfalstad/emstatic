@@ -1112,6 +1112,10 @@ function isPowerOf2(value) {
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     }
 
+    renderer.setBrightness = function (bright) {
+        brightness = bright;
+    }
+
     renderer.displayScalar = function (s, rs, bright, pot) {
         gl.useProgram(shaderProgramMain);
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
