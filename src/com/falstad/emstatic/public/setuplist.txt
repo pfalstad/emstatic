@@ -34,7 +34,3 @@ shielding1.txt Shielding 1
 shielding2.txt Shielding 2
 one-live-side.txt Box w/ One Live Side
 qlens.txt Quadrupole Lens
-chargetest.txt chargetest
-conductor.txt Conductor
-conductor-charge.txt Conductor and Charge
-charged-cyl.txt Charged Cylinder
