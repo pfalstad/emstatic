@@ -294,6 +294,8 @@ public abstract class DragObject implements Editable {
 		ei.choice.add("Dielectric");
 		ei.choice.add("Floating");
 		ei.choice.setSelectedIndex(materialType-MT_CHARGED);
+		if (permittivity < 1)
+		    permittivity = 2;
 		return ei;
 	    }
 	    if (n == 1 && materialType == MT_CHARGED)
