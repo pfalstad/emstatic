@@ -86,7 +86,7 @@ public class Charge extends DragObject {
 	
     public EditInfo getEditInfo(int n) {
 	if (n == 0)
-	    return new EditInfo("Charge", charge, 0, 10);
+	    return new EditInfo("Charge (C)", charge, 0, 10);
     	return null;
     }
     
