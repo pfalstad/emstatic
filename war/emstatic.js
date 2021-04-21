@@ -286,6 +286,7 @@ function isPowerOf2(value) {
 
         var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
         if (status !== gl.FRAMEBUFFER_COMPLETE) {
+          console.log("failed to create framebuffer");
           return null;
         }
 
