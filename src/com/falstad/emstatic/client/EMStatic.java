@@ -614,6 +614,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	
 	void createMenus() {
 		  fileMenuBar = new MenuBar(true);
+		  fileMenuBar.addItem(new MenuItem("New", new MyCommand("file", "new")));
 		  importFromLocalFileItem = new MenuItem("Import From Local File", new MyCommand("file","importfromlocalfile"));
 		  importFromLocalFileItem.setEnabled(LoadFile.isSupported());
 		  fileMenuBar.addItem(importFromLocalFileItem);
@@ -752,13 +753,17 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         return new MenuItem(s, new MyCommand("main", t));
     }
 
-    public void wallsChanged() {
+    public void needsRecalculate() {
 	calcLevel = 0;
     }
     
     public void menuPerformed(String menu, String item) {
     	if (item=="about")
     		aboutBox = new AboutBox(versionString);
+    	if (item=="new") {
+    	    pushUndo();
+    	    deleteAllObjects();
+    	}
     	if (item=="importfromlocalfile") {
     		pushUndo();
     		loadFileInput.click();
@@ -1464,6 +1469,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	void deleteAllObjects() {
 		dragObjects.removeAllElements();
 		selectedObject = null;
+		needsRecalculate();
 	}
 
 	void resetTime() {
@@ -1739,7 +1745,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
                 }
 
 		setDamping();
-		wallsChanged();
+		needsRecalculate();
 		enableDisableUI();
 	}
 
@@ -2243,7 +2249,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         }
         writeClipboardToStorage();
         enablePaste();
-        wallsChanged();
+        needsRecalculate();
     }
 
     void writeClipboardToStorage() {
@@ -2292,7 +2298,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         }
 
         if ( hasDeleted )
-        	wallsChanged();
+        	needsRecalculate();
     }
 
     void doCopy() {
@@ -2355,7 +2361,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
         if (dragObjects.size() == oldsz+1)
         	selectedObject = dragObjects.get(oldsz);
         preserveSelection = true;
-        wallsChanged();
+        needsRecalculate();
     }
 
     void clearSelection() {
