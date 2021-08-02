@@ -220,7 +220,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 	int verticalPanelWidth;
 	int chargeSource;
 	String startLayoutText = null;
-	String versionString = "1.0";
+	String versionString = "1.0.1";
     public static NumberFormat showFormat, shortFormat, noCommaFormat;
 	static EMStatic theSim;
     static EditDialog editDialog;
@@ -996,6 +996,7 @@ public class EMStatic implements MouseDownHandler, MouseMoveHandler,
 		// draw charged object into scratch texture
 		setDestinationRenderTexture(scratch1);
 		clearDestination();
+                setTransform(1, 0, 0, 0, 1, 0);
 		dragObjects.get(j).writeCharge();
 
 		// add scratch texture to destination
