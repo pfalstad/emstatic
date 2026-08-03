@@ -1,7 +1,9 @@
 # emstatic
 Electrostatics, webgl version
 
-Source for http://www.falstad.com/emstatic/
+Source for http://www.falstad.com/emstatic-old2/
+
+New version is at http://github.com/pfalstad/emstatic-ts
 
 ## License
 
